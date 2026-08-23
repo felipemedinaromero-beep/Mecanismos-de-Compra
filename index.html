@@ -136,6 +136,14 @@
   .explore-card-sub { font-size:11.5px; color:var(--text-secondary); margin:0; line-height:1.4; }
   .explore-card-arrow { flex:0 0 auto; font-size:16px; color:var(--cc-blue); transition:transform .15s ease; }
   .explore-card:hover .explore-card-arrow { transform:translateX(3px); }
+  .pend-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; margin-top:4px; }
+  .pend-card { background:var(--surface-page); border:1px dashed var(--border); border-radius:10px; padding:13px 15px; }
+  .pend-card-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:5px; }
+  .pend-card-title { font-size:13px; font-weight:700; color:var(--cc-dark); }
+  .pend-badge { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--cc-amber); background:rgba(181,117,11,.10); border-radius:5px; padding:2px 7px; flex:0 0 auto; white-space:nowrap; }
+  .pend-card-desc { font-size:11.5px; color:var(--text-secondary); line-height:1.4; margin:0 0 6px; }
+  .pend-card-meta { font-size:10.5px; color:var(--text-secondary); }
+  .pend-card-meta b { color:var(--cc-navy); }
   .filter-row { display:flex; gap:14px; flex-wrap:wrap; margin:4px 0 18px; align-items:flex-end; }
   .filter-field { display:flex; flex-direction:column; gap:5px; }
   .filter-field label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--text-secondary); }
@@ -198,6 +206,29 @@
       </div>
     </div>
     <p class="block-note" style="margin:10px 0 0;">Los montos se expresan en dólares (USD), convirtiendo los montos en pesos chilenos (CLP, ~99% del total) al dólar observado promedio de cada mes según el Banco Central de Chile. Los montos originalmente en UF y EUR (una fracción menor) no se convierten y se muestran aparte en cada ficha.</p>
+  </section>
+
+  <section class="block">
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Mecanismos de la Ley 21.634 aún sin registro en este panel</h2>
+    <p class="block-note">La Ley N° 21.634 (que modificó la Ley 19.886) y su Reglamento, el Decreto N° 661 de 2024, incorporaron nuevos procedimientos de compra al sistema. Compra Ágil (con su tope ampliado a 100 UTM) y Contratación por Cotización ya están representados en las fichas de este panel. Los tres procedimientos siguientes entraron en vigencia el <b>12 de junio de 2025</b>, pero no se encontró ninguna Orden de Compra que corresponda a ellos en los datos de ene-jul 2026 que cubre este panel.</p>
+    <div class="pend-grid">
+      <div class="pend-card">
+        <div class="pend-card-head"><span class="pend-card-title">Subasta Inversa Electrónica</span><span class="pend-badge">0 OC detectadas</span></div>
+        <p class="pend-card-desc">Procedimiento abierto para bienes y servicios estandarizados, donde los proveedores compiten ofreciendo precios cada vez más bajos, mediante un módulo dedicado en Mercado Público.</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
+      </div>
+      <div class="pend-card">
+        <div class="pend-card-head"><span class="pend-card-title">Diálogos Competitivos</span><span class="pend-badge">0 OC detectadas</span></div>
+        <p class="pend-card-desc">Procedimiento especial para necesidades públicas complejas, mediante un diálogo estructurado en fases sucesivas con los proveedores para definir y ajustar la solución.</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
+      </div>
+      <div class="pend-card">
+        <div class="pend-card-head"><span class="pend-card-title">Contratos para la Innovación</span><span class="pend-badge">0 OC detectadas</span></div>
+        <p class="pend-card-desc">Procedimiento orientado a la adquisición de soluciones innovadoras para desafíos públicos, en el marco de la Compra Pública de Innovación (CPI).</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
+      </div>
+    </div>
+    <div class="note-box" style="margin:12px 0 0;">Verificado directamente contra los datos fuente: no existe ningún código de Orden de Compra con sufijo "SIE" ni menciones de "subasta", "diálogo competitivo" o de este tipo de "innovación" en los campos Tipo, DescripcionTipoOC o ProcedenciaOC de los 7 meses analizados. Esto confirma la ausencia dentro de la muestra de organismos y del período que cubre este panel, pero no permite concluir que estos mecanismos no se hayan usado en ningún organismo del país — el dato podría reflejar adopción aún incipiente u otra causa no verificada. Para confirmarlo a nivel nacional conviene revisar directamente en <a href="https://www.chilecompra.cl/subasta-inversa-electronica/" target="_blank" rel="noopener">chilecompra.cl</a> o consultar con el Centro de Ayuda de Mercado Público.</div>
   </section>
 
   <section class="block">
