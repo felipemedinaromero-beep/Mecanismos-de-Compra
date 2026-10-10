@@ -389,6 +389,14 @@
         </div>
         <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
       </a>
+      <a class="explore-card" href="#pac26" target="_blank" rel="noopener">
+        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+        <div class="explore-card-text">
+          <p class="explore-card-title">Buscador PAC 2026</p>
+          <p class="explore-card-sub">Organismos con su PAC 2026 (proyectos, ítems, monto), OC enlazadas con código PAC, cumplimiento y organismos sin PAC publicado</p>
+        </div>
+        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </a>
     </div>
   </section>
 
@@ -440,10 +448,12 @@
 <div id="economiaCircularView" class="wrap" style="display:none;"></div>
 <div id="subastaView" class="wrap" style="display:none;"></div>
 <div id="pacView" class="wrap" style="display:none;"></div>
+<div id="pac26View" class="wrap" style="display:none;"></div>
 
 <script src="data/data.js"></script>
 <script src="data/cp.js"></script>
 <script src="data/pac.js"></script>
+<script src="data/pac26.js"></script>
 <script src="data/cc_oc.js"></script>
 <script src="data/cp_orgs_1.js"></script>
 <script src="data/cp_orgs_2.js"></script>
@@ -3991,7 +4001,7 @@ function renderPacPage(orgCode){
       Volver al panel de mecanismos
     </a>
     <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Plan Anual de Compras (PAC) 2025 y 2026</h1>
-    <p class="block-note">Lo que los organismos públicos planificaron comprar, según los archivos del PAC 2025 y del PAC 2026 con actualización. El PAC es una <b>estimación</b>: no es gasto ni compra efectuada. Marco: art. 12 de la Ley N° 19.886 (texto de la Ley N° 21.634) y arts. 165 a 171 del D.S. N° 661 de 2024. Montos en pesos chilenos (CLP).</p>
+    <p class="block-note">Lo que los organismos públicos planificaron comprar, según los archivos del PAC 2025 y del PAC 2026 con actualización. El PAC es una <b>estimación</b>: no es gasto ni compra efectuada. Marco: art. 12 de la Ley N° 19.886 (texto de la Ley N° 21.634) y arts. 165 a 171 del D.S. N° 661 de 2024. Montos en pesos chilenos (CLP). <a href="#pac26" style="color:var(--cc-navy);font-weight:600;">Ir al buscador PAC 2026 por organismo</a>.</p>
     <div id="pacTop"></div>
     <div id="pacSearch"></div>
     <div id="pacBottom"></div>`;
@@ -4314,6 +4324,314 @@ function pacRenderBottom(){
   document.getElementById('dlPacFlags').innerHTML = dlBtn('pacFlags', 'pac_lineas_extremas.csv', 'Descargar líneas extremas (Excel)');
 }
 
+// ================= Buscador PAC 2026: organismos, enlace OC-PAC y ficha =================
+const PAC26_SH = {};
+function PAC26_SHARD(o){ PAC26_SH[o.s] = o; }
+const P6 = {q: '', tipo: '', region: '', estado: '', sort: 'plan', dir: -1, page: 0, ent: null, det: null, pq: '', pestado: '', ppage: 0, psort: 'plan', pdir: -1, iq: '', ipage: 0, oq: '', opage: 0, nq: '', npage: 0, open: {}};
+// índices de fila
+const E = {name: 0, rut: 1, tipo: 2, region: 3, flags: 4, codes: 5, pidxs: 6, nOC: 7, clp: 8, nCod: 9, nEnl: 10, nNoEnc: 11, clpEnl: 12, proy: 13, proyOC: 14, plan: 15, planOC: 16, acot: 17, items: 18, nExt: 19, dashN: 20, dashUsd: 21};
+function p6Key(r){ return r[E.codes][0] ? 'c' + r[E.codes][0] : 'n' + r[E.name]; }
+function p6Find(key){ if(!key) return null; const t = key[0], v = key.slice(1); return PAC26.orgs.find(r => t === 'c' ? r[E.codes].includes(v) : r[E.name] === v) || null; }
+function p6Pct(a, b, d){ return b ? (100 * a / b).toLocaleString('es-CL', {minimumFractionDigits: d == null ? 1 : d, maximumFractionDigits: d == null ? 1 : d}) + '%' : '—'; }
+function p6Day(d){ return new Date(Date.UTC(2026, 0, 1 + d)).toISOString().slice(0, 10); }
+function p6Estado(r){
+  const f = r[E.flags];
+  if(!(f & 1)) return 'Fuera del registro MP';
+  if(!(f & 2)) return r[E.nOC] ? 'Sin PAC, con OC' : 'Sin PAC';
+  return r[E.nEnl] ? 'Con PAC' : 'Con PAC, sin OC enlazadas';
+}
+function p6Cobertura(){ return PAC26.meses.join(' y ') + ' (' + PAC26.meses.length + ' de ' + PAC26.mesesTotal + ' meses de 2026)'; }
+function p6Cell(n, tot){ return fmt(n) + ' <span style="color:var(--text-secondary);">(' + p6Pct(n, tot, 0) + ')</span>'; }
+
+function renderPac26Page(key){
+  const view = document.getElementById('pac26View');
+  if(typeof PAC26 === 'undefined' || typeof PAC_AGG === 'undefined'){ view.innerHTML = '<p class="block-note">No se encontraron los datos del buscador PAC 2026 (archivos data/pac26.js y data/pac.js).</p>'; return; }
+  if(key !== undefined){ const r = key ? p6Find(key) : null; const changed = (r ? p6Key(r) : null) !== P6.ent; P6.ent = r ? p6Key(r) : null; if(changed){ P6.det = null; P6.pq = ''; P6.pestado = ''; P6.ppage = 0; P6.iq = ''; P6.ipage = 0; P6.oq = ''; P6.opage = 0; P6.open = {}; } }
+  if(!view.dataset.ready){
+    view.innerHTML = `
+    <a class="back-link" href="${esc(location.pathname + location.search)}" onclick="goHome(event)">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Volver al panel de mecanismos
+    </a>
+    <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Buscador PAC 2026</h1>
+    <p class="block-note">Busca un organismo y revisa su Plan Anual de Compras 2026 completo: proyectos, ítems y montos planificados, y qué parte de sus órdenes de compra (OC) trae el código del proyecto PAC. Marco: art. 12 de la Ley N° 19.886 (texto de la Ley N° 21.634) y arts. 165 a 171 del D.S. N° 661/2024. Montos en pesos chilenos (CLP). <a href="#pac" style="color:var(--cc-navy);">Ver el análisis general del PAC 2025 y 2026</a>.</p>
+    <div id="p6Top"></div><div id="p6Ficha"></div><div id="p6List"></div><div id="p6Notes"></div>`;
+    view.dataset.ready = '1';
+    p6RenderTop(); p6RenderList(); p6RenderNotes();
+  }
+  p6RenderFicha();
+  if(P6.ent){ const el = document.getElementById('p6Ficha'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+}
+
+// ---------- resumen general ----------
+function p6RenderTop(){
+  const st = PAC26.st, kpi = (cls, lbl, v, sub) => `<div class="kpi ${cls}"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub">${sub}</div></div></div>`;
+  const reg = PAC26.orgs.filter(r => r[E.flags] & 1);
+  const tipos = {};
+  reg.forEach(r => { const t = tipos[r[E.tipo]] || (tipos[r[E.tipo]] = {t: r[E.tipo], n: 0, con: 0, sin: 0, sinOC: 0, nOC: 0}); t.n++; if(r[E.flags] & 2) t.con++; else { t.sin++; if(r[E.nOC]) t.sinOC++; t.nOC += r[E.nOC]; } });
+  const tl = Object.values(tipos).sort((a, b) => b.sin - a.sin || b.n - a.n);
+  const ejec = st.plan ? st.clpEnl / st.plan : 0;
+  document.getElementById('p6Top').innerHTML = `
+    <div class="note-box">Códigos PAC en las OC: tus archivos de datos abiertos traen el campo solo para <b>${esc(p6Cobertura())}</b>. Las cifras de OC, enlace y cumplimiento corresponden a esos meses; los de enero a julio se bajaron antes de que el campo existiera y hay que volver a descargarlos para cubrir todo el año. Mientras tanto, el cumplimiento mide <b>avance a la fecha</b>, no el año completo. Esta lectura se actualiza sola al regenerar los datos con más meses.</div>
+    <section class="block">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Organismos registrados en Mercado Público y PAC 2026 publicado</h2>
+      <p class="block-note">Universo: ${fmt(st.registro)} organismos del registro de Mercado Público (archivo Organismos.xlsx, un registro por RUT; ${fmt(st.registroFilas)} filas). Un organismo cuenta como "con PAC" si alguno de sus códigos aparece en el PAC 2026 con actualización. Los ${fmt(st.sinCodigo)} organismos del registro sin ninguna OC en el dashboard no se pueden asociar por código y se cuentan como sin PAC (verificar).</p>
+      <div class="kpis" style="margin:0 0 12px;">
+        ${kpi('k-org', 'Organismos registrados', fmt(st.registro), 'Registro de Mercado Público')}
+        ${kpi('k-monto', 'Con PAC 2026 publicado', fmt(st.conPac) + ' · ' + p6Pct(st.conPac, st.registro), 'de los registrados')}
+        ${kpi('k-prov', 'Sin PAC 2026 publicado', fmt(st.sinPac) + ' · ' + p6Pct(st.sinPac, st.registro), fmt(st.sinPacConOC) + ' de ellos emitieron OC en ' + esc(PAC26.meses.join(' y ')))}
+        ${kpi('k-org', 'Con PAC, fuera del registro', fmt(st.pacFueraRegistro), 'Códigos con PAC que no figuran en el archivo de registro')}
+      </div>
+      <div class="table-wrap pac-tw" style="max-height:300px;"><table class="dt"><thead><tr><th>Tipo de organismo</th><th class="num">Registrados</th><th class="num">Con PAC</th><th class="num">Sin PAC</th><th class="num">% sin PAC</th><th class="num">Sin PAC con OC</th><th class="num">OC de los sin PAC</th></tr></thead><tbody>
+      ${tl.map(t => `<tr><td>${esc(t.t)}</td><td class="num">${fmt(t.n)}</td><td class="num">${fmt(t.con)}</td><td class="num">${fmt(t.sin)}</td><td class="num">${p6Pct(t.sin, t.n)}</td><td class="num">${fmt(t.sinOC)}</td><td class="num">${fmt(t.nOC)}</td></tr>`).join('')}
+      <tr style="font-weight:700;"><td>Total</td><td class="num">${fmt(st.registro)}</td><td class="num">${fmt(st.conPac)}</td><td class="num">${fmt(st.sinPac)}</td><td class="num">${p6Pct(st.sinPac, st.registro)}</td><td class="num">${fmt(st.sinPacConOC)}</td><td class="num">${fmt(tl.reduce((a, t) => a + t.nOC, 0))}</td></tr></tbody></table></div>
+      <div class="dl-row" style="margin-top:8px;gap:6px;"><button type="button" class="dl-btn" onclick="p6ListaSin(this)">Descargar lista de organismos sin PAC (Excel)</button><button type="button" class="dl-btn" style="font-weight:500;" onclick="p6SoloSin()">Ver en la tabla</button></div>
+    </section>
+    <section class="block">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>PAC 2026 y órdenes de compra enlazadas</h2>
+      <p class="block-note">Una OC está enlazada cuando su campo "código de proyecto PAC" coincide con un proyecto del PAC 2026. OC válidas (recepción conforme o aceptada) de ${esc(p6Cobertura())}.</p>
+      <div class="kpis" style="margin:0 0 12px;">
+        ${kpi('k-monto', 'PAC 2026', pacM(st.plan), fmt(st.proy) + ' proyectos · ' + fmt(st.items) + ' ítems')}
+        ${kpi('k-prov', 'OC válidas del período', fmt(st.nOC), pacM(st.clp))}
+        ${kpi('k-prov', 'OC con código PAC', fmt(st.nCod) + ' · ' + p6Pct(st.nCod, st.nOC), 'de las OC válidas')}
+        ${kpi('k-org', 'OC enlazadas al PAC 2026', fmt(st.nEnl) + ' · ' + p6Pct(st.nEnl, st.nOC), pacM(st.clpEnl) + ' · ' + fmt(st.nNoEnc) + ' con código no hallado en el PAC 2026 (' + p6Pct(st.nNoEnc, st.nCod) + ' de las con código)')}
+        ${kpi('k-monto', 'Proyectos con al menos una OC', fmt(st.proyOC) + ' · ' + p6Pct(st.proyOC, st.proy), 'avance de proyectos del PAC')}
+        ${kpi('k-monto', 'Ejecución del PAC a la fecha', p6Pct(st.clpEnl, st.plan), 'monto de OC enlazadas / monto PAC · cumplimiento acotado por proyecto: ' + p6Pct(st.acot, st.plan))}
+      </div>
+    </section>`;
+}
+function p6SoloSin(){ P6.estado = 'sin'; P6.page = 0; p6RenderList(); document.getElementById('p6List').scrollIntoView({behavior: 'smooth'}); }
+async function p6ListaSin(btn){
+  const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Generando…';
+  try {
+    const rows = PAC26.orgs.filter(r => (r[E.flags] & 1) && !(r[E.flags] & 2)).sort((a, b) => b[E.nOC] - a[E.nOC]).map(r => [r[E.name], r[E.rut], r[E.tipo], r[E.region], r[E.codes].join('; ') || '(sin código en los datos)', r[E.nOC], r[E.clp], r[E.nCod], r[E.dashN], r[E.dashUsd]]);
+    xlsxSave(await xlsxBlob([{name: 'Organismos sin PAC 2026', headers: ['Organismo', 'RUT', 'Tipo de organismo', 'Región', 'Código(s) de organismo', 'OC válidas ' + PAC26.meses.join(' y ') + ' (n)', 'Monto de esas OC (CLP)', 'OC con código PAC (n)', 'OC ene-sep 2026 en el dashboard (n)', 'Monto ene-sep 2026 en el dashboard (US$)'], rows},
+      {name: 'Notas', headers: ['Tema', 'Detalle'], rows: p6Notas()}]), 'organismos_sin_PAC_2026.xlsx');
+  } finally { btn.disabled = false; btn.innerHTML = orig; }
+}
+
+// ---------- listado de organismos ----------
+function p6Filtered(){
+  const q = normTxt(P6.q.trim()), qr = P6.q.replace(/[^0-9kK]/g, '').toUpperCase();
+  let L = PAC26.orgs.filter(r => {
+    if(P6.tipo && r[E.tipo] !== P6.tipo) return false;
+    if(P6.region && r[E.region] !== P6.region) return false;
+    const f = r[E.flags];
+    if(P6.estado === 'con' && !(f & 2)) return false;
+    if(P6.estado === 'sin' && ((f & 2) || !(f & 1))) return false;
+    if(P6.estado === 'sinoc' && ((f & 2) || !(f & 1) || !r[E.nOC])) return false;
+    if(P6.estado === 'conSinEnl' && (!(f & 2) || r[E.nEnl])) return false;
+    if(P6.estado === 'fuera' && (f & 1)) return false;
+    if(q && !(normTxt(r[E.name]).includes(q) || (qr.length >= 4 && r[E.rut].replace(/[^0-9kK]/g, '').toUpperCase().includes(qr)) || r[E.codes].some(c => c === P6.q.trim()))) return false;
+    return true;
+  });
+  const val = {name: r => r[E.name], tipo: r => r[E.tipo], proy: r => r[E.proy], items: r => r[E.items], plan: r => r[E.plan], nOC: r => r[E.nOC], cod: r => r[E.nOC] ? r[E.nCod] / r[E.nOC] : -1,
+    enl: r => r[E.nOC] ? r[E.nEnl] / r[E.nOC] : -1, proyOC: r => r[E.proy] ? r[E.proyOC] / r[E.proy] : -1, ejec: r => r[E.plan] ? r[E.clpEnl] / r[E.plan] : -1, acot: r => r[E.plan] ? r[E.acot] / r[E.plan] : -1};
+  const f = val[P6.sort] || val.plan;
+  L.sort((a, b) => { const x = f(a), y = f(b); return (typeof x === 'string' ? x.localeCompare(y, 'es') : x - y) * P6.dir; });
+  return L;
+}
+function p6Sort(k){ if(P6.sort === k) P6.dir = -P6.dir; else { P6.sort = k; P6.dir = (k === 'name' || k === 'tipo') ? 1 : -1; } P6.page = 0; p6RenderList(); }
+function p6RenderList(){
+  const el = document.getElementById('p6List'); if(!el) return;
+  const first = !document.getElementById('p6Q');
+  if(first){
+    const tipos = [...new Set(PAC26.orgs.map(r => r[E.tipo]))].sort(), regs = [...new Set(PAC26.orgs.map(r => r[E.region]).filter(Boolean))].sort();
+    el.innerHTML = `<section class="block" id="p6Sec">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Listado de organismos</h2>
+      <p class="block-note">Busca por nombre, RUT o código de organismo. Haz clic en un organismo para ver todo su PAC 2026. Los porcentajes de OC se calculan sobre las OC válidas de ${esc(p6Cobertura())}.</p>
+      <div class="pac-filters">
+        <input type="search" id="p6Q" placeholder="Buscar organismo, RUT o código" style="flex:2 1 260px;" oninput="P6.q=this.value;P6.page=0;p6RenderList()">
+        <select id="p6T" onchange="P6.tipo=this.value;P6.page=0;p6RenderList()"><option value="">Todos los tipos</option>${tipos.map(t => `<option>${esc(t)}</option>`).join('')}</select>
+        <select id="p6R" onchange="P6.region=this.value;P6.page=0;p6RenderList()"><option value="">Todas las regiones</option>${regs.map(t => `<option>${esc(t)}</option>`).join('')}</select>
+        <select id="p6E" onchange="P6.estado=this.value;P6.page=0;p6RenderList()"><option value="">Todos los estados</option><option value="con">Con PAC 2026</option><option value="sin">Sin PAC 2026 (registrados)</option><option value="sinoc">Sin PAC pero con OC</option><option value="conSinEnl">Con PAC y sin OC enlazadas</option><option value="fuera">Fuera del registro MP</option></select>
+      </div>
+      <div id="p6Tbl"></div></section>`;
+  }
+  document.getElementById('p6E').value = P6.estado;
+  const L = p6Filtered(), PER = 25, pages = Math.max(1, Math.ceil(L.length / PER)); if(P6.page >= pages) P6.page = pages - 1;
+  const sl = L.slice(P6.page * PER, P6.page * PER + PER);
+  const th = (k, lab, num) => `<th class="sortable${num ? ' num' : ''}${P6.sort === k ? ' sort-active' : ''}" tabindex="0" onclick="p6Sort('${k}')" onkeydown="if(event.key==='Enter')p6Sort('${k}')">${lab}<span class="sort-arrow">${P6.sort === k ? (P6.dir > 0 ? '▲' : '▼') : '↕'}</span></th>`;
+  document.getElementById('p6Tbl').innerHTML = `<div class="table-wrap pac-tw" style="max-height:560px;"><table class="dt"><thead><tr>${th('name', 'Organismo')}${th('tipo', 'Tipo')}${th('proy', 'Proyectos', 1)}${th('items', 'Ítems', 1)}${th('plan', 'Monto PAC (M$)', 1)}${th('nOC', 'OC válidas', 1)}${th('cod', 'OC con código PAC', 1)}${th('enl', 'OC enlazadas', 1)}${th('proyOC', 'Proyectos con OC', 1)}${th('ejec', 'Ejecución', 1)}${th('acot', 'Cumpl. acotado', 1)}</tr></thead><tbody>
+    ${sl.map(r => { const f = r[E.flags], k = p6Key(r), conPac = !!(f & 2);
+      return `<tr class="${P6.ent === k ? 'pac-sel' : ''}"><td><a href="#pac26=${encodeURIComponent(k)}" onclick="return p6Open('${esc(k).replace(/'/g, '&#39;')}',event)">${esc(r[E.name])}</a><br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r[E.rut])}${r[E.codes].length ? ' · cód. ' + esc(r[E.codes].slice(0, 3).join(', ')) + (r[E.codes].length > 3 ? ' y ' + (r[E.codes].length - 3) + ' más' : '') : ''} · ${esc(p6Estado(r))}${r[E.nExt] ? ' · ⚠ ' + r[E.nExt] + ' línea(s) extrema(s)' : ''}</span></td><td>${esc(r[E.tipo])}</td>
+      <td class="num">${conPac ? fmt(r[E.proy]) : '—'}</td><td class="num">${conPac ? fmt(r[E.items]) : '—'}</td><td class="num">${conPac ? pacMM(r[E.plan]) : '—'}</td><td class="num">${fmt(r[E.nOC])}</td>
+      <td class="num">${r[E.nOC] ? p6Cell(r[E.nCod], r[E.nOC]) : '—'}</td><td class="num">${r[E.nOC] && conPac ? p6Cell(r[E.nEnl], r[E.nOC]) : '—'}</td><td class="num">${conPac ? p6Cell(r[E.proyOC], r[E.proy]) : '—'}</td>
+      <td class="num">${conPac ? p6Pct(r[E.clpEnl], r[E.plan], 0) : '—'}</td><td class="num">${conPac ? p6Pct(r[E.acot], r[E.plan], 0) : '—'}</td></tr>`; }).join('') || '<tr><td colspan="11" style="padding:12px;">Sin resultados</td></tr>'}
+    </tbody></table></div>
+    <div class="pac-pager"><span>${fmt(L.length)} organismos · página ${P6.page + 1} de ${pages}</span><span><button type="button" class="dl-btn" ${P6.page ? '' : 'disabled'} onclick="P6.page--;p6RenderList()">Anterior</button> <button type="button" class="dl-btn" ${P6.page < pages - 1 ? '' : 'disabled'} onclick="P6.page++;p6RenderList()">Siguiente</button></span></div>
+    <div id="dlP6List"></div>`;
+  const head = ['Organismo', 'RUT', 'Tipo de organismo', 'Región', 'Código(s) de organismo', 'Estado', 'Proyectos PAC 2026', 'Ítems PAC 2026', 'Monto PAC 2026 (CLP)', 'Líneas extremas (≥ $100.000 millones)', 'OC válidas (' + PAC26.meses.join(' y ') + ')', 'Monto OC válidas (CLP)', 'OC con código PAC', '% OC con código PAC', 'OC enlazadas al PAC 2026', '% OC enlazadas', 'OC con código no hallado en PAC 2026', 'Monto OC enlazadas (CLP)', 'Proyectos con al menos una OC', '% proyectos con OC', 'Ejecución (monto OC enlazadas / PAC)', 'Cumplimiento acotado por proyecto', 'OC ene-sep 2026 en el dashboard', 'Monto ene-sep 2026 en el dashboard (US$)'];
+  const rows = L.map(r => [r[E.name], r[E.rut], r[E.tipo], r[E.region], r[E.codes].join('; '), p6Estado(r), r[E.proy], r[E.items], r[E.plan], r[E.nExt], r[E.nOC], r[E.clp], r[E.nCod], r[E.nOC] ? r[E.nCod] / r[E.nOC] : '', r[E.nEnl], r[E.nOC] ? r[E.nEnl] / r[E.nOC] : '', r[E.nNoEnc], r[E.clpEnl], r[E.proyOC], r[E.proy] ? r[E.proyOC] / r[E.proy] : '', r[E.plan] ? r[E.clpEnl] / r[E.plan] : '', r[E.plan] ? r[E.acot] / r[E.plan] : '', r[E.dashN], r[E.dashUsd]]);
+  setDl('p6List', head, rows);
+  setDlSheets('p6List', () => [{name: 'Organismos', headers: head, rows}, {name: 'Notas', headers: ['Tema', 'Detalle'], rows: p6Notas()}]);
+  document.getElementById('dlP6List').innerHTML = dlBtn('p6List', 'buscador_pac_2026_organismos.csv', 'Descargar el listado filtrado (Excel)');
+}
+function p6Open(key, ev){
+  if(ev) ev.preventDefault();
+  history.replaceState(null, '', '#pac26=' + encodeURIComponent(key));
+  renderPac26Page(key);
+  return false;
+}
+function p6Close(){ history.replaceState(null, '', '#pac26'); renderPac26Page(''); }
+
+// ---------- ficha del organismo ----------
+function p6Notas(){
+  return [['Fuente PAC', 'PAC 2026 con actualización (archivo recibido de la Dirección ChileCompra), procesado en el dashboard de Mecanismos de Compra (generado ' + PAC26.generado + ').'],
+    ['Fuente OC', 'Datos abiertos de órdenes de compra de Mercado Público, solo OC en estado Recepción Conforme o Aceptada, con el campo CodigoProyectoPlanAnualCompras. Meses con el campo disponible: ' + PAC26.meses.join(', ') + '.'],
+    ['Registro de organismos', 'Archivo Organismos.xlsx (registro de organismos de Mercado Público). Solo se usan nombre, RUT, tipo y región; no se publican datos de contacto. Un organismo del registro se asocia a sus códigos de organismo por RUT (o por nombre) y cuenta como con PAC si alguno de sus códigos está en el PAC 2026.'],
+    ['Proyecto PAC', 'Un código de proyecto del PAC (por ejemplo 1000813-1-PC26). Cada proyecto tiene uno o más ítems (líneas con cantidad, monto unitario y monto total estimados).'],
+    ['OC con código PAC', 'OC cuyo campo de código de proyecto PAC no está vacío. OC enlazada: ese código coincide con un proyecto del PAC 2026 (de cualquier año de código; el PAC 2026 con actualización arrastra proyectos PC22 a PC25).'],
+    ['Ejecución', 'Monto de las OC enlazadas dividido por el monto PAC. Puede superar 100 % porque el monto de la OC incluye impuestos y puede incluir contratos de varios años o más de un proyecto.'],
+    ['Cumplimiento acotado', 'Suma, por proyecto, del menor valor entre el monto de las OC enlazadas y el monto PAC del proyecto, dividida por el monto PAC total. Cada proyecto aporta como máximo su monto planificado.'],
+    ['Limitaciones', 'Las OC cubren solo los meses con el campo disponible, por lo que el cumplimiento es avance a la fecha. El PAC es una estimación, incluye contratos de varios años y líneas de monto extremo. Algunas compras no necesariamente llevan código PAC.']];
+}
+async function p6LoadDetail(r){
+  const pis = r[E.pidxs], needLines = new Set(), needOc = new Set();
+  pis.forEach(pi => { const s = PAC_AGG.shardOf[pi][1]; if(s >= 0){ needLines.add(s); needOc.add(s); } });
+  const loadOc = s => new Promise((res, rej) => { if(PAC26_SH[s]) return res(); const sc = document.createElement('script'); sc.src = `data/pac26/o${String(s).padStart(2, '0')}.js`; sc.onload = () => PAC26_SH[s] ? res() : res(); sc.onerror = () => rej(new Error('No se pudo cargar ' + sc.src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); document.head.appendChild(sc); });
+  await Promise.all([...needLines].map(s => pacLoadShard(2026, s)).concat([...needOc].map(loadOc)));
+  const pset = new Set(pis), lines = [], ocs = [];
+  needLines.forEach(s => { const S = PAC_SH[2026][s]; for(let i = 0; i < S.n; i++) if(pset.has(S.o[i])) lines.push(pacLineAt(S, i)); });
+  needOc.forEach(s => { const S = PAC26_SH[s]; if(!S) return; for(let i = 0; i < S.n; i++) if(pset.has(S.o[i])){ const o = PAC_AGG.orgs[S.o[i]];
+    ocs.push({oc: S.c[i], k: S.k.d[S.k.x[i]], day: S.d[i], t: S.t[i], pv: S.pv.d[S.pv.x[i]], rp: S.rp.d[S.rp.x[i]], mec: PAC26.mecOC[S.m[i]], un: S.u.d[S.u.x[i]], f: S.f[i], org: o[1], cod: o[0]}); } });
+  const proj = new Map();
+  lines.forEach(L => { let p = proj.get(L.cod);
+    if(!p){ p = {cod: L.cod, pr: L.pr, ds: L.ds, un: new Set(), org: L.oc, orgn: L.on, plan: 0, items: 0, mecs: new Set(), cls: new Set(), ext: 0, oc: [], clp: 0, first: 1e9, last: -1}; proj.set(L.cod, p); }
+    p.plan += L.t; p.items++; p.un.add(L.un); p.mecs.add(L.mec); p.cls.add(L.cl); if(L.f & 1) p.ext++; });
+  const noenc = [];
+  ocs.forEach(o => { if(o.f === 1){ const p = proj.get(o.k); if(p){ p.oc.push(o); p.clp += o.t; if(o.day < p.first) p.first = o.day; if(o.day > p.last) p.last = o.day; } else noenc.push(o); } else noenc.push(o); });
+  const P = [...proj.values()].map(p => { p.nOC = p.oc.length; p.ejec = p.plan ? p.clp / p.plan : 0; p.estado = p.nOC ? (p.clp >= p.plan ? 'Con OC, igual o sobre lo planificado' : 'Con OC, bajo lo planificado') : 'Sin OC'; return p; });
+  return {lines, ocs: ocs.filter(o => o.f === 1), noenc, proj: P};
+}
+function p6RenderFicha(){
+  const el = document.getElementById('p6Ficha'); if(!el) return;
+  if(!P6.ent){ el.innerHTML = ''; return; }
+  const r = p6Find(P6.ent); if(!r){ el.innerHTML = ''; return; }
+  const f = r[E.flags], conPac = !!(f & 2);
+  const kpi = (lbl, v, sub) => `<div class="kpi k-monto"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub">${sub}</div></div></div>`;
+  el.innerHTML = `<section class="block" id="p6F" style="border-left:4px solid ${PAC_B};">
+    <h2 style="justify-content:space-between;"><span>PAC 2026 · ${esc(r[E.name])}</span><a href="#pac26" onclick="p6Close();return false;" style="font-size:12px;text-transform:none;">Cerrar ficha</a></h2>
+    <p class="block-note">${esc(r[E.rut])} · ${esc(r[E.tipo])} · ${esc(r[E.region] || 'sin región')} · código(s) de organismo: ${esc(r[E.codes].join(', ') || 'sin código en los datos')} · ${esc(p6Estado(r))}</p>
+    ${conPac ? '' : `<div class="note-box">Este organismo no tiene PAC 2026 publicado en el archivo recibido. ${f & 1 ? 'Figura en el registro de Mercado Público.' : ''} ${r[E.nOC] ? 'Emitió ' + fmt(r[E.nOC]) + ' OC válidas en ' + esc(PAC26.meses.join(' y ')) + ' (' + pacM(r[E.clp]) + ').' : ''} ${r[E.dashN] ? 'En el dashboard registra ' + fmt(r[E.dashN]) + ' OC entre enero y septiembre de 2026 (US$' + fmt(r[E.dashUsd]) + ').' : ''}</div>`}
+    <div class="kpis" style="margin:0 0 12px;">
+      ${kpi('Proyectos PAC 2026', fmt(r[E.proy]), fmt(r[E.items]) + ' ítems')}
+      ${kpi('Monto PAC 2026', pacM(r[E.plan]), r[E.nExt] ? '⚠ incluye ' + r[E.nExt] + ' línea(s) ≥ $100.000 millones' : 'sin líneas extremas')}
+      ${kpi('OC válidas (' + esc(PAC26.meses.join(' y ')) + ')', fmt(r[E.nOC]), pacM(r[E.clp]))}
+      ${kpi('OC con código PAC', r[E.nOC] ? p6Pct(r[E.nCod], r[E.nOC]) : '—', fmt(r[E.nCod]) + ' de ' + fmt(r[E.nOC]))}
+      ${kpi('OC enlazadas al PAC 2026', r[E.nOC] ? p6Pct(r[E.nEnl], r[E.nOC]) : '—', fmt(r[E.nEnl]) + ' OC · ' + pacM(r[E.clpEnl]) + (r[E.nNoEnc] ? ' · ' + fmt(r[E.nNoEnc]) + ' con código no hallado' : ''))}
+      ${kpi('Proyectos con OC', conPac ? p6Pct(r[E.proyOC], r[E.proy]) : '—', fmt(r[E.proyOC]) + ' de ' + fmt(r[E.proy]) + ' proyectos')}
+      ${kpi('Ejecución del PAC a la fecha', conPac ? p6Pct(r[E.clpEnl], r[E.plan]) : '—', 'cumplimiento acotado: ' + (conPac ? p6Pct(r[E.acot], r[E.plan]) : '—'))}
+    </div>
+    <div id="p6Det">${conPac ? '<p class="block-note">Cargando el detalle del PAC y de las OC enlazadas…</p>' : ''}</div>
+  </section>`;
+  if(!conPac) return;
+  const myKey = P6.ent;
+  const done = det => { if(P6.ent !== myKey) return; P6.det = det; p6RenderDetail(r); };
+  if(P6.det && P6.det.key === myKey) return p6RenderDetail(r);
+  p6LoadDetail(r).then(d => { d.key = myKey; done(d); }).catch(e => { const x = document.getElementById('p6Det'); if(x) x.innerHTML = '<p class="block-note" style="color:#a33;">' + esc(e.message) + '</p>'; });
+}
+function p6PageTable(cols, rows, page, per, setter){
+  const pages = Math.max(1, Math.ceil(rows.length / per)), p = Math.min(page, pages - 1), sl = rows.slice(p * per, p * per + per);
+  return {html: `<div class="table-wrap pac-tw" style="max-height:440px;"><table class="dt"><thead><tr>${cols.map(c => `<th${c.num ? ' class="num"' : ''}>${c.h}</th>`).join('')}</tr></thead><tbody>${sl.map(r => r.__html || '').join('') || `<tr><td colspan="${cols.length}" style="padding:12px;">Sin resultados</td></tr>`}</tbody></table></div>
+    <div class="pac-pager"><span>${fmt(rows.length)} filas · página ${p + 1} de ${pages}</span><span><button type="button" class="dl-btn" ${p ? '' : 'disabled'} onclick="${setter}(${p - 1})">Anterior</button> <button type="button" class="dl-btn" ${p < pages - 1 ? '' : 'disabled'} onclick="${setter}(${p + 1})">Siguiente</button></span></div>`, page: p};
+}
+function p6RenderDetail(r){
+  const D = P6.det, el = document.getElementById('p6Det'); if(!el || !D) return;
+  const pq = normTxt(P6.pq.trim());
+  let PR = D.proj.filter(p => (!P6.pestado || p.estado === P6.pestado) && (!pq || normTxt(p.cod + ' ' + p.pr + ' ' + p.ds + ' ' + [...p.un].join(' ') + ' ' + [...p.cls].join(' ')).includes(pq)));
+  const pk = {plan: p => p.plan, ejec: p => p.ejec, nOC: p => p.nOC, items: p => p.items, cod: p => p.cod, clp: p => p.clp};
+  PR.sort((a, b) => { const f = pk[P6.psort] || pk.plan, x = f(a), y = f(b); return (typeof x === 'string' ? x.localeCompare(y) : x - y) * P6.pdir; });
+  const PER = 25, pages = Math.max(1, Math.ceil(PR.length / PER)); if(P6.ppage >= pages) P6.ppage = pages - 1;
+  const sl = PR.slice(P6.ppage * PER, P6.ppage * PER + PER);
+  const psth = (k, lab, num) => `<th class="sortable${num ? ' num' : ''}${P6.psort === k ? ' sort-active' : ''}" tabindex="0" onclick="p6PSort('${k}')">${lab}<span class="sort-arrow">${P6.psort === k ? (P6.pdir > 0 ? '▲' : '▼') : '↕'}</span></th>`;
+  const byMec = {}; D.lines.forEach(L => { byMec[L.mec] = (byMec[L.mec] || 0) + L.t; });
+  const byOcMec = {}; D.ocs.forEach(o => { byOcMec[o.mec] = (byOcMec[o.mec] || 0) + o.t; });
+  const byCl = {}; D.lines.forEach(L => { const c = byCl[L.cl] || (byCl[L.cl] = {n: 0, t: 0}); c.n++; c.t += L.t; });
+  const byPv = {}; D.ocs.forEach(o => { const c = byPv[o.pv + '|' + o.rp] || (byPv[o.pv + '|' + o.rp] = {pv: o.pv, rp: o.rp, n: 0, t: 0}); c.n++; c.t += o.t; });
+  const bar = (items, fv) => { const mx = Math.max(1, ...items.map(i => i.v)); return items.map(i => `<div class="pac-gr"><div class="pac-gl" title="${esc(i.l)}">${esc(i.l)}</div><div class="pac-gb"><div class="pac-bar"><span style="width:${Math.max(.6, 100 * i.v / mx)}%;background:${PAC_B}"></span><em>${fv(i.v)}</em></div></div><div class="pac-gv"></div></div>`).join('') || '<p class="block-note">Sin datos</p>'; };
+  const top = (o, n) => Object.entries(o).sort((a, b) => (b[1].t != null ? b[1].t : b[1]) - (a[1].t != null ? a[1].t : a[1])).slice(0, n);
+  // ítems
+  const iq = normTxt(P6.iq.trim()), IT = D.lines.filter(L => !iq || normTxt(L.it + ' ' + L.pr + ' ' + L.cod + ' ' + L.cl + ' ' + L.un).includes(iq)).sort((a, b) => b.t - a.t);
+  IT.forEach(L => { L.__html = `<tr><td>${esc(L.cod)}</td><td>${esc(L.it)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(L.pr)}</span></td><td>${esc(L.un)}</td><td>${esc(L.mec)}</td><td>${esc(L.cl)}</td><td class="num">${fmt(L.q)}</td><td class="num">${fmt(L.pu)}</td><td class="num">${fmt(L.t)}</td><td>${esc(pacFlagTxt(L.f))}</td></tr>`; });
+  const itT = p6PageTable([{h: 'Proyecto'}, {h: 'Ítem'}, {h: 'Unidad de compra'}, {h: 'Mecanismo'}, {h: 'Clasificación'}, {h: 'Cantidad', num: 1}, {h: 'Unitario (CLP)', num: 1}, {h: 'Total (CLP)', num: 1}, {h: 'Banderas'}], IT, P6.ipage, 25, 'p6IPage');
+  // OC
+  const oq = normTxt(P6.oq.trim()), OC = D.ocs.filter(o => !oq || normTxt(o.oc + ' ' + o.k + ' ' + o.pv + ' ' + o.rp + ' ' + o.un + ' ' + o.mec).includes(oq)).sort((a, b) => b.day - a.day || b.t - a.t);
+  OC.forEach(o => { o.__html = `<tr><td><a href="${esc(mpLink(o.oc))}" target="_blank" rel="noopener">${esc(o.oc)}</a></td><td>${esc(o.k)}</td><td>${p6Day(o.day)}</td><td>${esc(o.un)}</td><td>${esc(o.pv)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(o.rp)}</span></td><td>${esc(o.mec)}</td><td class="num">${fmt(o.t)}</td></tr>`; });
+  const ocT = p6PageTable([{h: 'OC'}, {h: 'Proyecto PAC'}, {h: 'Fecha envío'}, {h: 'Unidad de compra'}, {h: 'Proveedor'}, {h: 'Mecanismo'}, {h: 'Monto (CLP)', num: 1}], OC, P6.opage, 25, 'p6OPage');
+  const NF = D.noenc.slice().sort((a, b) => b.t - a.t);
+  NF.forEach(o => { o.__html = `<tr><td><a href="${esc(mpLink(o.oc))}" target="_blank" rel="noopener">${esc(o.oc)}</a></td><td>${esc(o.k)}</td><td>${p6Day(o.day)}</td><td>${esc(o.pv)}</td><td>${esc(o.mec)}</td><td class="num">${fmt(o.t)}</td></tr>`; });
+  const nfT = p6PageTable([{h: 'OC'}, {h: 'Código PAC informado'}, {h: 'Fecha envío'}, {h: 'Proveedor'}, {h: 'Mecanismo'}, {h: 'Monto (CLP)', num: 1}], NF, P6.npage, 15, 'p6NPage');
+  const cnt = s => D.proj.filter(p => p.estado === s).length;
+  el.innerHTML = `
+    <h3 class="pac-h3" style="margin-top:6px;">Proyectos del PAC 2026 (${fmt(D.proj.length)})</h3>
+    <p class="block-note">Sin OC: ${fmt(cnt('Sin OC'))} · Con OC bajo lo planificado: ${fmt(cnt('Con OC, bajo lo planificado'))} · Con OC igual o sobre lo planificado: ${fmt(cnt('Con OC, igual o sobre lo planificado'))}. Haz clic en un proyecto para ver sus ítems y OC.</p>
+    <div class="pac-filters"><input type="search" id="p6PQ" placeholder="Buscar proyecto, código, unidad o clasificación" value="${esc(P6.pq)}" oninput="P6.pq=this.value;P6.ppage=0;p6RenderDetail(p6Find(P6.ent));p6Focus('p6PQ')">
+      <select onchange="P6.pestado=this.value;P6.ppage=0;p6RenderDetail(p6Find(P6.ent))"><option value="">Todos los estados</option>${['Sin OC', 'Con OC, bajo lo planificado', 'Con OC, igual o sobre lo planificado'].map(s => `<option${P6.pestado === s ? ' selected' : ''}>${s}</option>`).join('')}</select></div>
+    <div class="table-wrap pac-tw" style="max-height:520px;"><table class="dt"><thead><tr>${psth('cod', 'Proyecto')}<th>Descripción</th><th>Unidad(es) de compra</th>${psth('items', 'Ítems', 1)}${psth('plan', 'Monto PAC (CLP)', 1)}${psth('nOC', 'OC enlazadas', 1)}${psth('clp', 'Monto OC (CLP)', 1)}${psth('ejec', 'Ejecución', 1)}<th>Estado</th></tr></thead><tbody>
+      ${sl.map(p => { const open = P6.open[p.cod]; return `<tr class="cc-rep-org" style="cursor:pointer;" onclick="p6Toggle('${esc(p.cod)}')"><td><b>${esc(p.cod)}</b><br><span style="font-size:10.5px;">${esc(p.pr)}</span></td><td style="max-width:300px;">${esc((p.ds || '').slice(0, 160))}${(p.ds || '').length > 160 ? '…' : ''}</td><td>${esc([...p.un].slice(0, 2).join('; '))}${p.un.size > 2 ? ' y ' + (p.un.size - 2) + ' más' : ''}</td><td class="num">${fmt(p.items)}</td><td class="num">${fmt(p.plan)}${p.ext ? ' ⚠' : ''}</td><td class="num">${fmt(p.nOC)}</td><td class="num">${fmt(p.clp)}</td><td class="num">${p.plan ? p6Pct(p.clp, p.plan, 0) : '—'}</td><td>${esc(p.estado)}</td></tr>${open ? p6ProjDetail(p) : ''}`; }).join('') || '<tr><td colspan="9" style="padding:12px;">Sin resultados</td></tr>'}
+    </tbody></table></div>
+    <div class="pac-pager"><span>${fmt(PR.length)} proyectos · página ${P6.ppage + 1} de ${pages}</span><span><button type="button" class="dl-btn" ${P6.ppage ? '' : 'disabled'} onclick="P6.ppage--;p6RenderDetail(p6Find(P6.ent))">Anterior</button> <button type="button" class="dl-btn" ${P6.ppage < pages - 1 ? '' : 'disabled'} onclick="P6.ppage++;p6RenderDetail(p6Find(P6.ent))">Siguiente</button></span></div>
+    <div class="pac-two" style="margin-top:14px;">
+      <div><h3 class="pac-h3">PAC por mecanismo (monto estimado)</h3>${bar(top(byMec, 8).map(([k, v]) => ({l: k, v})), pacM)}</div>
+      <div><h3 class="pac-h3">OC enlazadas por mecanismo de compra (monto)</h3>${bar(top(byOcMec, 8).map(([k, v]) => ({l: k, v})), pacM)}</div>
+      <div><h3 class="pac-h3">Mayores clasificaciones presupuestarias del PAC</h3>${bar(top(byCl, 10).map(([k, v]) => ({l: k, v: v.t})), pacM)}</div>
+      <div><h3 class="pac-h3">Mayores proveedores de las OC enlazadas</h3>${bar(top(byPv, 10).map(([k, v]) => ({l: v.pv || '(sin nombre)', v: v.t})), pacM)}</div>
+    </div>
+    <h3 class="pac-h3" style="margin-top:18px;">Ítems del PAC 2026 (${fmt(D.lines.length)})</h3>
+    <div class="pac-filters"><input type="search" id="p6IQ" placeholder="Buscar ítem, proyecto, unidad o clasificación" value="${esc(P6.iq)}" oninput="P6.iq=this.value;P6.ipage=0;p6RenderDetail(p6Find(P6.ent));p6Focus('p6IQ')"></div>${itT.html}
+    <h3 class="pac-h3" style="margin-top:18px;">Órdenes de compra enlazadas (${fmt(D.ocs.length)})</h3>
+    <div class="pac-filters"><input type="search" id="p6OQ" placeholder="Buscar OC, proyecto, proveedor, RUT o unidad" value="${esc(P6.oq)}" oninput="P6.oq=this.value;P6.opage=0;p6RenderDetail(p6Find(P6.ent));p6Focus('p6OQ')"></div>${ocT.html}
+    <h3 class="pac-h3" style="margin-top:18px;">OC con código PAC que no está en el PAC 2026 (${fmt(D.noenc.length)})</h3>
+    <p class="block-note">Código informado en la OC que no corresponde a ningún proyecto del PAC 2026 del organismo (por ejemplo, proyectos de años anteriores o códigos mal digitados).</p>${nfT.html}
+    <div class="dl-row" style="margin-top:12px;gap:6px;"><button type="button" class="dl-btn" onclick="p6FichaExcel(this)">Descargar el PAC 2026 completo de este organismo (Excel)</button></div>
+    <p class="block-note" id="p6Msg" style="margin:6px 0 0;">El Excel trae proyectos, ítems, OC enlazadas, OC con código no hallado, resumen por clasificación y mecanismo, y notas.</p>`;
+}
+function p6Focus(id){ const x = document.getElementById(id); if(x){ x.focus(); const l = x.value.length; x.setSelectionRange(l, l); } }
+function p6PSort(k){ if(P6.psort === k) P6.pdir = -P6.pdir; else { P6.psort = k; P6.pdir = k === 'cod' ? 1 : -1; } P6.ppage = 0; p6RenderDetail(p6Find(P6.ent)); }
+function p6IPage(n){ P6.ipage = n; p6RenderDetail(p6Find(P6.ent)); }
+function p6OPage(n){ P6.opage = n; p6RenderDetail(p6Find(P6.ent)); }
+function p6NPage(n){ P6.npage = n; p6RenderDetail(p6Find(P6.ent)); }
+function p6Toggle(cod){ P6.open[cod] = !P6.open[cod]; p6RenderDetail(p6Find(P6.ent)); }
+function p6ProjDetail(p){
+  const its = P6.det.lines.filter(L => L.cod === p.cod).sort((a, b) => b.t - a.t);
+  const oc = p.oc.slice().sort((a, b) => b.day - a.day);
+  return `<tr><td colspan="9" style="background:var(--surface-page);cursor:default;"><div style="font-size:12px;margin-bottom:6px;"><b>${esc(p.pr)}</b>. ${esc(p.ds || '')}</div>
+    <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">Mecanismos del PAC: ${esc([...p.mecs].join('; '))} · Clasificaciones: ${esc([...p.cls].join('; '))} · Unidades de compra: ${esc([...p.un].join('; '))}${p.nOC ? ' · Primera OC: ' + p6Day(p.first) + ' · Última OC: ' + p6Day(p.last) : ''}</div>
+    <div class="pac-two"><div><b style="font-size:11px;">Ítems (${fmt(its.length)})</b><div class="table-wrap pac-tw" style="max-height:230px;"><table class="dt"><thead><tr><th>Ítem</th><th class="num">Cant.</th><th class="num">Unitario</th><th class="num">Total</th></tr></thead><tbody>${its.slice(0, 200).map(L => `<tr><td>${esc(L.it)}</td><td class="num">${fmt(L.q)}</td><td class="num">${fmt(L.pu)}</td><td class="num">${fmt(L.t)}</td></tr>`).join('')}</tbody></table></div>${its.length > 200 ? '<div style="font-size:10.5px;">Se muestran 200; el Excel trae todos.</div>' : ''}</div>
+    <div><b style="font-size:11px;">OC enlazadas (${fmt(oc.length)})</b><div class="table-wrap pac-tw" style="max-height:230px;"><table class="dt"><thead><tr><th>OC</th><th>Fecha</th><th>Proveedor</th><th class="num">Monto</th></tr></thead><tbody>${oc.slice(0, 200).map(o => `<tr><td><a href="${esc(mpLink(o.oc))}" target="_blank" rel="noopener">${esc(o.oc)}</a></td><td>${p6Day(o.day)}</td><td>${esc(o.pv)}</td><td class="num">${fmt(o.t)}</td></tr>`).join('') || '<tr><td colspan="4" style="padding:8px;">Sin OC enlazadas en los meses disponibles</td></tr>'}</tbody></table></div></div></div></td></tr>`;
+}
+async function p6FichaExcel(btn){
+  const r = p6Find(P6.ent), D = P6.det; if(!r || !D) return;
+  const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Generando Excel…';
+  try {
+    await new Promise(x => setTimeout(x, 30));
+    const E_ = E, res = [['Organismo', r[E_.name]], ['RUT', r[E_.rut]], ['Tipo de organismo', r[E_.tipo]], ['Región', r[E_.region]], ['Código(s) de organismo', r[E_.codes].join('; ')], ['Proyectos PAC 2026', r[E_.proy]], ['Ítems PAC 2026', r[E_.items]], ['Monto PAC 2026 (CLP)', r[E_.plan]], ['Líneas extremas (≥ $100.000 millones)', r[E_.nExt]],
+      ['Meses con código PAC en las OC', PAC26.meses.join(', ')], ['OC válidas del período', r[E_.nOC]], ['Monto OC válidas (CLP)', r[E_.clp]], ['OC con código PAC', r[E_.nCod]], ['% OC con código PAC', r[E_.nOC] ? r[E_.nCod] / r[E_.nOC] : ''], ['OC enlazadas al PAC 2026', r[E_.nEnl]], ['% OC enlazadas', r[E_.nOC] ? r[E_.nEnl] / r[E_.nOC] : ''],
+      ['OC con código no hallado en el PAC 2026', r[E_.nNoEnc]], ['Monto OC enlazadas (CLP)', r[E_.clpEnl]], ['Proyectos con al menos una OC', r[E_.proyOC]], ['% proyectos con OC', r[E_.proy] ? r[E_.proyOC] / r[E_.proy] : ''], ['Ejecución (monto OC enlazadas / PAC)', r[E_.plan] ? r[E_.clpEnl] / r[E_.plan] : ''], ['Cumplimiento acotado por proyecto', r[E_.plan] ? r[E_.acot] / r[E_.plan] : '']];
+    const proy = D.proj.slice().sort((a, b) => b.plan - a.plan).map(p => [p.cod, p.pr, p.ds, [...p.un].join('; '), p.orgn, [...p.mecs].join('; '), [...p.cls].join('; '), p.items, p.plan, p.nOC, p.clp, p.plan ? p.clp / p.plan : '', p.estado, p.nOC ? p6Day(p.first) : '', p.nOC ? p6Day(p.last) : '']);
+    const items = D.lines.slice().sort((a, b) => a.cod < b.cod ? -1 : a.cod > b.cod ? 1 : b.t - a.t).map(pacRow);
+    const ocr = D.ocs.slice().sort((a, b) => b.day - a.day).map(o => [mpLink(o.oc), o.oc, o.k, p6Day(o.day), o.org, o.un, o.pv, o.rp, o.mec, o.t]);
+    const nfr = D.noenc.slice().sort((a, b) => b.t - a.t).map(o => [mpLink(o.oc), o.oc, o.k, p6Day(o.day), o.un, o.pv, o.rp, o.mec, o.t]);
+    const cl = {}; D.lines.forEach(L => { const c = cl[L.cl] || (cl[L.cl] = [L.cl, 0, 0]); c[1]++; c[2] += L.t; });
+    const mc = {}; D.lines.forEach(L => { const c = mc[L.mec] || (mc[L.mec] = [L.mec, 0, 0]); c[1]++; c[2] += L.t; });
+    xlsxSave(await xlsxBlob([{name: 'Resumen', headers: ['Indicador', 'Valor'], rows: res},
+      {name: 'Proyectos', headers: ['Código proyecto', 'Proyecto', 'Descripción', 'Unidad(es) de compra', 'Organismo', 'Mecanismo(s) PAC', 'Clasificación(es) presupuestaria(s)', 'Ítems', 'Monto PAC (CLP)', 'OC enlazadas', 'Monto OC enlazadas (CLP)', 'Ejecución', 'Estado', 'Primera OC', 'Última OC'], rows: proy},
+      {name: 'Ítems PAC 2026', headers: PAC_HEAD, rows: items},
+      {name: 'OC enlazadas', headers: ['Link OC', 'OC', 'Código proyecto PAC', 'Fecha envío', 'Organismo', 'Unidad de compra', 'Proveedor', 'RUT proveedor', 'Mecanismo de compra', 'Monto OC (CLP)'], rows: ocr},
+      {name: 'OC código no hallado', headers: ['Link OC', 'OC', 'Código PAC informado', 'Fecha envío', 'Unidad de compra', 'Proveedor', 'RUT proveedor', 'Mecanismo de compra', 'Monto OC (CLP)'], rows: nfr},
+      {name: 'Por clasificación', headers: ['Clasificación presupuestaria', 'Ítems', 'Monto PAC (CLP)'], rows: Object.values(cl).sort((a, b) => b[2] - a[2])},
+      {name: 'Por mecanismo PAC', headers: ['Mecanismo (PAC)', 'Ítems', 'Monto PAC (CLP)'], rows: Object.values(mc).sort((a, b) => b[2] - a[2])},
+      {name: 'Notas', headers: ['Tema', 'Detalle'], rows: p6Notas()}]), 'pac2026_' + (r[E_.rut] || r[E_.codes][0] || 'organismo').replace(/[^0-9A-Za-z-]/g, '') + '.xlsx');
+  } catch(e){ console.error(e); alert('No se pudo generar el archivo: ' + e.message); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+}
+function p6RenderNotes(){
+  document.getElementById('p6Notes').innerHTML = `<section class="block"><details><summary style="cursor:pointer;font-weight:700;color:var(--cc-navy);font-size:13px;">Definiciones y limitaciones</summary>
+    <ul class="pac-links" style="margin-top:10px;">${p6Notas().map(n => `<li><b>${esc(n[0])}.</b> ${esc(n[1])}</li>`).join('')}</ul></details>
+    <p class="block-note" style="margin:10px 0 0;">Tabla abierta del listado: <a href="datos_abiertos/pac_2026_organismos_registro_y_enlace_oc.csv" download>pac_2026_organismos_registro_y_enlace_oc.csv</a> (sin datos de contacto).</p></section>`;
+}
+
 function route(){
   const raw = location.hash || '';
   const detalleMatch = raw.match(/^#detalle=(.+)$/);
@@ -4330,6 +4648,8 @@ function route(){
   document.getElementById('economiaCircularView').style.display = 'none';
   document.getElementById('subastaView').style.display = 'none';
   document.getElementById('pacView').style.display = 'none';
+  document.getElementById('pac26View').style.display = 'none';
+  const pac26Match = raw.match(/^#pac26(?:=(.+))?$/);
   const pacMatch = raw.match(/^#pac(?:=(.+))?$/);
 
   if(m && DATA.mecanismos[m]){
@@ -4351,6 +4671,10 @@ function route(){
   } else if(raw === '#economia-circular'){
     document.getElementById('economiaCircularView').style.display = 'block';
     renderEconomiaCircularPage();
+  } else if(pac26Match){
+    document.getElementById('pac26View').style.display = 'block';
+    renderPac26Page(pac26Match[1] ? decodeURIComponent(pac26Match[1]) : '');
+    document.title = 'Buscador PAC 2026 · ChileCompra';
   } else if(pacMatch){
     document.getElementById('pacView').style.display = 'block';
     renderPacPage(pacMatch[1] ? decodeURIComponent(pacMatch[1]) : '');
