@@ -204,6 +204,8 @@
   .dl-row { display:flex; justify-content:flex-end; margin:-4px 0 10px; }
   .dl-btn { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--cc-green); background:rgba(31,122,77,.08); border:1px solid rgba(31,122,77,.25); border-radius:6px; padding:5px 10px; cursor:pointer; font-family:inherit; transition:background .15s ease; }
   .dl-btn:hover { background:rgba(31,122,77,.16); }
+  .p6-dl { font-size:11.5px; font-weight:600; color:var(--cc-green); text-decoration:none; }
+  .p6-dl:hover { text-decoration:underline; }
   .dl-btn .icon { width:13px; height:13px; flex:0 0 auto; }
   .kpis .dl-row { margin:-8px 0 12px; width:100%; }
   .filter-row { display:flex; gap:14px; flex-wrap:wrap; margin:4px 0 18px; align-items:flex-end; }
@@ -4366,7 +4368,7 @@ function renderPac26Page(key){
 
 // ---------- resumen general ----------
 function p6RenderTop(){
-  const st = PAC26.st, kpi = (cls, lbl, v, sub) => `<div class="kpi ${cls}"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub">${sub}</div></div></div>`;
+  const st = PAC26.st, kpi = (cls, lbl, v, sub, dl) => `<div class="kpi ${cls}"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub">${sub}</div>${dl ? `<div class="sub" style="margin-top:6px;"><a href="#" class="p6-dl" onclick="p6ListaXlsx(this,'${dl}',event);return false;">⬇ Descargar listado con RUT (Excel)</a></div>` : ''}</div></div>`;
   const reg = PAC26.orgs.filter(r => r[E.flags] & 1);
   const tipos = {};
   reg.forEach(r => { const t = tipos[r[E.tipo]] || (tipos[r[E.tipo]] = {t: r[E.tipo], n: 0, con: 0, sin: 0, sinOC: 0, nOC: 0}); t.n++; if(r[E.flags] & 2) t.con++; else { t.sin++; if(r[E.nOC]) t.sinOC++; t.nOC += r[E.nOC]; } });
@@ -4378,15 +4380,15 @@ function p6RenderTop(){
       <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Organismos registrados en Mercado Público y PAC 2026 publicado</h2>
       <p class="block-note">Universo: ${fmt(st.registro)} organismos del registro de Mercado Público (archivo Organismos.xlsx, un registro por RUT; ${fmt(st.registroFilas)} filas). Un organismo cuenta como "con PAC" si alguno de sus códigos aparece en el PAC 2026 con actualización. Los ${fmt(st.sinCodigo)} organismos del registro sin ninguna OC en el dashboard no se pueden asociar por código y se cuentan como sin PAC (verificar).</p>
       <div class="kpis" style="margin:0 0 12px;">
-        ${kpi('k-org', 'Organismos registrados', fmt(st.registro), 'Registro de Mercado Público')}
-        ${kpi('k-monto', 'Con PAC 2026 publicado', fmt(st.conPac) + ' · ' + p6Pct(st.conPac, st.registro), 'de los registrados')}
-        ${kpi('k-prov', 'Sin PAC 2026 publicado', fmt(st.sinPac) + ' · ' + p6Pct(st.sinPac, st.registro), fmt(st.sinPacConOC) + ' de ellos emitieron OC en ' + esc(PAC26.meses.join(' y ')))}
-        ${kpi('k-org', 'Con PAC, fuera del registro', fmt(st.pacFueraRegistro), 'Códigos con PAC que no figuran en el archivo de registro')}
+        ${kpi('k-org', 'Organismos registrados', fmt(st.registro), 'Registro de Mercado Público', 'todos')}
+        ${kpi('k-monto', 'Con PAC 2026 publicado', fmt(st.conPac) + ' · ' + p6Pct(st.conPac, st.registro), 'de los registrados', 'con')}
+        ${kpi('k-prov', 'Sin PAC 2026 publicado', fmt(st.sinPac) + ' · ' + p6Pct(st.sinPac, st.registro), fmt(st.sinPacConOC) + ' de ellos emitieron OC en ' + esc(PAC26.meses.join(' y ')), 'sin')}
+        ${kpi('k-org', 'Con PAC, fuera del registro', fmt(st.pacFueraRegistro), 'Códigos con PAC que no figuran en el archivo de registro', 'fuera')}
       </div>
       <div class="table-wrap pac-tw" style="max-height:300px;"><table class="dt"><thead><tr><th>Tipo de organismo</th><th class="num">Registrados</th><th class="num">Con PAC</th><th class="num">Sin PAC</th><th class="num">% sin PAC</th><th class="num">Sin PAC con OC</th><th class="num">OC de los sin PAC</th></tr></thead><tbody>
       ${tl.map(t => `<tr><td>${esc(t.t)}</td><td class="num">${fmt(t.n)}</td><td class="num">${fmt(t.con)}</td><td class="num">${fmt(t.sin)}</td><td class="num">${p6Pct(t.sin, t.n)}</td><td class="num">${fmt(t.sinOC)}</td><td class="num">${fmt(t.nOC)}</td></tr>`).join('')}
       <tr style="font-weight:700;"><td>Total</td><td class="num">${fmt(st.registro)}</td><td class="num">${fmt(st.conPac)}</td><td class="num">${fmt(st.sinPac)}</td><td class="num">${p6Pct(st.sinPac, st.registro)}</td><td class="num">${fmt(st.sinPacConOC)}</td><td class="num">${fmt(tl.reduce((a, t) => a + t.nOC, 0))}</td></tr></tbody></table></div>
-      <div class="dl-row" style="margin-top:8px;gap:6px;"><button type="button" class="dl-btn" onclick="p6ListaSin(this)">Descargar lista de organismos sin PAC (Excel)</button><button type="button" class="dl-btn" style="font-weight:500;" onclick="p6SoloSin()">Ver en la tabla</button></div>
+      <div class="dl-row" style="margin-top:8px;gap:6px;"><button type="button" class="dl-btn" onclick="p6ListaXlsx(this,'sin')">Descargar lista de organismos sin PAC (Excel)</button><button type="button" class="dl-btn" onclick="p6ListaXlsx(this,'todos')">Descargar con y sin PAC (Excel)</button><button type="button" class="dl-btn" style="font-weight:500;" onclick="p6SoloSin()">Ver en la tabla</button></div>
     </section>
     <section class="block">
       <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span>PAC 2026 y órdenes de compra enlazadas</h2>
@@ -4402,13 +4404,29 @@ function p6RenderTop(){
     </section>`;
 }
 function p6SoloSin(){ P6.estado = 'sin'; P6.page = 0; p6RenderList(); document.getElementById('p6List').scrollIntoView({behavior: 'smooth'}); }
-async function p6ListaSin(btn){
-  const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Generando…';
+function p6OrgRow(r){
+  const f = r[E.flags], conPac = !!(f & 2);
+  return [r[E.name], r[E.rut], r[E.tipo], r[E.region], r[E.codes].join('; ') || '(sin código en los datos)', !(f & 1) ? 'Fuera del registro MP' : conPac ? 'Sí' : 'No', p6Estado(r),
+    conPac ? r[E.proy] : '', conPac ? r[E.items] : '', conPac ? r[E.plan] : '', r[E.nOC], r[E.clp], r[E.nCod], conPac ? r[E.nEnl] : '', r[E.dashN], r[E.dashUsd]];
+}
+async function p6ListaXlsx(btn, modo, ev){
+  if(ev) ev.preventDefault();
+  const orig = btn.innerHTML; btn.style.pointerEvents = 'none'; if(btn.disabled !== undefined) btn.disabled = true; btn.textContent = 'Generando…';
   try {
-    const rows = PAC26.orgs.filter(r => (r[E.flags] & 1) && !(r[E.flags] & 2)).sort((a, b) => b[E.nOC] - a[E.nOC]).map(r => [r[E.name], r[E.rut], r[E.tipo], r[E.region], r[E.codes].join('; ') || '(sin código en los datos)', r[E.nOC], r[E.clp], r[E.nCod], r[E.dashN], r[E.dashUsd]]);
-    xlsxSave(await xlsxBlob([{name: 'Organismos sin PAC 2026', headers: ['Organismo', 'RUT', 'Tipo de organismo', 'Región', 'Código(s) de organismo', 'OC válidas ' + PAC26.meses.join(' y ') + ' (n)', 'Monto de esas OC (CLP)', 'OC con código PAC (n)', 'OC ene-sep 2026 en el dashboard (n)', 'Monto ene-sep 2026 en el dashboard (US$)'], rows},
-      {name: 'Notas', headers: ['Tema', 'Detalle'], rows: p6Notas()}]), 'organismos_sin_PAC_2026.xlsx');
-  } finally { btn.disabled = false; btn.innerHTML = orig; }
+    const head = ['Organismo', 'RUT', 'Tipo de organismo', 'Región', 'Código(s) de organismo', 'PAC 2026 publicado', 'Estado', 'Proyectos PAC 2026', 'Ítems PAC 2026', 'Monto PAC 2026 (CLP)', 'OC válidas ' + PAC26.meses.join(' y ') + ' (n)', 'Monto de esas OC (CLP)', 'OC con código PAC (n)', 'OC enlazadas al PAC 2026 (n)', 'OC ene-sep 2026 en el dashboard (n)', 'Monto ene-sep 2026 en el dashboard (US$)'];
+    const reg = r => r[E.flags] & 1, con = r => r[E.flags] & 2, mk = (L, srt) => L.slice().sort(srt).map(p6OrgRow);
+    const byName = (a, b) => a[E.name].localeCompare(b[E.name], 'es'), byPlan = (a, b) => b[E.plan] - a[E.plan] || byName(a, b), byOC = (a, b) => b[E.nOC] - a[E.nOC] || byName(a, b);
+    const O = PAC26.orgs, sh = {
+      con: {name: 'Con PAC 2026', headers: head, rows: mk(O.filter(r => reg(r) && con(r)), byPlan)},
+      sin: {name: 'Sin PAC 2026', headers: head, rows: mk(O.filter(r => reg(r) && !con(r)), byOC)},
+      fuera: {name: 'Con PAC fuera del registro', headers: head, rows: mk(O.filter(r => !reg(r)), byPlan)},
+      todos: {name: 'Registrados (con y sin PAC)', headers: head, rows: mk(O.filter(reg), byName)}};
+    const sheets = modo === 'todos' ? [sh.todos, sh.con, sh.sin, sh.fuera] : [sh[modo]];
+    const nota = {con: 'Organismos del registro de Mercado Público con PAC 2026 publicado.', sin: 'Organismos del registro de Mercado Público sin PAC 2026 publicado. "(sin código en los datos)": el organismo no tiene OC en el dashboard y no se pudo asociar a un código; conviene verificarlo.', fuera: 'Códigos con PAC 2026 cuyo organismo no figura en el archivo de registro de organismos.', todos: 'Los ' + fmt(PAC26.st.registro) + ' organismos del registro de Mercado Público, con y sin PAC 2026 publicado, más hojas separadas por condición.'};
+    const notas = [['Contenido', nota[modo]], ['Corte', 'PAC 2026 con actualización; registro de organismos de Mercado Público; generado ' + PAC26.generado + '.']].concat(p6Notas());
+    const fn = {con: 'organismos_con_PAC_2026.xlsx', sin: 'organismos_sin_PAC_2026.xlsx', fuera: 'organismos_con_PAC_fuera_del_registro_2026.xlsx', todos: 'organismos_con_y_sin_PAC_2026.xlsx'}[modo];
+    xlsxSave(await xlsxBlob(sheets.concat([{name: 'Notas', headers: ['Tema', 'Detalle'], rows: notas}])), fn);
+  } finally { btn.style.pointerEvents = ''; if(btn.disabled !== undefined) btn.disabled = false; btn.innerHTML = orig; }
 }
 
 // ---------- listado de organismos ----------
