@@ -1,0 +1,6 @@
+Plan Anual de Compras (PAC) 2025 y 2026: datos abiertos procesados
+Fuente: archivos PAC2025 y PAC 2026 con actualización, de la Dirección ChileCompra.
+Montos en pesos chilenos (CLP). El PAC es una estimación, no gasto ejecutado.
+Archivos: pac_2025_lineas.parquet, pac_2026_lineas.parquet (una fila por línea de ítem), pac_resumen_por_organismo.csv, pac_lineas_extremas.csv, diccionario_de_datos.csv.
+Tratamiento: espacios normalizados, nombres de organismo por código, datos personales en texto libre omitidos, líneas del PAC 2025 dañadas reconstruidas (9 filas sin recuperar), banderas de calidad. No se eliminó ninguna línea.
+Marco: Ley 19.886 art. 12 (texto Ley 21.634); D.S. 661/2024 arts. 109 y 165 a 171.

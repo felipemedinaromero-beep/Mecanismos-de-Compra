@@ -1,0 +1,17 @@
+﻿columna,descripcion,origen
+anio,Año del PAC (2025 o 2026),Año_Etapa del archivo original
+mecanismo,"Mecanismo de compra según el vocabulario del propio PAC (Procedimiento concursal, Procedimientos especiales de contratación, Contratación directa, Licitación, Trato Directo, Convenio Marco). No coincide con los mecanismos del dashboard.",Mecanismo_Compra
+clasificacion_presupuestaria,"Código y nombre del clasificador presupuestario, por ejemplo [22-04-001] Materiales de Oficina. Los dos primeros dígitos son el subtítulo.",Clasificacion_Presupuestaria
+codigo_organismo,Código del organismo (EntCode) en Mercado Público,EntCode
+organismo,Nombre del organismo según el listado del dashboard (el archivo original trunca algunos nombres a 40 caracteres),Institucion (normalizada por código)
+region,"Región del organismo según el listado del dashboard; ""Sin clasificar"" si el organismo no está en el listado",Dashboard
+sector,"Sector del organismo según el listado del dashboard; ""Sin clasificar"" si no está en el listado",Dashboard
+unidad_de_compra,Unidad de compra que planifica la compra,Unidad_de_Compra
+proyecto,Nombre del proyecto o proceso de compra,Proyecto
+descripcion_proyecto,"Descripción del proyecto, con correos, teléfonos y RUT con puntos reemplazados por [correo omitido], [teléfono omitido] y [RUT omitido]",Descripcion_Proyecto
+codigo_proceso,Código del proceso de compra planificado (por ejemplo 1000813-1-PC25). El sufijo indica el año del código,Codigo
+item,Ítem o línea de producto o servicio planificado,Item
+cantidad,Cantidad estimada,Cantidad
+monto_unitario_clp,Monto unitario estimado en pesos chilenos,Monto_Unitario
+monto_total_clp,"Monto total estimado en pesos chilenos (cantidad x monto unitario). Puede incluir impuestos y contratos de varios años (D.S. 661/2024, art. 2 N° 22)",Monto_Total
+banderas_calidad,"Banderas separadas por punto y coma. extrema: monto total >= $100.000 millones; revisar: >= $1 billón; duplicada: misma unidad, proceso, ítem, cantidad y monto ya aparecidos antes; inconsistente: cantidad x unitario distinto del total; monto_cero: monto menor o igual a cero; reconstruida: línea del PAC 2025 que venía partida en varias filas o con columnas corridas en el archivo original",Calculado

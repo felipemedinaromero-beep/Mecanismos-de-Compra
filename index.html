@@ -20,8 +20,6 @@
   header.cc-header::after { content:""; position:absolute; bottom:-140px; left:8%; width:260px; height:260px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.05) 0%,rgba(255,255,255,0) 70%); pointer-events:none; }
   header.cc-header .header-row { position:relative; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; max-width:1280px; margin:0 auto; }
   header.cc-header .header-text { flex:1 1 auto; min-width:0; }
-  header.cc-header .header-logo-chip { flex:0 0 auto; background:#fff; border-radius:8px; padding:9px 16px; box-shadow:0 3px 10px rgba(0,0,0,.22); display:flex; align-items:center; }
-  header.cc-header .header-logo { height:32px; width:auto; display:block; }
   header.cc-header .eyebrow { display:inline-flex; align-items:center; gap:7px; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:#fff; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); border-radius:999px; padding:5px 12px; margin:0 0 14px; font-weight:700; }
   header.cc-header .eyebrow .dot { width:6px; height:6px; border-radius:50%; background:var(--pbi-yellow); flex-shrink:0; }
   header.cc-header h1 { font-size:26px; font-weight:800; letter-spacing:-.01em; margin:0 0 8px; }
@@ -245,6 +243,34 @@
   .conc-item { font-size:12px; color:var(--text-secondary); }
   .conc-item b { font-size:16px; color:var(--cc-dark); display:block; }
   .recur-badge { font-size:10px; color:var(--text-secondary); font-weight:400; }
+
+  .pac-toggle { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:1rem 0 .75rem; font-size:12px; color:var(--text-secondary); }
+  .pac-toggle button { font-family:inherit; font-size:12px; font-weight:600; padding:6px 12px; border-radius:16px; border:1px solid var(--border); background:var(--surface-card); color:var(--cc-dark); cursor:pointer; }
+  .pac-toggle button.on { background:var(--cc-navy); color:#fff; border-color:var(--cc-navy); }
+  .pac-leg { display:flex; gap:16px; font-size:12px; color:var(--cc-dark); margin:4px 0 10px; }
+  .pac-leg i { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .pac-two { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+  .pac-h3 { font-size:11.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-secondary); margin:0 0 8px; }
+  .pac-gr { display:flex; align-items:center; gap:10px; margin:7px 0; }
+  .pac-gl { flex:0 0 190px; font-size:12px; font-weight:600; color:var(--cc-dark); line-height:1.25; }
+  .pac-gl a { color:var(--cc-dark); text-decoration:none; }
+  .pac-gb { flex:1 1 auto; min-width:0; }
+  .pac-bar { display:flex; align-items:center; gap:6px; height:13px; margin:2px 0; }
+  .pac-bar span { display:block; height:9px; border-radius:2px 4px 4px 2px; min-width:0; }
+  .pac-bar em { font-style:normal; font-size:10.5px; color:var(--text-secondary); white-space:nowrap; }
+  .pac-gv { flex:0 0 58px; text-align:right; font-size:11.5px; color:var(--cc-dark); font-variant-numeric:tabular-nums; }
+  .pac-filters { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; align-items:center; }
+  .pac-filters input[type=search], .pac-filters input[type=number], .pac-filters select { font-family:inherit; font-size:12.5px; padding:7px 10px; border:1px solid var(--border); border-radius:6px; background:var(--surface-card); color:var(--cc-dark); flex:1 1 180px; min-width:0; }
+  .pac-chk { font-size:12px; color:var(--cc-dark); display:inline-flex; align-items:center; gap:5px; }
+  .pac-pager { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; font-size:12px; color:var(--text-secondary); margin:8px 0; }
+  .pac-pager .dl-btn[disabled] { opacity:.4; cursor:default; }
+  .pac-tw { max-height:420px; }
+  .pac-tw table.dt th { position:sticky; top:0; background:var(--surface-card); z-index:1; }
+  .pac-tw table.dt td { vertical-align:top; }
+  table.dt tr.pac-sel td { background:rgba(0,112,150,.10); }
+  .pac-links { margin:6px 0 0; padding-left:18px; font-size:12.5px; line-height:1.6; color:var(--cc-dark); }
+  .pac-links a { color:var(--cc-navy); }
+  @media (max-width:760px){ .pac-two { grid-template-columns:1fr; } .pac-gl { flex-basis:120px; } }
 </style>
 </head>
 <body>
@@ -255,9 +281,6 @@
       <h1>Todos los mecanismos de compra</h1>
       <p class="subtitle">Órdenes de compra en estado Recepción Conforme o Aceptada de todos los organismos del Estado, <span class="hdr-range-picker"><select id="globalMesDesde" class="hdr-mes-select" aria-label="Desde"></select> a <select id="globalMesHasta" class="hdr-mes-select" aria-label="Hasta"></select></span>, clasificadas por mecanismo de contratación (Convenio Marco, Licitación Pública/Privada, Trato Directo, Compra Ágil, Compra Coordinada y Contratación por Cotización) según la Ley N° 19.886 y su Reglamento. <button type="button" id="btnGlobalRangeReset" class="hdr-reset-link">Ver todo el período</button></p>
       <p class="hdr-range-note" id="globalRangeNote"></p>
-    </div>
-    <div class="header-logo-chip">
-      <img class="header-logo" src="https://www.chilecompra.cl/wp-content/themes/chcptemp/images/logo-chilecompra-52.png" alt="ChileCompra" onerror="this.parentElement.style.display='none'" />
     </div>
   </div>
 </header>
@@ -358,6 +381,14 @@
         </div>
         <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
       </a>
+      <a class="explore-card" href="#pac" target="_blank" rel="noopener">
+        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="explore-card-text">
+          <p class="explore-card-title">Plan Anual de Compras (PAC) 2025 y 2026</p>
+          <p class="explore-card-sub">Lo que los organismos planificaron comprar: montos, comparación entre años, frente a lo ejecutado, buscador de oportunidades y ficha por organismo</p>
+        </div>
+        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </a>
     </div>
   </section>
 
@@ -408,9 +439,11 @@
 <div id="comparacionView" class="wrap" style="display:none;"></div>
 <div id="economiaCircularView" class="wrap" style="display:none;"></div>
 <div id="subastaView" class="wrap" style="display:none;"></div>
+<div id="pacView" class="wrap" style="display:none;"></div>
 
 <script src="data/data.js"></script>
 <script src="data/cp.js"></script>
+<script src="data/pac.js"></script>
 <script src="data/cc_oc.js"></script>
 <script src="data/cp_orgs_1.js"></script>
 <script src="data/cp_orgs_2.js"></script>
@@ -3837,6 +3870,450 @@ function ecoDetInit(){
   document.getElementById('ecoDet8Priv').textContent = contacto ? '' : 'En esta versión publicada se omiten las columnas Mail y Teléfono.';
 }
 
+// ================= Plan Anual de Compras (PAC) 2025-2026 =================
+const PAC_SH = {2025: {}, 2026: {}};
+function PAC_SHARD(o){ PAC_SH[o.y][o.s] = o; }
+const PAC_A = '#B5750B', PAC_B = '#007096';           // 2025, 2026
+const PAC_FL = {1: 'extrema', 2: 'a revisar', 4: 'duplicada', 8: 'inconsistente', 16: 'monto cero', 32: 'reconstruida'};
+const PAC_BINS = ['Menos de $10 mil', '$10 mil a $100 mil', '$100 mil a $1 millón', '$1 a $10 millones', '$10 a $100 millones', '$100 a $1.000 millones', '$1.000 a $10.000 millones', '$10.000 a $100.000 millones', '$100.000 millones a $1 billón', '$1 billón o más'];
+const PAC_HEAD = ['Año PAC', 'Código organismo', 'Organismo', 'Sector', 'Región', 'Unidad de compra', 'Código del proceso', 'Proyecto', 'Descripción del proyecto', 'Mecanismo (según PAC)', 'Clasificación presupuestaria', 'Ítem', 'Cantidad estimada', 'Monto unitario estimado (CLP)', 'Monto total estimado (CLP)', 'Banderas de calidad'];
+const PS = {dep: false, q: '', sector: '', region: '', sort: 'v26', dir: -1, page: 0, org: null, res: null, resPage: 0, loaded: {}};
+
+function pacFlagTxt(f){ return Object.keys(PAC_FL).filter(k => f & k).map(k => PAC_FL[k]).join('; '); }
+function pacM(n){
+  n = Number(n) || 0; const a = Math.abs(n);
+  const f = (x, d) => x.toLocaleString('es-CL', {minimumFractionDigits: d, maximumFractionDigits: d});
+  if(a >= 1e12) return '$' + f(n / 1e12, 2) + ' billones';
+  if(a >= 1e9) return '$' + f(n / 1e9, 1) + ' mil millones';
+  if(a >= 1e6) return '$' + f(n / 1e6, 1) + ' millones';
+  return '$' + fmt(n);
+}
+function pacMM(n){ return fmt((Number(n) || 0) / 1e6); }
+function pacVar(a, b){
+  if(!a) return b ? '<span style="color:var(--text-secondary);">nuevo</span>' : '<span style="color:var(--text-secondary);">—</span>';
+  const v = (b / a - 1) * 100;
+  return (v > 0 ? '+' : '') + v.toLocaleString('es-CL', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
+}
+function pacVarTxt(a, b){ return pacVar(a, b).replace(/<[^>]+>/g, ''); }
+function pacV(r, y){ const v = r[y === 2025 ? 4 : 5]; return PS.dep ? v[3] : v[2]; }       // monto del organismo en el año
+function pacOrgIdx(code){ return PAC_AGG.orgs.findIndex(r => r[0] === code); }
+
+// ---------- carga perezosa de líneas ----------
+function pacShardUrl(y, s){ return `data/pac/l${y}_${String(s).padStart(2, '0')}.js`; }
+function pacLoadShard(y, s){
+  return new Promise((res, rej) => {
+    if(PAC_SH[y][s]) return res(PAC_SH[y][s]);
+    const sc = document.createElement('script'); sc.src = pacShardUrl(y, s);
+    sc.onload = () => PAC_SH[y][s] ? res(PAC_SH[y][s]) : rej(new Error('Archivo vacío: ' + sc.src));
+    sc.onerror = () => rej(new Error('No se pudo cargar ' + sc.src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.'));
+    document.head.appendChild(sc);
+  });
+}
+async function pacLoadMany(list, onProg){
+  let done = 0; const total = list.length; let k = 0;
+  const worker = async () => { while(k < list.length){ const [y, s] = list[k++]; await pacLoadShard(y, s); done++; if(onProg) onProg(done, total); } };
+  await Promise.all([worker(), worker(), worker()]);
+}
+function pacShardsOf(years, orgIdx){
+  const out = [];
+  years.forEach(y => {
+    if(orgIdx != null){ const s = PAC_AGG.shardOf[orgIdx][y === 2025 ? 0 : 1]; if(s >= 0) out.push([y, s]); }
+    else for(let s = 0; s < PAC_AGG.shards; s++) out.push([y, s]);
+  });
+  return out;
+}
+function pacLineAt(S, i){
+  const o = PAC_AGG.orgs[S.o[i]];
+  return {y: S.y, oc: o[0], on: o[1], reg: o[2], sec: o[3], mec: PAC_AGG.mec[S.m[i]], cl: PAC_AGG.clases[S.c[i]][0], un: S.u.d[S.u.x[i]], pr: S.p.d[S.p.x[i]],
+    ds: S.ds.d[S.ds.x[i]], cod: S.k.d[S.k.x[i]], it: S.it.d[S.it.x[i]], q: S.q[i], pu: S.pu[i], t: S.t[i], f: S.f[i]};
+}
+function pacRow(L){ return [L.y, L.oc, L.on, L.sec, L.reg, L.un, L.cod, L.pr, L.ds, L.mec, L.cl, L.it, L.q, L.pu, L.t, pacFlagTxt(L.f)]; }
+function pacOrgLines(orgIdx, years){
+  const out = [];
+  years.forEach(y => { const s = PAC_AGG.shardOf[orgIdx][y === 2025 ? 0 : 1]; if(s < 0) return; const S = PAC_SH[y][s]; if(!S) return;
+    for(let i = 0; i < S.n; i++) if(S.o[i] === orgIdx) out.push(pacLineAt(S, i)); });
+  return out;
+}
+function pacSave(blob, name){ xlsxSave(blob, name); }
+function pacCsvBlob(headers, rows){
+  const parts = ['﻿' + headers.map(csvCell).join(';') + '\r\n']; let buf = [];
+  for(let i = 0; i < rows.length; i++){ buf.push(rows[i].map(csvCell).join(';')); if(buf.length >= 5000){ parts.push(buf.join('\r\n') + '\r\n'); buf = []; } }
+  if(buf.length) parts.push(buf.join('\r\n') + '\r\n');
+  return new Blob(parts, {type: 'text/csv;charset=utf-8;'});
+}
+function pacNotas(){ return [
+  ['Fuente', 'Plan Anual de Compras (PAC) 2025 y PAC 2026 con actualización, archivos recibidos de la Dirección ChileCompra. Procesamiento: dashboard de Mecanismos de Compra (generado ' + PAC_AGG.generado + ').'],
+  ['Qué es el PAC', 'Plan de compras que cada institución elabora y publica según el art. 12 de la Ley N° 19.886 (texto de la Ley N° 21.634) y los arts. 165 a 171 del D.S. N° 661 de 2024. Es una estimación: no es gasto ni compra efectuada.'],
+  ['Montos', 'Pesos chilenos (CLP). Monto total estimado = cantidad × monto unitario estimado, tal como lo informó cada institución. Incluye contratos de varios años y puede incluir impuestos (D.S. N° 661/2024, art. 2 N° 22).'],
+  ['Líneas extremas', 'Líneas con monto total igual o superior a $100.000 millones. Muchas son contratos plurianuales legítimos; otras pueden ser errores de digitación. Se publican con la bandera "extrema" y se pueden excluir de los totales.'],
+  ['Banderas de calidad', 'extrema (≥ $100.000 millones), a revisar (≥ $1 billón), duplicada (misma línea repetida dentro del mismo proceso), inconsistente (cantidad × unitario ≠ total), monto cero, reconstruida (línea del PAC 2025 que venía partida o con columnas corridas en el archivo original y se reconstruyó).'],
+  ['Datos personales', 'Correos electrónicos, teléfonos y RUT con puntos que aparecían en textos libres se reemplazaron por "[correo omitido]", "[teléfono omitido]" y "[RUT omitido]".'],
+  ['Nombres de instituciones', 'Se usa el nombre del organismo según el listado del dashboard (código de organismo). El archivo original trunca algunos nombres a 40 caracteres.'],
+  ['Ejecutado', 'Monto de órdenes de compra del dashboard (US$) convertido a pesos con el dólar observado promedio mensual del Banco Central. Es una aproximación.'],
+  ['Mes y fecha de publicación', 'Los archivos recibidos no traen mes ni fecha estimada de publicación de bases, que el art. 165 del D.S. N° 661/2024 sí contempla. Por eso no se muestra distribución mensual.']
+]; }
+
+// ---------- gráfico de barras agrupadas 2025 vs 2026 ----------
+function pacLegend(l1, l2){ return `<div class="pac-leg"><span><i style="background:${PAC_A}"></i>${esc(l1 || 'PAC 2025')}</span><span><i style="background:${PAC_B}"></i>${esc(l2 || 'PAC 2026')}</span></div>`; }
+function pacGrouped(rows, fv, noVar){
+  const max = Math.max(1, ...rows.flatMap(r => [r.a, r.b]));
+  const w = v => Math.max(v > 0 ? 0.6 : 0, 100 * v / max);
+  return rows.map(r => `<div class="pac-gr" title="${esc(r.label)}: ${esc(fv(r.a))} (2025) · ${esc(fv(r.b))} (2026)">
+    <div class="pac-gl">${r.href ? '<a href="' + r.href + '">' + esc(r.label) + '</a>' : esc(r.label)}</div>
+    <div class="pac-gb"><div class="pac-bar"><span style="width:${w(r.a)}%;background:${PAC_A}"></span><em>${fv(r.a)}</em></div>
+    <div class="pac-bar"><span style="width:${w(r.b)}%;background:${PAC_B}"></span><em>${fv(r.b)}</em></div></div>
+    <div class="pac-gv">${noVar ? '' : pacVar(r.a, r.b)}</div></div>`).join('');
+}
+
+// ---------- agregados según vista (publicado / sin líneas extremas) ----------
+function pacYearTotals(y){
+  const st = PAC_AGG.stat[y];
+  return PS.dep ? st.dep : st.total;
+}
+function pacSectores(){
+  const m = {};
+  PAC_AGG.orgs.forEach(r => {
+    const s = r[3] || 'Sin sector'; const x = m[s] || (m[s] = {s, a: 0, b: 0, n: 0, e25: 0, e26: 0});
+    x.a += pacV(r, 2025); x.b += pacV(r, 2026); x.n++;
+    if(r[6]) x.e25 += r[6][2]; if(r[7]) x.e26 += r[7][2];
+  });
+  return Object.values(m).sort((p, q) => (q.a + q.b) - (p.a + p.b));
+}
+
+function renderPacPage(orgCode){
+  const view = document.getElementById('pacView');
+  if(typeof PAC_AGG === 'undefined'){ view.innerHTML = '<p class="block-note">No se encontraron los datos del PAC (archivo data/pac.js).</p>'; return; }
+  if(orgCode !== undefined) PS.org = orgCode || null;
+  if(!view.dataset.ready){
+    view.innerHTML = `
+    <a class="back-link" href="${esc(location.pathname + location.search)}" onclick="goHome(event)">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Volver al panel de mecanismos
+    </a>
+    <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Plan Anual de Compras (PAC) 2025 y 2026</h1>
+    <p class="block-note">Lo que los organismos públicos planificaron comprar, según los archivos del PAC 2025 y del PAC 2026 con actualización. El PAC es una <b>estimación</b>: no es gasto ni compra efectuada. Marco: art. 12 de la Ley N° 19.886 (texto de la Ley N° 21.634) y arts. 165 a 171 del D.S. N° 661 de 2024. Montos en pesos chilenos (CLP).</p>
+    <div id="pacTop"></div>
+    <div id="pacSearch"></div>
+    <div id="pacBottom"></div>`;
+    view.dataset.ready = '1';
+    pacRenderSearch(); pacRenderBottom();
+  }
+  pacRenderTop();
+  if(PS.org){ const el = document.getElementById('pacFicha'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+}
+
+function pacRenderTop(){
+  const A = PAC_AGG, s5 = A.stat['2025'], s6 = A.stat['2026'];
+  const t5 = pacYearTotals('2025'), t6 = pacYearTotals('2026');
+  const kpi = (cls, lbl, v, sub) => `<div class="kpi ${cls}"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub">${sub}</div></div></div>`;
+  const bin = A.hist.y;
+  const mecRows = A.mec.map((m, i) => ({label: m, a: PS.dep ? A.mecAgg['2025'][i][3] : A.mecAgg['2025'][i][2], b: PS.dep ? A.mecAgg['2026'][i][3] : A.mecAgg['2026'][i][2]})).filter(r => r.a || r.b);
+  const subRows = A.sub.map((m, i) => ({label: (m.c === '00' ? '' : m.c + ' ') + m.n, a: PS.dep ? A.subAgg['2025'][i][2] : A.subAgg['2025'][i][1], b: PS.dep ? A.subAgg['2026'][i][2] : A.subAgg['2026'][i][1]}));
+  const secs = pacSectores();
+  const secRows = secs.map(x => ({label: x.s, a: x.a, b: x.b}));
+  const hl = bin['2025'].map((_, i) => ({label: PAC_BINS[i], a: bin['2025'][i][0], b: bin['2026'][i][0]}));
+  const hm = bin['2025'].map((_, i) => ({label: PAC_BINS[i], a: bin['2025'][i][1], b: bin['2026'][i][1]}));
+  const vistaTxt = PS.dep ? 'sin las líneas de $100.000 millones o más' : 'monto publicado (todas las líneas)';
+  const ficha = PS.org ? pacFichaHtml(PS.org) : '';
+  document.getElementById('pacTop').innerHTML = `
+    <div class="pac-toggle" role="group" aria-label="Vista de montos">
+      <span>Vista de montos:</span>
+      <button type="button" class="${PS.dep ? '' : 'on'}" onclick="pacSetDep(false)">Monto publicado</button>
+      <button type="button" class="${PS.dep ? 'on' : ''}" onclick="pacSetDep(true)">Sin líneas extremas (≥ $100.000 millones)</button>
+    </div>
+    <div class="note-box">Las líneas de $100.000 millones o más son ${s5.nExt} en 2025 (${pacM(s5.mExt)}, ${(100 * s5.mExt / s5.total).toLocaleString('es-CL', {maximumFractionDigits: 1})}% del total) y ${s6.nExt} en 2026 (${pacM(s6.mExt)}, ${(100 * s6.mExt / s6.total).toLocaleString('es-CL', {maximumFractionDigits: 1})}%). Pesan tanto que cambian la comparación entre años: con todas las líneas el PAC 2026 es ${pacVarTxt(s5.total, s6.total)} respecto de 2025; sin ellas, ${pacVarTxt(s5.dep, s6.dep)}. Varias son contratos de varios años (por ejemplo, programas de alimentación escolar de JUNAEB) y otras podrían ser errores de digitación: revisa la sección "Calidad de los datos".</div>
+    <div class="kpis" style="margin:1rem 0 1.25rem;">
+      ${kpi('k-monto', 'Monto estimado PAC 2025', pacM(t5), 'Vista: ' + vistaTxt)}
+      ${kpi('k-monto', 'Monto estimado PAC 2026', pacM(t6), pacVarTxt(t5, t6) + ' respecto de 2025')}
+      ${kpi('k-org', 'Organismos con PAC', fmt(s5.orgs) + ' · ' + fmt(s6.orgs), '2025 · 2026')}
+      ${kpi('k-prov', 'Procesos de compra planificados', fmt(s5.codigos) + ' · ' + fmt(s6.codigos), '2025 · 2026 (códigos de proceso distintos)')}
+      ${kpi('k-prov', 'Líneas de ítems', fmt(s5.lineas) + ' · ' + fmt(s6.lineas), 'Mediana por línea: ' + pacM(s5.mediana) + ' · ' + pacM(s6.mediana))}
+    </div>
+    ${ficha}
+    <section class="block">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span>Comparación 2025 vs 2026</h2>
+      <p class="block-note">Monto estimado del PAC por mecanismo (según el vocabulario del propio PAC), subtítulo del clasificador presupuestario y sector. Vista: ${vistaTxt}.</p>
+      ${pacLegend()}
+      <div class="pac-two">
+        <div><h3 class="pac-h3">Por mecanismo de compra</h3>${pacGrouped(mecRows, pacM)}</div>
+        <div><h3 class="pac-h3">Por subtítulo presupuestario</h3>${pacGrouped(subRows, pacM)}</div>
+      </div>
+      <h3 class="pac-h3" style="margin-top:18px;">Por sector</h3>${pacGrouped(secRows, pacM)}
+      <div id="dlPacComp"></div>
+    </section>
+    <section class="block">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="20" x2="4" y2="10"/><line x1="10" y1="20" x2="10" y2="4"/><line x1="16" y1="20" x2="16" y2="13"/><line x1="22" y1="20" x2="22" y2="7"/></svg></span>Tamaño de las líneas del PAC</h2>
+      <p class="block-note">Cuántas líneas hay en cada tramo de monto y cuánto pesa cada tramo. Siempre con todas las líneas publicadas. La mayoría de las líneas son pequeñas, pero la plata se concentra en pocas líneas grandes.</p>
+      ${pacLegend()}
+      <div class="pac-two"><div><h3 class="pac-h3">N° de líneas</h3>${pacGrouped(hl, v => fmt(v), true)}</div>
+      <div><h3 class="pac-h3">Monto estimado</h3>${pacGrouped(hm, pacM, true)}</div></div>
+    </section>
+    <section class="block">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span>PAC frente a lo ejecutado</h2>
+      <p class="block-note">Compara lo planificado con las órdenes de compra del dashboard (ene-2025 a sep-2026), convertidas a pesos con el dólar observado promedio mensual. No son magnitudes equivalentes: el PAC incluye contratos de varios años y compras que nunca se ejecutan, y el dashboard solo registra órdenes de compra en Mercado Público (recepción conforme o aceptada). Úsalo como orden de magnitud. Vista: ${vistaTxt}. 2026 compara con solo 9 meses de ejecución.</p>
+      <div class="table-wrap pac-tw"><table class="dt"><thead><tr><th>Sector</th><th class="num">Organismos</th><th class="num">PAC 2025 (M$)</th><th class="num">Ejecutado 2025 (M$)</th><th class="num">Ejecutado / PAC 2025</th><th class="num">PAC 2026 (M$)</th><th class="num">Ejecutado ene-sep 2026 (M$)</th></tr></thead><tbody>
+      ${secs.map(x => `<tr><td>${esc(x.s)}</td><td class="num">${fmt(x.n)}</td><td class="num">${pacMM(x.a)}</td><td class="num">${pacMM(x.e25)}</td><td class="num">${x.a ? (100 * x.e25 / x.a).toLocaleString('es-CL', {maximumFractionDigits: 0}) + '%' : '—'}</td><td class="num">${pacMM(x.b)}</td><td class="num">${pacMM(x.e26)}</td></tr>`).join('')}
+      <tr style="font-weight:700;"><td>Total</td><td class="num">${fmt(secs.reduce((a, x) => a + x.n, 0))}</td><td class="num">${pacMM(secs.reduce((a, x) => a + x.a, 0))}</td><td class="num">${pacMM(secs.reduce((a, x) => a + x.e25, 0))}</td><td class="num">${(100 * secs.reduce((a, x) => a + x.e25, 0) / secs.reduce((a, x) => a + x.a, 0)).toLocaleString('es-CL', {maximumFractionDigits: 0})}%</td><td class="num">${pacMM(secs.reduce((a, x) => a + x.b, 0))}</td><td class="num">${pacMM(secs.reduce((a, x) => a + x.e26, 0))}</td></tr>
+      </tbody></table></div>
+      <p class="block-note" style="margin:8px 0 0;">M$ = millones de pesos. Los organismos que no están en el listado del dashboard no tienen cifra de ejecución.</p>
+    </section>
+    <section class="block" id="pacOrgSec">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 3 9 21 9"/></svg></span>Organismos</h2>
+      <p class="block-note">Busca un organismo y abre su ficha PAC. Haz clic en los encabezados para ordenar.</p>
+      <div class="pac-filters">
+        <input type="search" id="pacQ" placeholder="Buscar organismo o código" value="${esc(PS.q)}" oninput="PS.q=this.value;PS.page=0;pacRenderOrgTable()">
+        <select id="pacSec" onchange="PS.sector=this.value;PS.page=0;pacRenderOrgTable()"><option value="">Todos los sectores</option>${[...new Set(PAC_AGG.orgs.map(r => r[3]))].sort().map(s => `<option${PS.sector === s ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>
+        <select id="pacReg" onchange="PS.region=this.value;PS.page=0;pacRenderOrgTable()"><option value="">Todas las regiones</option>${[...new Set(PAC_AGG.orgs.map(r => r[2]))].sort().map(s => `<option${PS.region === s ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>
+      </div>
+      <div id="pacOrgTbl"></div>
+    </section>`;
+  pacRenderOrgTable();
+  // descarga comparación
+  const rowsC = [];
+  mecRows.forEach(r => rowsC.push(['Mecanismo', r.label, Math.round(r.a), Math.round(r.b)]));
+  subRows.forEach(r => rowsC.push(['Subtítulo', r.label, Math.round(r.a), Math.round(r.b)]));
+  secRows.forEach(r => rowsC.push(['Sector', r.label, Math.round(r.a), Math.round(r.b)]));
+  setDl('pacComp', ['Dimensión', 'Categoría', 'PAC 2025 (CLP)', 'PAC 2026 (CLP)'], rowsC);
+  setDlSheets('pacComp', () => [{name: 'Comparación', headers: ['Dimensión', 'Categoría', 'PAC 2025 (CLP)', 'PAC 2026 (CLP)', 'Variación'], rows: rowsC.map(r => r.concat([r[2] ? r[3] / r[2] - 1 : ''])) },
+    {name: 'Notas', headers: ['Tema', 'Detalle'], rows: pacNotas().concat([['Vista', vistaTxt]])}]);
+  const dl = document.getElementById('dlPacComp'); if(dl) dl.innerHTML = dlBtn('pacComp', 'pac_comparacion_2025_2026.csv', 'Descargar comparación (Excel)');
+}
+function pacSetDep(v){ PS.dep = v; PS.page = 0; pacRenderTop(); }
+
+// ---------- tabla de organismos ----------
+function pacOrgList(){
+  const q = normTxt(PS.q.trim());
+  let L = PAC_AGG.orgs.map((r, i) => ({r, i})).filter(({r}) => (!PS.sector || r[3] === PS.sector) && (!PS.region || r[2] === PS.region) && (!q || normTxt(r[1]).includes(q) || r[0].includes(q)));
+  const val = {name: x => x.r[1], v25: x => pacV(x.r, 2025), v26: x => pacV(x.r, 2026), var: x => { const a = pacV(x.r, 2025), b = pacV(x.r, 2026); return a ? b / a - 1 : (b ? 9e9 : -9e9); },
+    e25: x => x.r[6] ? x.r[6][2] : -1, ratio: x => { const a = pacV(x.r, 2025); return a && x.r[6] ? x.r[6][2] / a : -1; }, l26: x => x.r[5][0], sec: x => x.r[3]};
+  const f = val[PS.sort === 'v26' ? 'v26' : PS.sort] || val.v26;
+  L.sort((p, q2) => { const a = f(p), b = f(q2); return (typeof a === 'string' ? a.localeCompare(b, 'es') : a - b) * PS.dir; });
+  return L;
+}
+function pacSort(k){ if(PS.sort === k) PS.dir = -PS.dir; else { PS.sort = k; PS.dir = (k === 'name' || k === 'sec') ? 1 : -1; } PS.page = 0; pacRenderOrgTable(); }
+function pacRenderOrgTable(){
+  const L = pacOrgList(), PER = 25, pages = Math.max(1, Math.ceil(L.length / PER)); if(PS.page >= pages) PS.page = pages - 1;
+  const sl = L.slice(PS.page * PER, PS.page * PER + PER);
+  const th = (k, lab, num) => `<th class="sortable${num ? ' num' : ''}${PS.sort === k ? ' sort-active' : ''}" tabindex="0" onclick="pacSort('${k}')" onkeydown="if(event.key==='Enter')pacSort('${k}')">${lab}<span class="sort-arrow">${PS.sort === k ? (PS.dir > 0 ? '▲' : '▼') : '↕'}</span></th>`;
+  const el = document.getElementById('pacOrgTbl'); if(!el) return;
+  el.innerHTML = `<div class="table-wrap pac-tw" style="max-height:520px;"><table class="dt"><thead><tr>${th('name', 'Organismo')}${th('sec', 'Sector')}${th('v25', 'PAC 2025 (M$)', 1)}${th('v26', 'PAC 2026 (M$)', 1)}${th('var', 'Variación', 1)}${th('e25', 'Ejecutado 2025 (M$)', 1)}${th('ratio', 'Ejecutado / PAC', 1)}${th('l26', 'Líneas 2026', 1)}<th></th></tr></thead><tbody>
+    ${sl.map(({r, i}) => { const a = pacV(r, 2025), b = pacV(r, 2026), e = r[6] ? r[6][2] : null; return `<tr class="${PS.org === r[0] ? 'pac-sel' : ''}"><td><a href="#pac=${encodeURIComponent(r[0])}" onclick="return pacOpenOrg('${r[0]}',event)">${esc(r[1])}</a><br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r[0])} · ${esc(r[2])}</span></td><td>${esc(r[3])}</td><td class="num">${pacMM(a)}</td><td class="num">${pacMM(b)}</td><td class="num">${pacVar(a, b)}</td><td class="num">${e == null ? '—' : pacMM(e)}</td><td class="num">${e != null && a ? (100 * e / a).toLocaleString('es-CL', {maximumFractionDigits: 0}) + '%' : '—'}</td><td class="num">${fmt(r[5][0])}</td><td><a href="#pac=${encodeURIComponent(r[0])}" onclick="return pacOpenOrg('${r[0]}',event)">Ficha</a></td></tr>`; }).join('') || '<tr><td colspan="9" style="padding:12px;">Sin resultados</td></tr>'}
+    </tbody></table></div>
+    <div class="pac-pager"><span>${fmt(L.length)} organismos · página ${PS.page + 1} de ${pages}</span><span><button type="button" class="dl-btn" ${PS.page ? '' : 'disabled'} onclick="PS.page--;pacRenderOrgTable()">Anterior</button> <button type="button" class="dl-btn" ${PS.page < pages - 1 ? '' : 'disabled'} onclick="PS.page++;pacRenderOrgTable()">Siguiente</button></span></div>
+    <div id="dlPacOrg"></div>`;
+  const head = ['Código organismo', 'Organismo', 'Sector', 'Región', 'PAC 2025 publicado (CLP)', 'PAC 2025 sin líneas extremas (CLP)', 'Líneas 2025', 'Procesos 2025', 'Líneas extremas 2025', 'PAC 2026 publicado (CLP)', 'PAC 2026 sin líneas extremas (CLP)', 'Líneas 2026', 'Procesos 2026', 'Líneas extremas 2026', 'Variación publicado', 'Ejecutado 2025 (CLP aprox.)', 'N° OC 2025', 'Ejecutado ene-sep 2026 (CLP aprox.)', 'N° OC 2026'].concat(PAC_AGG.mec.map(m => 'PAC 2025 ' + m + ' (CLP)'), PAC_AGG.mec.map(m => 'PAC 2026 ' + m + ' (CLP)'));
+  const rows = L.map(({r}) => [r[0], r[1], r[3], r[2], Math.round(r[4][2]), Math.round(r[4][3]), r[4][0], r[4][1], r[4][4], Math.round(r[5][2]), Math.round(r[5][3]), r[5][0], r[5][1], r[5][4], r[4][2] ? r[5][2] / r[4][2] - 1 : '', r[6] ? r[6][2] : '', r[6] ? r[6][0] : '', r[7] ? r[7][2] : '', r[7] ? r[7][0] : ''].concat(r[4].slice(5).map(Math.round), r[5].slice(5).map(Math.round)));
+  setDl('pacOrg', head, rows);
+  setDlSheets('pacOrg', () => [{name: 'Organismos', headers: head, rows}, {name: 'Notas', headers: ['Tema', 'Detalle'], rows: pacNotas()}]);
+  document.getElementById('dlPacOrg').innerHTML = dlBtn('pacOrg', 'pac_organismos_2025_2026.csv', 'Descargar organismos de la tabla (Excel)');
+}
+function pacOpenOrg(code, ev){
+  if(ev) ev.preventDefault();
+  history.replaceState(null, '', '#pac=' + encodeURIComponent(code));
+  PS.org = code; pacRenderTop();
+  const el = document.getElementById('pacFicha'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'start'});
+  return false;
+}
+function pacCloseOrg(){ PS.org = null; history.replaceState(null, '', '#pac'); pacRenderTop(); }
+
+// ---------- ficha de organismo ----------
+function pacFichaHtml(code){
+  const i = pacOrgIdx(code); if(i < 0) return `<div class="note-box">No hay datos de PAC para el código ${esc(code)}.</div>`;
+  const r = PAC_AGG.orgs[i], a = r[4], b = r[5], e5 = r[6], e6 = r[7];
+  const kpi = (lbl, v, sub) => `<div class="kpi k-monto"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub">${sub}</div></div></div>`;
+  const rows = PAC_AGG.mec.map((m, k) => ({label: m, a: a[5 + k], b: b[5 + k]})).filter(x => x.a || x.b);
+  const L = pacOrgLines(i, [2025, 2026]);
+  const loaded = pacShardsOf([2025, 2026], i).every(([y, s]) => PAC_SH[y][s]);
+  let lineas = '';
+  if(loaded){
+    const top = L.slice().sort((p, q) => q.t - p.t).slice(0, 25);
+    lineas = `<h3 class="pac-h3" style="margin-top:14px;">Mayores líneas del PAC (${fmt(L.length)} en total)</h3><div class="table-wrap pac-tw" style="max-height:340px;"><table class="dt"><thead><tr><th>Año</th><th>Código proceso</th><th>Ítem</th><th>Mecanismo</th><th class="num">Cantidad</th><th class="num">Monto total (CLP)</th><th>Banderas</th></tr></thead><tbody>
+      ${top.map(x => `<tr><td>${x.y}</td><td>${esc(x.cod)}</td><td title="${esc(x.pr + ' — ' + x.ds)}">${esc(x.it)}</td><td>${esc(x.mec)}</td><td class="num">${fmt(x.q)}</td><td class="num">${fmt(x.t)}</td><td>${esc(pacFlagTxt(x.f))}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+  return `<section class="block" id="pacFicha" style="border-left:4px solid ${PAC_B};">
+    <h2 style="justify-content:space-between;"><span>Ficha PAC · ${esc(r[1])}</span><a href="#pac" onclick="pacCloseOrg();return false;" style="font-size:12px;text-transform:none;">Cerrar ficha</a></h2>
+    <p class="block-note">Código ${esc(r[0])} · ${esc(r[3])} · ${esc(r[2])}. Vista de montos: ${PS.dep ? 'sin líneas extremas' : 'monto publicado'}.</p>
+    <div class="kpis" style="margin:0 0 12px;">
+      ${kpi('PAC 2025', pacM(PS.dep ? a[3] : a[2]), fmt(a[0]) + ' líneas · ' + fmt(a[1]) + ' procesos')}
+      ${kpi('PAC 2026', pacM(PS.dep ? b[3] : b[2]), fmt(b[0]) + ' líneas · ' + fmt(b[1]) + ' procesos · ' + pacVarTxt(PS.dep ? a[3] : a[2], PS.dep ? b[3] : b[2]))}
+      ${kpi('Ejecutado 2025 (aprox.)', e5 ? pacM(e5[2]) : '—', e5 ? fmt(e5[0]) + ' OC en el dashboard' : 'Sin datos de ejecución')}
+      ${kpi('Ejecutado ene-sep 2026 (aprox.)', e6 ? pacM(e6[2]) : '—', e6 ? fmt(e6[0]) + ' OC en el dashboard' : 'Sin datos de ejecución')}
+    </div>
+    ${(a[4] || b[4]) ? `<div class="note-box" style="margin:0 0 12px;">Este organismo tiene ${a[4]} línea(s) extrema(s) en 2025 y ${b[4]} en 2026 (≥ $100.000 millones).</div>` : ''}
+    ${pacLegend()}${pacGrouped(rows, pacM)}
+    ${lineas}
+    <div class="dl-row" style="margin-top:12px;gap:6px;"><button type="button" class="dl-btn" id="pacFichaDl" onclick="pacFichaExcel(${i},this)">Descargar ficha con todas las líneas (Excel)</button>
+    ${loaded ? '' : `<button type="button" class="dl-btn" id="pacFichaLoad" onclick="pacFichaLoad(${i},this)">Ver las mayores líneas</button>`}</div>
+    <p class="block-note" id="pacFichaMsg" style="margin:6px 0 0;"></p>
+  </section>`;
+}
+async function pacFichaLoad(i, btn){
+  const msg = document.getElementById('pacFichaMsg');
+  try { if(btn){ btn.disabled = true; btn.textContent = 'Cargando…'; } await pacLoadMany(pacShardsOf([2025, 2026], i)); pacRenderTop(); }
+  catch(e){ if(msg) msg.textContent = e.message; if(btn){ btn.disabled = false; btn.textContent = 'Ver las mayores líneas'; } }
+}
+async function pacFichaExcel(i, btn){
+  const msg = document.getElementById('pacFichaMsg'), orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Preparando…';
+  try {
+    await pacLoadMany(pacShardsOf([2025, 2026], i), (d, t) => { if(msg) msg.textContent = 'Cargando datos ' + d + '/' + t + '…'; });
+    const r = PAC_AGG.orgs[i], L = pacOrgLines(i, [2025, 2026]); if(msg) msg.textContent = '';
+    const cls = {}; L.forEach(x => { const k = x.y + '|' + x.cl; (cls[k] || (cls[k] = [x.y, x.cl, 0, 0]))[2]++; cls[k][3] += x.t; });
+    const res = [['Organismo', r[1]], ['Código', r[0]], ['Sector', r[3]], ['Región', r[2]]];
+    [2025, 2026].forEach((y, k) => { const v = r[4 + k]; res.push(['PAC ' + y + ': monto publicado (CLP)', Math.round(v[2])], ['PAC ' + y + ': sin líneas extremas (CLP)', Math.round(v[3])], ['PAC ' + y + ': líneas', v[0]], ['PAC ' + y + ': procesos', v[1]], ['PAC ' + y + ': líneas extremas', v[4]]);
+      PAC_AGG.mec.forEach((m, j) => res.push(['PAC ' + y + ': ' + m + ' (CLP)', Math.round(v[5 + j])])); });
+    const e5 = r[6], e6 = r[7];
+    res.push(['Ejecutado 2025 en dashboard (CLP aprox.)', e5 ? e5[2] : ''], ['N° OC 2025', e5 ? e5[0] : ''], ['Ejecutado ene-sep 2026 (CLP aprox.)', e6 ? e6[2] : ''], ['N° OC 2026', e6 ? e6[0] : '']);
+    const sheets = [{name: 'Resumen', headers: ['Indicador', 'Valor'], rows: res}, {name: 'Por clasificación', headers: ['Año PAC', 'Clasificación presupuestaria', 'Líneas', 'Monto total (CLP)'], rows: Object.values(cls).sort((p, q) => p[0] - q[0] || q[3] - p[3])}];
+    [2025, 2026].forEach(y => sheets.push({name: 'Líneas ' + y, headers: PAC_HEAD, rows: L.filter(x => x.y === y).sort((p, q) => q.t - p.t).map(pacRow)}));
+    sheets.push({name: 'Notas', headers: ['Tema', 'Detalle'], rows: pacNotas()});
+    pacSave(await xlsxBlob(sheets), 'pac_ficha_' + r[0] + '.xlsx');
+    pacRenderTop();
+  } catch(e){ if(msg) msg.textContent = e.message; }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+}
+
+// ---------- buscador de oportunidades ----------
+function pacRenderSearch(){
+  const A = PAC_AGG;
+  document.getElementById('pacSearch').innerHTML = `<section class="block" id="pacSrchSec">
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Buscador de oportunidades</h2>
+    <p class="block-note">Busca en las más de 970 mil líneas de ítems del PAC: por producto o servicio, organismo, proyecto o descripción (todas las palabras deben aparecer). Sirve a proveedores que quieren saber qué planifica comprar el Estado, y a compradores para comparar. La primera búsqueda descarga los datos de las líneas (unos ${Math.round(54 * 1)} MB por año; en un sitio publicado viajan comprimidos).</p>
+    <div class="pac-filters">
+      <input type="search" id="pcQ" placeholder="Ej.: notebook, alimentación escolar, combustible…" style="flex:2 1 260px;" onkeydown="if(event.key==='Enter')pacRunSearch()">
+      <select id="pcY"><option value="2026">PAC 2026</option><option value="2025">PAC 2025</option><option value="both">Ambos años</option></select>
+      <select id="pcM"><option value="">Todos los mecanismos</option>${A.mec.map((m, i) => `<option value="${i}">${esc(m)}</option>`).join('')}</select>
+      <select id="pcS"><option value="">Todos los sectores</option>${[...new Set(A.orgs.map(r => r[3]))].sort().map(s => `<option>${esc(s)}</option>`).join('')}</select>
+      <input type="number" id="pcMin" min="0" step="1" placeholder="Monto mínimo (M$)" style="flex:0 1 150px;">
+      <label class="pac-chk"><input type="checkbox" id="pcX"> Excluir líneas extremas (≥ $100.000 millones)</label>
+      <button type="button" class="dl-btn" style="font-size:12px;padding:7px 14px;" onclick="pacRunSearch()">Buscar</button>
+    </div>
+    <p class="block-note" id="pcMsg" style="margin:6px 0;"></p>
+    <div id="pcRes"></div>
+  </section>`;
+}
+function pacNormShard(S){
+  if(S._n) return S._n;
+  S._n = {it: S.it.d.map(normTxt), p: S.p.d.map(normTxt), ds: S.ds.d.map(normTxt)}; return S._n;
+}
+async function pacRunSearch(){
+  const msg = document.getElementById('pcMsg'), yv = document.getElementById('pcY').value;
+  const years = yv === 'both' ? [2025, 2026] : [Number(yv)];
+  const toks = normTxt(document.getElementById('pcQ').value.trim()).split(/\s+/).filter(Boolean);
+  const mec = document.getElementById('pcM').value, sec = document.getElementById('pcS').value;
+  const minT = (Number(document.getElementById('pcMin').value) || 0) * 1e6, ex = document.getElementById('pcX').checked;
+  try {
+    await pacLoadMany(pacShardsOf(years), (d, t) => { msg.textContent = 'Cargando datos del PAC… ' + d + ' de ' + t + ' archivos'; });
+  } catch(e){ msg.textContent = e.message; return; }
+  msg.textContent = 'Buscando…'; await new Promise(r => setTimeout(r, 20));
+  const orgN = PAC_AGG.orgs.map(r => normTxt(r[1])), orgSec = PAC_AGG.orgs.map(r => r[3]);
+  const hs = [], hi = [], ht = []; const shards = [];
+  years.forEach(y => { for(let s = 0; s < PAC_AGG.shards; s++){ const S = PAC_SH[y][s]; if(S) shards.push(S); } });
+  shards.forEach((S, sk) => {
+    const N = pacNormShard(S);
+    const tm = toks.map(t => ({it: N.it.map(x => x.includes(t)), p: N.p.map(x => x.includes(t)), ds: N.ds.map(x => x.includes(t)), o: orgN.map(x => x.includes(t))}));
+    for(let i = 0; i < S.n; i++){
+      const t = S.t[i];
+      if(t < minT) continue;
+      if(mec !== '' && S.m[i] !== Number(mec)) continue;
+      if(ex && (S.f[i] & 1)) continue;
+      const o = S.o[i];
+      if(sec && orgSec[o] !== sec) continue;
+      let ok = true;
+      for(let k = 0; k < tm.length; k++){ const m = tm[k]; if(!(m.it[S.it.x[i]] || m.p[S.p.x[i]] || m.ds[S.ds.x[i]] || m.o[o])){ ok = false; break; } }
+      if(ok){ hs.push(sk); hi.push(i); ht.push(t); }
+    }
+  });
+  const ord = new Uint32Array(ht.length); for(let i = 0; i < ord.length; i++) ord[i] = i;
+  ord.sort((a, b) => ht[b] - ht[a]);
+  PS.res = {shards, hs, hi, ht, ord, years, q: document.getElementById('pcQ').value.trim(), total: ht.reduce((a, b) => a + b, 0)};
+  PS.resPage = 0; msg.textContent = ''; pacRenderResults();
+}
+function pacResLine(k){ const R = PS.res, j = R.ord[k]; return pacLineAt(R.shards[R.hs[j]], R.hi[j]); }
+function pacRenderResults(){
+  const R = PS.res, el = document.getElementById('pcRes'); if(!R || !el) return;
+  const PER = 50, n = R.ord.length, pages = Math.max(1, Math.ceil(n / PER)); if(PS.resPage >= pages) PS.resPage = pages - 1;
+  const from = PS.resPage * PER, to = Math.min(n, from + PER), rows = [];
+  for(let k = from; k < to; k++) rows.push(pacResLine(k));
+  el.innerHTML = `<div class="kpis" style="margin:8px 0 12px;"><div class="kpi k-prov"><div class="kpi-body"><div class="lbl">Líneas encontradas</div><div class="val">${fmt(n)}</div></div></div>
+    <div class="kpi k-monto"><div class="kpi-body"><div class="lbl">Monto estimado</div><div class="val">${pacM(R.total)}</div></div></div></div>
+    <div class="table-wrap pac-tw" style="max-height:480px;"><table class="dt"><thead><tr><th>Año</th><th>Organismo</th><th>Ítem</th><th>Proyecto</th><th>Mecanismo</th><th class="num">Cantidad</th><th class="num">Unitario (CLP)</th><th class="num">Total (CLP)</th><th>Banderas</th></tr></thead><tbody>
+    ${rows.map(x => `<tr><td>${x.y}</td><td><a href="#pac=${encodeURIComponent(x.oc)}" target="_blank" rel="noopener">${esc(x.on)}</a><br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.un)}</span></td><td title="${esc(x.ds)}">${esc(x.it)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.cod)} · ${esc(x.cl)}</span></td><td>${esc(x.pr)}</td><td>${esc(x.mec)}</td><td class="num">${fmt(x.q)}</td><td class="num">${fmt(x.pu)}</td><td class="num">${fmt(x.t)}</td><td>${esc(pacFlagTxt(x.f))}</td></tr>`).join('') || '<tr><td colspan="9" style="padding:12px;">Sin resultados</td></tr>'}</tbody></table></div>
+    <div class="pac-pager"><span>Mostrando ${n ? from + 1 : 0}–${to} de ${fmt(n)}, ordenadas por monto</span><span><button type="button" class="dl-btn" ${PS.resPage ? '' : 'disabled'} onclick="PS.resPage--;pacRenderResults()">Anterior</button> <button type="button" class="dl-btn" ${PS.resPage < pages - 1 ? '' : 'disabled'} onclick="PS.resPage++;pacRenderResults()">Siguiente</button></span></div>
+    <div class="dl-row" style="gap:6px;"><button type="button" class="dl-btn" onclick="pacResDownload('xlsx',this)">Descargar todas las líneas encontradas (Excel)</button><button type="button" class="dl-btn" style="font-weight:500;" onclick="pacResDownload('csv',this)">CSV</button></div>`;
+}
+async function pacResDownload(kind, btn){
+  const R = PS.res; if(!R) return; const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Generando…';
+  try {
+    await new Promise(r => setTimeout(r, 30));
+    const LIM = 1000000, n = Math.min(R.ord.length, kind === 'xlsx' ? LIM : R.ord.length), rows = new Array(n);
+    for(let k = 0; k < n; k++) rows[k] = pacRow(pacResLine(k));
+    const stamp = 'pac_busqueda' + (R.q ? '_' + normTxt(R.q).replace(/[^a-z0-9]+/g, '_').slice(0, 30) : '');
+    if(kind === 'csv') pacSave(pacCsvBlob(PAC_HEAD, rows), stamp + '.csv');
+    else {
+      const filt = [['Búsqueda', R.q || '(sin texto)'], ['Años', R.years.join(', ')], ['Líneas encontradas', R.ord.length], ['Líneas en el archivo', n], ['Monto total estimado (CLP)', Math.round(R.total)]];
+      pacSave(await xlsxBlob([{name: 'Líneas PAC', headers: PAC_HEAD, rows}, {name: 'Filtros y notas', headers: ['Tema', 'Detalle'], rows: filt.concat(pacNotas())}]), stamp + '.xlsx');
+    }
+  } catch(e){ console.error(e); alert('No se pudo generar el archivo: ' + e.message); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
+}
+
+// ---------- calidad, datos abiertos y cómo leer ----------
+function pacRenderBottom(){
+  const A = PAC_AGG, s5 = A.stat['2025'], s6 = A.stat['2026'], sn = A.saneado || {};
+  const pct = (a, b) => (100 * a / b).toLocaleString('es-CL', {maximumFractionDigits: 1}) + '%';
+  const fl = A.flags;
+  const head = ['Año', 'Código organismo', 'Organismo', 'Código proceso', 'Ítem', 'Cantidad', 'Unitario (CLP)', 'Total (CLP)', 'Banderas', 'Mecanismo'];
+  const frows = fl.map(x => [x[0], x[1], (A.orgs[pacOrgIdx(x[1])] || [])[1] || '', x[2], x[3], x[4], x[5], x[6], pacFlagTxt(x[7]), x[8]]);
+  setDl('pacFlags', head, frows);
+  document.getElementById('pacBottom').innerHTML = `
+    <section class="block" id="pacCal">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>Calidad de los datos</h2>
+      <p class="block-note">Qué se encontró al revisar los archivos y cómo se trató. Nada se borró: las líneas con problemas se publican con una bandera para que cada persona decida si las usa.</p>
+      <div class="table-wrap pac-tw" style="max-height:none;"><table class="dt"><thead><tr><th>Indicador</th><th class="num">PAC 2025</th><th class="num">PAC 2026</th><th>Tratamiento</th></tr></thead><tbody>
+        <tr><td>Líneas publicadas</td><td class="num">${fmt(s5.lineas)}</td><td class="num">${fmt(s6.lineas)}</td><td>Todas las líneas se publican.</td></tr>
+        <tr><td>Líneas extremas (≥ $100.000 millones)</td><td class="num">${s5.nExt} · ${pacM(s5.mExt)} (${pct(s5.mExt, s5.total)})</td><td class="num">${s6.nExt} · ${pacM(s6.mExt)} (${pct(s6.mExt, s6.total)})</td><td>Bandera "extrema"; los totales se pueden ver con y sin ellas. Confirmar con cada organismo.</td></tr>
+        <tr><td>Líneas a revisar (≥ $1 billón)</td><td class="num">${s5.nRev}</td><td class="num">${s6.nRev}</td><td>Bandera "a revisar". Ejemplo: licenciamiento Microsoft 365 de la I. Municipalidad de Lo Barnechea por $1,34 billones (código 3724-13-PC25).</td></tr>
+        <tr><td>Líneas duplicadas exactas</td><td class="num">${fmt(s5.nDup)} · ${pacM(s5.mDup)}</td><td class="num">${fmt(s6.nDup)} · ${pacM(s6.mDup)}</td><td>Misma unidad, proceso, ítem, cantidad y monto repetidos. Bandera "duplicada"; se mantienen en los totales porque pueden ser líneas legítimas repetidas.</td></tr>
+        <tr><td>Cantidad × unitario distinto del total</td><td class="num">${s5.nInc}</td><td class="num">${s6.nInc}</td><td>Bandera "inconsistente".</td></tr>
+        <tr><td>Líneas con monto cero o negativo</td><td class="num">${s5.nCero}</td><td class="num">${s6.nCero}</td><td>Bandera "monto cero".</td></tr>
+        <tr><td>Líneas reconstruidas del archivo original</td><td class="num">${fmt(s5.nRec)} · ${pacM(s5.mRec)}</td><td class="num">${s6.nRec}</td><td>En el archivo del PAC 2025, textos con saltos de línea partieron registros en varias filas y desplazaron columnas. Se reconstruyeron con el código del proceso y la tripleta cantidad × unitario = total. Quedaron 9 filas sin recuperar. Bandera "reconstruida".</td></tr>
+        <tr><td>Códigos de proceso de años anteriores</td><td class="num">${fmt(s5.cyear['2024'] || 0)}</td><td class="num">${fmt(Object.entries(s6.cyear).filter(([k]) => k !== '2026').reduce((a, [, v]) => a + v, 0))}</td><td>En el PAC 2026 "con actualización" hay procesos con código de 2022 a 2025 (${Object.entries(s6.cyear).filter(([k]) => k !== '2026').map(([k, v]) => 'PC' + k.slice(2) + ': ' + fmt(v)).join(', ')}). Son procesos arrastrados.</td></tr>
+        <tr><td>Datos personales en textos libres</td><td class="num" colspan="2" style="text-align:center;">${sn.correos || 0} correos · ${sn.telefonos || 0} teléfonos · ${sn.ruts || 0} RUT</td><td>Reemplazados por "[correo omitido]", "[teléfono omitido]" y "[RUT omitido]" antes de publicar.</td></tr>
+        <tr><td>Mes y fecha estimada de publicación</td><td class="num" colspan="2" style="text-align:center;">No vienen en los archivos</td><td>El art. 165 del D.S. N° 661/2024 contempla el listado por mes y la fecha estimada de publicación de bases. Conviene confirmar si el sistema de origen los tiene.</td></tr>
+      </tbody></table></div>
+      <h3 class="pac-h3" style="margin-top:16px;">Las ${fl.length} líneas extremas, ordenadas por monto</h3>
+      <div class="table-wrap pac-tw" style="max-height:340px;"><table class="dt"><thead><tr><th>Año</th><th>Organismo</th><th>Código proceso</th><th>Ítem</th><th class="num">Cantidad</th><th class="num">Total (CLP)</th><th>Banderas</th></tr></thead><tbody>
+      ${frows.map(x => `<tr><td>${x[0]}</td><td><a href="#pac=${encodeURIComponent(x[1])}" target="_blank" rel="noopener">${esc(x[2])}</a></td><td>${esc(x[3])}</td><td>${esc(x[4])}</td><td class="num">${fmt(x[5])}</td><td class="num">${fmt(x[7])}</td><td>${esc(x[8])}</td></tr>`).join('')}</tbody></table></div>
+      <div id="dlPacFlags"></div>
+    </section>
+    <section class="block" id="pacOpen">
+      <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>Datos abiertos</h2>
+      <p class="block-note">Los datos limpios, listos para reutilizar (art. 109 del D.S. N° 661/2024 sobre datos abiertos y reutilizables). Disponibles en el sitio publicado, en la carpeta <b>datos_abiertos</b>.</p>
+      <ul class="pac-links">
+        <li><a href="datos_abiertos/pac_2025_lineas.parquet" download>pac_2025_lineas.parquet</a> — ${fmt(s5.lineas)} líneas del PAC 2025, formato Parquet.</li>
+        <li><a href="datos_abiertos/pac_2026_lineas.parquet" download>pac_2026_lineas.parquet</a> — ${fmt(s6.lineas)} líneas del PAC 2026, formato Parquet.</li>
+        <li><a href="datos_abiertos/pac_resumen_por_organismo.csv" download>pac_resumen_por_organismo.csv</a> — montos, líneas y procesos por organismo y año, con desglose por mecanismo.</li>
+        <li><a href="datos_abiertos/pac_lineas_extremas.csv" download>pac_lineas_extremas.csv</a> — las líneas de $100.000 millones o más.</li>
+        <li><a href="datos_abiertos/diccionario_de_datos.csv" download>diccionario_de_datos.csv</a> — descripción de cada columna y de las banderas de calidad.</li>
+      </ul>
+      <p class="block-note" style="margin:8px 0 0;">Las líneas también se pueden descargar en Excel o CSV desde el buscador y desde la ficha de cada organismo.</p>
+    </section>
+    <section class="block">
+      <details>
+        <summary style="cursor:pointer;font-weight:700;color:var(--cc-navy);font-size:13px;">Cómo leer estas cifras</summary>
+        <ul class="pac-links" style="margin-top:10px;">
+          <li><b>El PAC es un plan, no un gasto.</b> Cada institución elabora y publica su PAC según el art. 12 de la Ley N° 19.886 (texto de la Ley N° 21.634) y los arts. 165 a 171 del D.S. N° 661/2024. Las cifras son estimaciones y se pueden modificar durante el año (art. 168 y siguientes).</li>
+          <li><b>El monto es "presupuesto estimado".</b> Cantidad estimada × monto unitario estimado, informado por cada institución. Puede incluir impuestos (D.S. N° 661/2024, art. 2 N° 22) y cubrir contratos de varios años, por eso no equivale al gasto de un año.</li>
+          <li><b>Mecanismos del PAC.</b> El archivo usa su propio vocabulario (procedimiento concursal, procedimientos especiales de contratación, contratación directa, licitación, trato directo y convenio marco), distinto de los mecanismos del resto del dashboard. En 2026 aparecen más líneas rotuladas como licitación, trato directo y convenio marco que en 2025.</li>
+          <li><b>Comparar con lo ejecutado.</b> Las órdenes de compra del dashboard se convierten a pesos con el dólar observado promedio de cada mes; es una aproximación. Compras fuera de Mercado Público no están en el dashboard.</li>
+          <li><b>Nombres de organismos.</b> Se usan los del listado del dashboard por código de organismo; el archivo original trunca algunos a 40 caracteres.</li>
+          <li><b>Clasificador presupuestario.</b> El subtítulo sale del código entre corchetes de cada línea (por ejemplo [22-04-001]). Las líneas sin código o con códigos fuera de los subtítulos habituales van en "Otros / sin código".</li>
+        </ul>
+      </details>
+    </section>`;
+  document.getElementById('dlPacFlags').innerHTML = dlBtn('pacFlags', 'pac_lineas_extremas.csv', 'Descargar líneas extremas (Excel)');
+}
+
 function route(){
   const raw = location.hash || '';
   const detalleMatch = raw.match(/^#detalle=(.+)$/);
@@ -3852,6 +4329,8 @@ function route(){
   document.getElementById('comparacionView').style.display = 'none';
   document.getElementById('economiaCircularView').style.display = 'none';
   document.getElementById('subastaView').style.display = 'none';
+  document.getElementById('pacView').style.display = 'none';
+  const pacMatch = raw.match(/^#pac(?:=(.+))?$/);
 
   if(m && DATA.mecanismos[m]){
     document.getElementById('detailView').style.display = 'block';
@@ -3872,6 +4351,10 @@ function route(){
   } else if(raw === '#economia-circular'){
     document.getElementById('economiaCircularView').style.display = 'block';
     renderEconomiaCircularPage();
+  } else if(pacMatch){
+    document.getElementById('pacView').style.display = 'block';
+    renderPacPage(pacMatch[1] ? decodeURIComponent(pacMatch[1]) : '');
+    document.title = 'Plan Anual de Compras (PAC) · ChileCompra';
   } else if(raw === '#comparacion'){
     document.getElementById('comparacionView').style.display = 'block';
     renderComparacionPage();
