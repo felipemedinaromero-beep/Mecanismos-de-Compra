@@ -73,7 +73,7 @@
   .legend .li.off { opacity:.35; }
   .legend .sw { width:11px; height:11px; border-radius:3px; flex-shrink:0; }
   .tooltip { position:absolute; background:var(--cc-dark); color:#fff; font-size:11px; padding:6px 9px; border-radius:6px; pointer-events:none; opacity:0; transition:opacity .1s; white-space:nowrap; z-index:5; box-shadow:0 2px 8px rgba(0,0,0,.25); }
-  #grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:16px; }
+  #grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(360px,1fr)); gap:16px; margin-bottom:1.25rem; }
   .card { background:var(--surface-card); border:1px solid var(--border); border-radius:var(--pbi-radius); overflow:hidden; display:flex; flex-direction:column; box-shadow:var(--pbi-shadow); }
   .card:hover { box-shadow:0 4px 10px rgba(0,0,0,.10),0 1px 3px rgba(0,0,0,.06); }
   .tile-head { padding:1rem 1.15rem; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
@@ -400,6 +400,8 @@
     </div>
   </section>
 
+  <div id="grid"></div>
+
   <section class="block">
     <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></span>Evolución mensual por mecanismo · N° de Órdenes de Compra</h2>
     <p class="block-note">N° de Órdenes de Compra por mes. Haz clic en la leyenda para mostrar u ocultar una serie.</p>
@@ -434,7 +436,6 @@
     <div id="sectorEvoBody"></div>
   </section>
 
-  <div id="grid"></div>
 
   <footer class="cc-footer" id="footerBox"></footer>
 </div>
