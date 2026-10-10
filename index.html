@@ -387,7 +387,7 @@
         <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
         <div class="explore-card-text">
           <p class="explore-card-title">Plan Anual de Compras (PAC) 2025 y 2026</p>
-          <p class="explore-card-sub">Lo que los organismos planificaron comprar: montos, comparación entre años, frente a lo ejecutado, buscador de oportunidades y ficha por organismo</p>
+          <p class="explore-card-sub">Lo que los organismos planificaron comprar: montos, comparación entre años, frente a lo ejecutado y ficha por organismo</p>
         </div>
         <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
       </a>
@@ -395,7 +395,7 @@
         <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
         <div class="explore-card-text">
           <p class="explore-card-title">Buscador PAC 2026</p>
-          <p class="explore-card-sub">Organismos con su PAC 2026 (proyectos, ítems, monto), OC enlazadas con código PAC, cumplimiento y organismos sin PAC publicado</p>
+          <p class="explore-card-sub">Organismos con su PAC 2026 (proyectos, ítems, monto), OC enlazadas con código PAC, cumplimiento, organismos sin PAC publicado y buscador de oportunidades sobre las líneas del PAC</p>
         </div>
         <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
       </a>
@@ -4006,10 +4006,9 @@ function renderPacPage(orgCode){
     <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Plan Anual de Compras (PAC) 2025 y 2026</h1>
     <p class="block-note">Lo que los organismos públicos planificaron comprar, según los archivos del PAC 2025 y del PAC 2026 con actualización. El PAC es una <b>estimación</b>: no es gasto ni compra efectuada. Marco: art. 12 de la Ley N° 19.886 (texto de la Ley N° 21.634) y arts. 165 a 171 del D.S. N° 661 de 2024. Montos en pesos chilenos (CLP). <a href="#pac26" style="color:var(--cc-navy);font-weight:600;">Ir al buscador PAC 2026 por organismo</a>.</p>
     <div id="pacTop"></div>
-    <div id="pacSearch"></div>
     <div id="pacBottom"></div>`;
     view.dataset.ready = '1';
-    pacRenderSearch(); pacRenderBottom();
+    pacRenderBottom();
   }
   pacRenderTop();
   if(PS.org){ const el = document.getElementById('pacFicha'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'start'}); }
@@ -4250,7 +4249,7 @@ function pacRenderResults(){
   el.innerHTML = `<div class="kpis" style="margin:8px 0 12px;"><div class="kpi k-prov"><div class="kpi-body"><div class="lbl">Líneas encontradas</div><div class="val">${fmt(n)}</div></div></div>
     <div class="kpi k-monto"><div class="kpi-body"><div class="lbl">Monto estimado</div><div class="val">${pacM(R.total)}</div></div></div></div>
     <div class="table-wrap pac-tw" style="max-height:480px;"><table class="dt"><thead><tr><th>Año</th><th>Organismo</th><th>Ítem</th><th>Proyecto</th><th>Mecanismo</th><th class="num">Cantidad</th><th class="num">Unitario (CLP)</th><th class="num">Total (CLP)</th><th>Banderas</th></tr></thead><tbody>
-    ${rows.map(x => `<tr><td>${x.y}</td><td><a href="#pac=${encodeURIComponent(x.oc)}" target="_blank" rel="noopener">${esc(x.on)}</a><br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.un)}</span></td><td title="${esc(x.ds)}">${esc(x.it)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.cod)} · ${esc(x.cl)}</span></td><td>${esc(x.pr)}</td><td>${esc(x.mec)}</td><td class="num">${fmt(x.q)}</td><td class="num">${fmt(x.pu)}</td><td class="num">${fmt(x.t)}</td><td>${esc(pacFlagTxt(x.f))}</td></tr>`).join('') || '<tr><td colspan="9" style="padding:12px;">Sin resultados</td></tr>'}</tbody></table></div>
+    ${rows.map(x => `<tr><td>${x.y}</td><td><a href="${x.y === 2026 ? '#pac26=c' : '#pac='}${encodeURIComponent(x.oc)}" target="_blank" rel="noopener">${esc(x.on)}</a><br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.un)}</span></td><td title="${esc(x.ds)}">${esc(x.it)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.cod)} · ${esc(x.cl)}</span></td><td>${esc(x.pr)}</td><td>${esc(x.mec)}</td><td class="num">${fmt(x.q)}</td><td class="num">${fmt(x.pu)}</td><td class="num">${fmt(x.t)}</td><td>${esc(pacFlagTxt(x.f))}</td></tr>`).join('') || '<tr><td colspan="9" style="padding:12px;">Sin resultados</td></tr>'}</tbody></table></div>
     <div class="pac-pager"><span>Mostrando ${n ? from + 1 : 0}–${to} de ${fmt(n)}, ordenadas por monto</span><span><button type="button" class="dl-btn" ${PS.resPage ? '' : 'disabled'} onclick="PS.resPage--;pacRenderResults()">Anterior</button> <button type="button" class="dl-btn" ${PS.resPage < pages - 1 ? '' : 'disabled'} onclick="PS.resPage++;pacRenderResults()">Siguiente</button></span></div>
     <div class="dl-row" style="gap:6px;"><button type="button" class="dl-btn" onclick="pacResDownload('xlsx',this)">Descargar todas las líneas encontradas (Excel)</button><button type="button" class="dl-btn" style="font-weight:500;" onclick="pacResDownload('csv',this)">CSV</button></div>`;
 }
@@ -4358,9 +4357,9 @@ function renderPac26Page(key){
     </a>
     <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Buscador PAC 2026</h1>
     <p class="block-note">Busca un organismo y revisa su Plan Anual de Compras 2026 completo: proyectos, ítems y montos planificados, y qué parte de sus órdenes de compra (OC) trae el código del proyecto PAC. Marco: art. 12 de la Ley N° 19.886 (texto de la Ley N° 21.634) y arts. 165 a 171 del D.S. N° 661/2024. Montos en pesos chilenos (CLP). <a href="#pac" style="color:var(--cc-navy);">Ver el análisis general del PAC 2025 y 2026</a>.</p>
-    <div id="p6Top"></div><div id="p6Ficha"></div><div id="p6List"></div><div id="p6Notes"></div>`;
+    <div id="p6Top"></div><div id="p6Ficha"></div><div id="p6List"></div><div id="pacSearch"></div><div id="p6Notes"></div>`;
     view.dataset.ready = '1';
-    p6RenderTop(); p6RenderList(); p6RenderNotes();
+    p6RenderTop(); p6RenderList(); pacRenderSearch(); p6RenderNotes();
   }
   p6RenderFicha();
   if(P6.ent){ const el = document.getElementById('p6Ficha'); if(el) el.scrollIntoView({behavior: 'smooth', block: 'start'}); }
