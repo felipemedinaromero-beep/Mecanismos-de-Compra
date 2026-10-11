@@ -3485,8 +3485,7 @@ function nuevosWebHtml(mesRange, nRange){
   const conPac = rows.filter(r=>r.pac && r.pac.con), nMot = rows.filter(r=>r.mot).length, nUs = rows.reduce((s,r)=>s+(r.nUsuarios||0),0);
   const pct = (a,b) => b ? (100*a/b).toLocaleString('es-CL',{minimumFractionDigits:1,maximumFractionDigits:1})+'%' : '—';
   _nwRows = rows; _nwRange = nRange;
-  const dlk = k => k ? `<div class="sub" style="margin-top:6px;"><a href="#" class="p6-dl" onclick="nwDl('${k}',event);return false;">⬇ Descargar nombre y RUT (Excel)</a></div>` : '';
-  const kpi = (cls,lbl,v,sub,k) => `<div class="kpi ${cls}"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${v}</div><div class="sub">${sub}</div>${dlk(k)}</div></div>`;
+  const kpi = (cls,lbl,v,sub,k) => `<div class="kpi ${cls}"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${k ? `<a href="#" class="nw-n" style="font-weight:inherit;" onclick="nwDl('${k}',event);return false;" title="Descargar nombre y RUT (Excel)">${v}</a>` : v}</div><div class="sub">${sub}</div></div></div>`;
   const nl = (key,n,txt) => n ? `<a href="#" class="nw-n" onclick="nwDl('${key}',event);return false;" title="Descargar nombre y RUT (Excel)">${txt||fmt(n)}</a>` : (txt||fmt(n));
   // causales
   const cm = {}; rows.forEach(r=>{ const k = r.causal; (cm[k] = cm[k] || {causal:k, art:r.art, n:0, nOc:0, m:0, cond:r.cond}).n++; cm[k].nOc += r.nOc; cm[k].m += r.montoUsd; });
@@ -3530,7 +3529,7 @@ function nuevosWebHtml(mesRange, nRange){
   return `
     <section class="block" id="nuevosWebSec">
       <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg></span>Voluntarios registrados por el formulario web</h2>
-      <p class="block-note">Organismos nuevos que se registraron por el formulario web y quedaron clasificados como voluntarios: pueden adherir por convenio, a diferencia de los obligados (art. 1° inciso final de la Ley 19.886; arts. 2 inciso final y 3 del DS 661/2024). Fuente de la clasificación: ${esc(W.fuente)}. Actividad de compra: ${esc(rangeLabel(nRange))}.</p>
+      <p class="block-note">Organismos nuevos que se registraron por el formulario web y quedaron clasificados como voluntarios: pueden adherir por convenio, a diferencia de los obligados (art. 1° inciso final de la Ley 19.886; arts. 2 inciso final y 3 del DS 661/2024). Fuente de la clasificación: ${esc(W.fuente)}. Actividad de compra: ${esc(rangeLabel(nRange))}. Cada número subrayado es un enlace que descarga en Excel el nombre y el RUT de esos organismos.</p>
       <div class="kpis" style="margin:0 0 12px;">
         ${kpi('k-org','Voluntarios por formulario web', fmt(rows.length), pct(nWebVol, nWeb)+' de los '+fmt(nWeb)+' registrados por esa vía', 'vol')}
         ${kpi('k-prov','Elegibles / no elegibles', fmt(nEleg)+' / '+fmt(nNoEleg), nNoEleg ? 'Los no elegibles no calzan en ninguna causal: revisar su convenio' : 'Todos elegibles', 'eleg')}
