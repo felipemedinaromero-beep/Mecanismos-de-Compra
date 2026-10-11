@@ -2137,6 +2137,7 @@ const CP_LIST = Object.keys(CP.organismos).map(codigo => {
   .sort((a,b) => a.nombre.localeCompare(b.nombre, 'es'));
 function normRut(s){ return (s||'').toString().toLowerCase().replace(/[^0-9k]/g,''); }
 let _cpPrevCodigo = null;
+let CP_EMB = false;   // true cuando el explorador por comprador está embebido en otra vista (p. ej. Organismos nuevos)
 
 // ---------- (el panel principal ahora se renderiza desde route(), al final del script) ----------
 
@@ -2361,13 +2362,17 @@ function cpRubroOptionsHtml(org, q, uIdx){
 }
 
 let _cpInitialUnit = null;
-function renderCompradorPage(initialCodigo, initialUnit){
+function renderCompradorPage(initialCodigo, initialUnit, embedHost){
   _cpInitialUnit = (initialUnit!=null && initialUnit!=='') ? String(initialUnit) : null;
-  const view = document.getElementById('compradorView');
+  const view = embedHost || document.getElementById('compradorView');
+  CP_EMB = !!embedHost;
+  if(CP_EMB){ const cv = document.getElementById('compradorView'); if(cv) cv.innerHTML = ''; }
+  else document.querySelectorAll('.nw-embed').forEach(e => { e.innerHTML = ''; });
   const mecOptions = CP_MECS.map((m,i) => `<option value="${i}">${esc(m)}</option>`).join('');
   const regionOptions = CP_REGIONES.map(r => `<option value="${esc(r)}">${esc(r)}</option>`).join('');
   const sectorOptions = CP_SECTORES.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
   view.innerHTML = `
+    ${CP_EMB ? '' : `
     <a class="back-link" href="${esc(location.pathname + location.search)}" onclick="goHome(event)">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
       Volver al panel de mecanismos
@@ -2375,20 +2380,21 @@ function renderCompradorPage(initialCodigo, initialUnit){
     <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Explorador de transacciones por comprador</h1>
     <p style="margin:0 0 6px;"><a href="#rubro" style="font-size:13px; font-weight:600;">¿Prefieres partir de un rubro de compra? Ver por rubro →</a></p>
     <p class="def-text" style="margin:0 0 1rem;">Selecciona un organismo comprador (puedes acotar la lista por región o sector) y, si quieres, acota además por unidad de compra, período, mecanismo, rubro, familia, clase o producto (con búsqueda por palabra) o proveedor, y filtra o reordena la tabla de transacciones por monto o por fecha. Las cifras de KPIs se calculan sobre el total real, salvo cuando la combinación de filtros no tiene un cruce agregado exacto (se indica cuando el total es una estimación); la tabla de transacciones lista hasta ${fmt(CP.cap)} registros por comprador (los de mayor monto) y, en organismos con varias unidades de compra, las ${fmt(CP.capUnidad||10)} de mayor monto de cada unidad.</p>
+    `}
     <div class="filter-row">
-      <div class="filter-field" style="min-width:220px;">
+      <div class="filter-field" style="min-width:220px;${CP_EMB?'display:none;':''}">
         <label for="inBuscarComprador">Buscar organismo (nombre o RUT)</label>
         <input type="text" id="inBuscarComprador" placeholder="Escribe un nombre o un RUT…" autocomplete="off">
       </div>
-      <div class="filter-field">
+      <div class="filter-field" style="${CP_EMB?'display:none;':''}">
         <label for="selRegion">Región</label>
         <select id="selRegion"><option value="">Todas las regiones</option>${regionOptions}</select>
       </div>
-      <div class="filter-field">
+      <div class="filter-field" style="${CP_EMB?'display:none;':''}">
         <label for="selSector">Sector del organismo</label>
         <select id="selSector"><option value="">Todos los sectores</option>${sectorOptions}</select>
       </div>
-      <div class="filter-field" style="min-width:260px;">
+      <div class="filter-field" style="min-width:260px;${CP_EMB?'display:none;':''}">
         <label for="selComprador">Organismo comprador</label>
         <select id="selComprador"><option value="">— Selecciona un comprador —</option></select>
       </div>
@@ -2462,7 +2468,7 @@ function renderCompradorPage(initialCodigo, initialUnit){
     selComprador.value = initialCodigo;
   }
   _cpPrevCodigo = null;
-  CURRENT_APPLY_RANGE = updateCompradorResults;
+  if(!CP_EMB) CURRENT_APPLY_RANGE = updateCompradorResults;
   updateCompradorResults();
 }
 
@@ -2478,10 +2484,10 @@ function updateCompradorResults(){
   const mesRange = GLOBAL_RANGE;
   const mecSel = document.getElementById('selMec').value;
   const results = document.getElementById('cpResults');
-  history.replaceState(null, '', '#comprador' + (codigo ? '='+codigo : ''));
+  if(!CP_EMB) history.replaceState(null, '', '#comprador' + (codigo ? '='+codigo : ''));
   if(!codigo){
     results.innerHTML = '<div class="cp-placeholder">Selecciona un organismo comprador para ver sus transacciones.</div>';
-    document.title = 'Explorador de transacciones por comprador · ChileCompra';
+    if(!CP_EMB) document.title = 'Explorador de transacciones por comprador · ChileCompra';
     document.getElementById('fieldUnidad').style.display = 'none';
     _cpPrevCodigo = null; _cpPrevUnit = null;
     return;
@@ -2524,7 +2530,7 @@ function updateCompradorResults(){
   // "s" = la única unidad de un organismo con una sola unidad: equivale a todo el organismo
   const uIdx = (unidadSel==='' || unidadSel==='s') ? null : parseInt(unidadSel,10);
   const uNombreSel = unidadSel==='s' ? (CP_UNI[unidad1]||'') : (uIdx!=null ? (CP_UNI[uIdx]||'') : '');
-  history.replaceState(null, '', '#comprador=' + codigo + (uIdx!=null ? '&unidad='+uIdx : (unidadSel==='s' ? '&unidad=s' : '')));
+  if(!CP_EMB) history.replaceState(null, '', '#comprador=' + codigo + (uIdx!=null ? '&unidad='+uIdx : (unidadSel==='s' ? '&unidad=s' : '')));
   if(_cpPrevUnit !== unidadSel){
     selProveedorEl.innerHTML = '<option value="">Todos los proveedores</option>' +
       cpProvOptionsFor(org, uIdx).map(([pIdx])=>`<option value="${pIdx}">${esc(CP.provNames[pIdx])}</option>`).join('');
@@ -2772,7 +2778,7 @@ function updateCompradorResults(){
     ${capNote}
     ${dlBtn('cpTx', 'transacciones_'+orgSlug+'.csv', 'Descargar transacciones (CSV, '+fmt(txsTabla.length)+' filas)')}
   `;
-  document.title = org.nombre + ' · Explorador de transacciones · ChileCompra';
+  if(!CP_EMB) document.title = org.nombre + ' · Explorador de transacciones · ChileCompra';
 
   makeLineChart({svgId:'cpChartOc', legendId:null, ttId:'cpTtOc', categories: cpChartCats,
     series:[{key:'oc', label:org.nombre, color:cssvar('--cc-navy'), values:series.oc.slice(cpChartRange[0], cpChartRange[1]+1)}],
@@ -3293,7 +3299,21 @@ function nuevosWebRows(mesRange){
     return {...o, nOc: tot.nOc, montoUsd: tot.montoUsd, mec, pac, det: (typeof NUEVOS_WEB_DET!=='undefined' && NUEVOS_WEB_DET[o.rut]) || null};
   });
 }
-function nwToggle(i){ const t = document.getElementById('nwd'+i); if(t) t.hidden = !t.hidden; }
+let _nwSel = null;
+function nwSelect(i, forceOpen){
+  const t = document.getElementById('nwd'+i); if(!t) return;
+  const open = forceOpen || t.hidden;
+  document.querySelectorAll('#nuevosWebSec tr.nw-detail').forEach(r => { r.hidden = true; });
+  document.querySelectorAll('#nuevosWebSec tr.nw-row').forEach(r => r.classList.remove('pac-sel'));
+  document.querySelectorAll('.nw-embed').forEach(e => { e.innerHTML = ''; });
+  CP_EMB = false; _nwSel = null;
+  if(!open) return;
+  t.hidden = false; _nwSel = i;
+  const row = t.previousElementSibling; if(row) row.classList.add('pac-sel');
+  const code = t.dataset.code, host = t.querySelector('.nw-embed');
+  if(code && CP.organismos[code] && host) renderCompradorPage(code, null, host);
+}
+function nwReopen(){ if(_nwSel != null) nwSelect(_nwSel, true); }
 function nuevosWebHtml(mesRange, nRange){
   const W = NUEVOS_WEB, rows = nuevosWebRows(mesRange).sort((a,b)=>b.montoUsd-a.montoUsd || a.razon.localeCompare(b.razon,'es'));
   const web = W.via.filter(v=>v[0]==='Formulario web'), man = W.via.filter(v=>v[0]==='Formulario manual');
@@ -3309,15 +3329,23 @@ function nuevosWebHtml(mesRange, nRange){
   const viaRow = (v,lab) => { const g = c => (v.find(x=>x[1]===c)||[0,0,0])[2]; return `<tr><td>${lab}</td><td class="num">${fmt(g('Obligado'))}</td><td class="num">${fmt(g('Voluntario elegible'))}</td><td class="num">${fmt(g('Voluntario no elegible'))}</td><td class="num">${fmt(sum(v))}</td><td class="num">${pct(g('Voluntario elegible')+g('Voluntario no elegible'), sum(v))}</td></tr>`; };
   const nwPac = r => r.pac ? (r.pac.con ? `<a href="#pac26=${encodeURIComponent(r.pac.key)}" target="_blank" rel="noopener">Sí</a> · ${fmt(r.pac.proy)} proy. · ${pacM(r.pac.plan)}` : 'No') : '—';
   const hasDet = rows.some(r=>r.det);
-  const tbl = rows.map((r,i)=>`<tr class="nw-row" style="cursor:pointer;" onclick="nwToggle(${i})" title="Haz clic para ver el fundamento de la clasificación">
+  const mecUsed = CP_MECS.map((n,i)=>i).filter(i=>rows.some(r=>r.mec.some(m=>m.n===CP_MECS[i])));
+  const mecCell = (r,i) => { const m = r.mec.find(x=>x.n===CP_MECS[i]); return m ? `${fmt(m.nOc)} OC<br><span style="font-size:10.5px;color:var(--text-secondary);">${fmtUsd(m.montoUsd)} · ${pct(m.montoUsd, r.montoUsd)}</span>` : '—'; };
+  const mecTbl = conOC.length ? `<h3 style="font-size:14px;margin:16px 0 4px;color:var(--cc-dark);">Compras por mecanismo de compra</h3>
+      <p class="block-note" style="margin-top:0;">N° de OC y monto (USD) por mecanismo, con el porcentaje del monto de cada organismo (${esc(rangeLabel(nRange))}). Solo los organismos con compras. Para el detalle completo, haz clic en el organismo en la tabla de abajo.</p>
+      <div class="table-wrap pac-tw" style="max-height:none;"><table class="dt"><thead><tr><th>Organismo</th>${mecUsed.map(i=>`<th class="num">${esc(CP_MECS[i])}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
+        ${conOC.map(r=>`<tr><td>${esc(r.razon)}</td>${mecUsed.map(i=>`<td class="num">${mecCell(r,i)}</td>`).join('')}<td class="num"><b>${fmt(r.nOc)} OC</b><br><span style="font-size:10.5px;color:var(--text-secondary);">${fmtUsd(r.montoUsd)}</span></td></tr>`).join('')}
+        <tr style="font-weight:700;"><td>Total</td>${mecUsed.map(i=>{ const a = conOC.reduce((t,r)=>{ const m = r.mec.find(x=>x.n===CP_MECS[i]); return {n:t.n+(m?m.nOc:0), u:t.u+(m?m.montoUsd:0)}; },{n:0,u:0}); return `<td class="num">${fmt(a.n)} OC<br><span style="font-size:10.5px;font-weight:400;">${fmtUsd(a.u)} · ${pct(a.u, monto)}</span></td>`; }).join('')}<td class="num">${fmt(nOc)} OC<br><span style="font-size:10.5px;font-weight:400;">${fmtUsd(monto)}</span></td></tr>
+      </tbody></table></div>` : '';
+  const tbl = rows.map((r,i)=>`<tr class="nw-row" style="cursor:pointer;" onclick="nwSelect(${i})" title="Haz clic para ver la clasificación y el detalle de compras del organismo">
       <td>${r.codigo ? `<a href="#comprador=${encodeURIComponent(r.codigo)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(r.razon)}</a>` : esc(r.razon)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.rut)} · ${esc(r.tipo||'tipo no informado')}${r.region ? ' · '+esc(r.region) : ''}</span></td>
       <td>${esc(r.cond)}</td><td>${esc(r.causal)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.art)}</span></td><td>${esc(r.conf)}</td>
       <td class="num">${fmt(r.nUsuarios||0)}</td><td class="num">${r.nOc ? fmt(r.nOc) : '—'}</td><td class="num">${r.nOc ? fmtUsd(r.montoUsd) : '—'}</td><td>${nwPac(r)}</td>
       <td style="max-width:260px;">${r.mot ? esc(r.mot) : '<span style="color:var(--text-secondary);">Sin observaciones</span>'}</td></tr>
-    <tr id="nwd${i}" hidden><td colspan="9" style="background:rgba(0,112,150,.05);font-size:12px;line-height:1.5;">
+    <tr id="nwd${i}" class="nw-detail" data-code="${esc(r.codigo||'')}" hidden><td colspan="9" style="background:rgba(0,112,150,.05);font-size:12px;line-height:1.5;">
       <b>Causal legal:</b> ${esc(r.causalFull)}<br><b>¿Cumple los requisitos de su condición?</b> ${esc(r.cumple||'')} · <b>Revisión independiente:</b> ${esc(r.rev||'')}
       ${r.det ? `<br><b>Fundamento:</b> ${esc(r.det.fund)}<br><b>Evidencia y fuentes:</b> ${esc(r.det.evid)}` : '<br><span style="color:var(--text-secondary);">El fundamento y la evidencia de cada caso están en la versión local del panel y en el archivo de clasificación.</span>'}
-      ${r.mec.length ? `<br><b>Compras por mecanismo (${esc(rangeLabel(nRange))}):</b> ${r.mec.map(m=>esc(m.n)+' '+fmt(m.nOc)+' OC, '+fmtUsd(m.montoUsd)).join(' · ')}` : ''}</td></tr>`).join('');
+      ${r.codigo ? `<div class="nw-embed" style="margin-top:12px;background:var(--surface,#fff);padding:4px 0;"></div>` : '<div style="margin-top:8px;"><b>Compras:</b> sin órdenes de compra en el período con el RUT de este organismo, por lo que no hay detalle de transacciones.</div>'}</td></tr>`).join('');
   // descargas
   const head = ['Organismo','RUT','Código organismo (dashboard)','Condición final','Causal legal','¿Cumple requisitos?','Confianza','Revisión independiente','Motivo de revisión','Tipo de organismo (registro MP)','Sector (registro MP)','Región (registro MP)','N° usuarios (registro MP)','N° OC '+rangeLabel(nRange),'Monto OC (USD) '+rangeLabel(nRange),'PAC 2026 publicado','Proyectos PAC 2026','Monto PAC 2026 (CLP)','Fundamento','Evidencia y fuentes'];
   const drows = rows.map(r=>[r.razon, r.rut, r.codigo||'', r.cond, r.causalFull, r.cumple||'', r.conf||'', r.rev||'', r.mot||'', r.tipo||'', r.sector||'', r.region||'', r.nUsuarios||0, r.nOc, Math.round(r.montoUsd), r.pac ? (r.pac.con ? 'Sí' : 'No') : 'Sin dato', r.pac && r.pac.con ? r.pac.proy : '', r.pac && r.pac.con ? r.pac.plan : '', r.det ? r.det.fund : '', r.det ? r.det.evid : '']);
@@ -3325,6 +3353,7 @@ function nuevosWebHtml(mesRange, nRange){
   setDlSheets('nuevosWeb', () => [{name:'Voluntarios formulario web', headers:head, rows:drows},
     {name:'Vía de registro', headers:['Vía de registro','Obligado','Voluntario elegible','Voluntario no elegible','Total'], rows:['Formulario web','Formulario manual'].map(vv=>{ const v = W.via.filter(x=>x[0]===vv), g = c => (v.find(x=>x[1]===c)||[0,0,0])[2]; return [vv, g('Obligado'), g('Voluntario elegible'), g('Voluntario no elegible'), sum(v)]; })},
     {name:'Causal legal', headers:['Causal','Norma','N° organismos','N° OC','Monto OC (USD)'], rows:causales.map(c=>[c.causal, c.art, c.n, c.nOc, Math.round(c.m)])},
+    {name:'Por mecanismo', headers:['Organismo','RUT','Mecanismo','N° OC','Monto OC (USD)','% del monto del organismo'], rows:conOC.flatMap(r=>r.mec.map(m=>[r.razon, r.rut, m.n, m.nOc, Math.round(m.montoUsd), r.montoUsd ? Math.round(1000*m.montoUsd/r.montoUsd)/10 : 0]))},
     {name:'Notas', headers:['Tema','Detalle'], rows:[
       ['Fuente de la clasificación', W.fuente + '. Universo: ' + W.total + ' organismos nuevos clasificados.'],
       ['Voluntarios del formulario web', 'Organismos registrados por la vía «Formulario web» cuya condición final es Voluntario elegible o Voluntario no elegible.'],
@@ -3349,8 +3378,9 @@ function nuevosWebHtml(mesRange, nRange){
         ${viaRow(web,'Formulario web')}${viaRow(man,'Formulario manual')}</tbody></table></div>
       <div class="table-wrap pac-tw" style="max-height:none;margin-top:12px;"><table class="dt"><thead><tr><th>Causal de los voluntarios del formulario web</th><th>Norma</th><th class="num">Organismos</th><th class="num">OC</th><th class="num">Monto (USD)</th></tr></thead><tbody>
         ${causales.map(c=>`<tr><td>${esc(c.causal)}</td><td>${esc(c.art)}</td><td class="num">${fmt(c.n)}</td><td class="num">${fmt(c.nOc)}</td><td class="num">${fmtUsd(c.m)}</td></tr>`).join('')}</tbody></table></div>
+      ${mecTbl}
       <h3 style="font-size:14px;margin:16px 0 4px;color:var(--cc-dark);">Detalle por organismo</h3>
-      <p class="block-note" style="margin-top:0;">Haz clic en una fila para ver la causal completa y la revisión${hasDet ? ', el fundamento y la evidencia' : ''}. Ordenados por monto de compra.</p>
+      <p class="block-note" style="margin-top:0;">Haz clic en una fila para ver la causal y la revisión${hasDet ? ', el fundamento y la evidencia' : ''}, y el detalle de compras del organismo igual que en el Explorador de transacciones por comprador (evolución mensual, mecanismos, rubros, proveedores, clases, productos y transacciones, con filtros y descargas). Ordenados por monto de compra.</p>
       <div class="table-wrap pac-tw" style="max-height:none;"><table class="dt"><thead><tr><th>Organismo</th><th>Condición final</th><th>Causal</th><th>Confianza</th><th class="num">Usuarios MP</th><th class="num">N° OC</th><th class="num">Monto (USD)</th><th>PAC 2026</th><th>Observación de revisión</th></tr></thead><tbody>${tbl}</tbody></table></div>
       ${dlBtn('nuevosWeb','voluntarios_formulario_web.csv','Descargar voluntarios del formulario web (Excel, '+fmt(rows.length)+' filas)')}
     </section>`;
@@ -3455,6 +3485,7 @@ function renderNuevosPage(){
     <p class="cp-cap-note">Cruce por RUT de unidad de compra contra el RUT informado en la base de organismos nuevos incorporados (hoja "Registrados"). No se excluyó a ningún organismo del resto de este panel.</p>
   `;
   draw();
+  nwReopen();
   wireSortableHeaders(view.querySelector('#nuevosTable thead'), _nuevosSort, ()=>{ updateSortArrows(view.querySelector('#nuevosTable thead'), _nuevosSort); draw(); });
   document.title = 'Organismos nuevos incorporados · ChileCompra';
   CURRENT_APPLY_RANGE = renderNuevosPage;
