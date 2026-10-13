@@ -915,6 +915,61 @@ function ccDetalleSheetsFor(codes){
   if(!rows.length) return [];
   return ocdSheets(CC_OC, rows, null).map(sh => Object.assign({}, sh, {name: sh.name + ' (Compra Coordinada)'}));
 }
+// ---------- Descarga del listado de OC de Compra Coordinada desde cualquier N° de OC (mandatadas y conjuntas) ----------
+const CC_OCDL = [], CC_OCDL_IDX = new Map();
+// Devuelve el N° de OC como enlace que descarga el Excel con exactamente esas OC. procs = procesos (objetos de DATA.mecanismos['Compra Coordinada'].procesos); orgSel = código de organismo (opcional).
+function ccOcLink(id, n, label, procs, orgSel, big){
+  let k = CC_OCDL_IDX.get(id);
+  if(k == null){ k = CC_OCDL.length; CC_OCDL_IDX.set(id, k); CC_OCDL.push(null); }
+  CC_OCDL[k] = {label, procs, orgSel: orgSel || '', n};
+  if(!n || typeof CC_OC === 'undefined') return fmt(n);
+  return `<a href="#" class="nw-n cc-ocdl"${big ? ' style="font-weight:inherit;"' : ''} onclick="ccOcDl(${k},event);return false;" title="Descargar el listado de ${fmt(n)} OC (Excel): ID de la OC, ID del proceso, fecha, nombre de la compra, proveedor y todos los campos">${fmt(n)}</a>`;
+}
+function ccOcSheetsFor(sp){
+  const ix = ccIndex(), c = ccRepCols(), T = c.T, cNom = T.cols.indexOf('Nombre de la OC');
+  const rows = [], meta = new Map(), ord = new Map();
+  sp.procs.forEach((p, j) => { ord.set(p.codigo, j); const e = ix.byProc.get(p.codigo); if(!e) return;
+    e.rows.forEach(i => { if(sp.orgSel && ccV(T, c.ocod, i) !== sp.orgSel) return; rows.push(i); meta.set(i, p); }); });
+  const sv = (i, k) => String(ccV(T, k, i) || '');
+  rows.sort((a, b) => (ord.get(meta.get(a).codigo) - ord.get(meta.get(b).codigo)) || sv(a, c.fe).localeCompare(sv(b, c.fe)) || sv(a, c.cod).localeCompare(sv(b, c.cod)));
+  const hdr = ['ID de la OC (código)', 'ID del proceso', 'Fecha de emisión (envío)', 'Nombre de la compra (proceso)', 'Nombre de la OC', 'Proveedor', 'RUT proveedor (sucursal)', 'Tipo de compra coordinada', 'Vía',
+    'Organismo comprador', 'Código organismo', 'Unidad de compra', 'RUT unidad de compra', 'Fecha de creación', 'Estado OC', 'Moneda', 'Monto OC (moneda original)', 'Monto OC (CLP)', 'Monto (USD)',
+    'N° de ítems', 'Productos', 'Link ficha OC (Mercado Público)'];
+  const lista = rows.map(i => { const p = meta.get(i), prods = ccProductosOc(i), u = ccV(T, c.usd, i), cod = ccV(T, c.cod, i);
+    return [cod, p.codigo, ccV(T, c.fe, i), p.nombre || '', ccV(T, cNom, i), ccV(T, c.prov, i), ccV(T, c.rutP, i), p.tipo || '', p.via || '', ccV(T, c.org, i), ccV(T, c.ocod, i), ccV(T, c.un, i),
+      ccV(T, c.rutU, i), ccV(T, c.fc, i), ccV(T, c.est, i), ccV(T, c.mon, i), ccV(T, c.mo, i), ccV(T, c.clp, i), u != null ? Math.round(u * 100) / 100 : null, prods.length, prods.join('; '), mpLink(cod)]; });
+  const agg = new Map();
+  rows.forEach(i => { const p = meta.get(i); let a = agg.get(p.codigo); if(!a){ a = {p, n: 0, usd: 0, orgs: new Set(), prov: new Set()}; agg.set(p.codigo, a); }
+    a.n++; a.usd += ccV(T, c.usd, i) || 0; a.orgs.add(ccV(T, c.ocod, i)); a.prov.add(ccV(T, c.rutP, i) || ccV(T, c.prov, i)); });
+  const proc = [...agg.values()].map(a => [a.p.nombre || '', a.p.codigo, a.p.via || '', a.p.tipo || '', a.n, a.orgs.size, a.prov.size, Math.round(a.usd * 100) / 100]);
+  const extra = {headers: ['Vía', 'Tipo de compra coordinada'], values: i => { const p = meta.get(i); return [p.via || '', p.tipo || '']; }};
+  const ocSh = ocdSheets(CC_OC, rows, extra); ocSh[0].name = 'OC (todos los campos)';
+  const notas = [
+    'Compra Coordinada · listado de órdenes de compra · período ' + DATA.periodo + ' · generado ' + DATA.generado + '.',
+    'Selección: ' + sp.label + '. Total: ' + fmt(rows.length) + ' OC en ' + fmt(agg.size) + (agg.size === 1 ? ' proceso.' : ' procesos.'),
+    'Hoja Listado de OC: una fila por orden de compra, con el ID de la OC, el ID del proceso, la fecha de emisión, el nombre de la compra, el proveedor y sus datos principales.',
+    'Hoja Procesos: resumen de los procesos incluidos (N° de OC, organismos, proveedores y monto de las OC seleccionadas).',
+    'Hoja OC (todos los campos): todos los campos de cabecera de la OC según los datos abiertos de Mercado Público. Hoja Ítems: las líneas de producto de cada OC.',
+    'Fecha de emisión: fecha de envío de la OC al proveedor, la que usa el panel para ubicarla en el tiempo. Solo OC en estado Recepción Conforme o Aceptada.',
+    'Monto (USD): conversión al dólar observado del día de envío de la OC (Banco Central de Chile); el monto original y el monto en CLP están en las hojas de OC.',
+    'Tipo Mandatada / Conjunta: criterio de ChileCompra aplicado en este panel (ID de licitación con prefijo 1122317 = Mandatada). Base: Art. 29 inciso final de la Ley N° 19.886.'
+  ].map(t => [t]);
+  return {n: rows.length, sheets: [{name: 'Listado de OC', headers: hdr, rows: lista}, {name: 'Procesos', headers: ['Nombre de la compra', 'ID licitación / gran compra', 'Vía', 'Tipo', 'N° OC (selección)', 'N° organismos', 'N° proveedores', 'Monto (USD)'], rows: proc}]
+    .concat(ocSh, [{name: 'Notas', headers: ['Notas'], rows: notas}])};
+}
+async function ccOcDl(k, ev){
+  if(ev) ev.preventDefault();
+  const sp = CC_OCDL[k]; if(!sp) return;
+  const el = ev && ev.currentTarget, old = el ? el.textContent : '';
+  if(el){ el.textContent = 'Generando…'; el.style.pointerEvents = 'none'; }
+  try {
+    await new Promise(r => setTimeout(r, 30));
+    const out = ccOcSheetsFor(sp);
+    const slug = (sp.procs.length === 1 ? sp.procs[0].codigo : (sp.label.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 50))) + (sp.orgSel ? '_' + sp.orgSel : '');
+    xlsxSave(await xlsxBlob(out.sheets), 'oc_compra_coordinada_' + slug + '.xlsx');
+  } catch(e){ console.error(e); alert('No se pudo generar el archivo Excel: ' + e.message); }
+  finally { if(el){ el.textContent = old; el.style.pointerEvents = ''; } }
+}
 function setDlSheetsPlus(key){
   setDlSheets(key, () => { const D = DL_STORE[key]; return [{name: 'Listado de OC', headers: D.headers, rows: D.rows}].concat(ccDetalleSheetsFor(D.rows.map(r => r[0]))); });
 }
@@ -1504,7 +1559,8 @@ function renderDetailPage(m){
     const map = {};
     (md.procesos||[]).forEach(p => {
       const key = (p.via||'—') + '|' + (p.tipo||'—');
-      if(!map[key]) map[key] = {via:p.via||'—', tipo:p.tipo||'—', nProcesos:0, nOc:0, montoUsd:0};
+      if(!map[key]) map[key] = {via:p.via||'—', tipo:p.tipo||'—', nProcesos:0, nOc:0, montoUsd:0, procs:[]};
+      map[key].procs.push(p);
       map[key].nProcesos += 1;
       map[key].nOc += p.nOc;
       map[key].montoUsd += p.montoUsd;
@@ -1514,7 +1570,7 @@ function renderDetailPage(m){
   })();
   setDl('detailTipoCoordinada', ['Tipo','Vía','N° procesos','N° OC','% OC del mecanismo','Monto (USD)','% Monto del mecanismo'],
     tipoViaBreakdown.map(r=>[r.tipo, r.via, r.nProcesos, r.nOc, md.nOc>0?(100*r.nOc/md.nOc).toFixed(1):'0', r.montoUsd, md.montoUsd>0?(100*r.montoUsd/md.montoUsd).toFixed(1):'0']));
-  const tipoViaRows = tipoViaBreakdown.map(r=>`<tr><td>${esc(r.tipo)}</td><td>${esc(r.via)}</td><td class="num">${fmt(r.nProcesos)}</td><td class="num">${fmt(r.nOc)}</td><td class="num">${md.nOc>0?(100*r.nOc/md.nOc).toFixed(1):'0'}%</td><td class="num">${fmtUsd(r.montoUsd)}</td><td class="num">${md.montoUsd>0?(100*r.montoUsd/md.montoUsd).toFixed(1):'0'}%</td></tr>`).join('');
+  const tipoViaRows = tipoViaBreakdown.map(r=>`<tr><td>${esc(r.tipo)}</td><td>${esc(r.via)}</td><td class="num">${fmt(r.nProcesos)}</td><td class="num">${ccOcLink('tv:'+r.tipo+'|'+r.via, r.nOc, 'Compras '+r.tipo.toLowerCase()+'s por '+r.via.toLowerCase(), r.procs)}</td><td class="num">${md.nOc>0?(100*r.nOc/md.nOc).toFixed(1):'0'}%</td><td class="num">${fmtUsd(r.montoUsd)}</td><td class="num">${md.montoUsd>0?(100*r.montoUsd/md.montoUsd).toFixed(1):'0'}%</td></tr>`).join('');
   // ---- Analisis individual de Mandatadas y Conjuntas -------------------------------------------
   // Criterio: ID de proceso con prefijo 1122317 (unidad Compras Coordinadas de ChileCompra) = Mandatada;
   // el resto = Conjunta (organismos como los servicios de salud). En grandes compras se mantiene la
@@ -1530,7 +1586,7 @@ function renderDetailPage(m){
   const ccTramoOrgOrden = ['1 organismo','2 organismos','3 a 5 organismos','6 a 10 organismos','11 o más organismos'];
   const ccTramoMonto = u => u<10000 ? 'Menos de USD 10 mil' : u<100000 ? 'USD 10 mil a 100 mil' : u<1000000 ? 'USD 100 mil a 1 millón' : 'Sobre USD 1 millón';
   const ccTramoMontoOrden = ['Menos de USD 10 mil','USD 10 mil a 100 mil','USD 100 mil a 1 millón','Sobre USD 1 millón'];
-  const ccAgrupa = (arr, keyFn) => { const m = {}; arr.forEach(p=>{ const k = keyFn(p); if(!m[k]) m[k]={label:k, nProc:0, nOc:0, montoUsd:0}; m[k].nProc++; m[k].nOc+=p.nOc; m[k].montoUsd+=p.montoUsd; }); return m; };
+  const ccAgrupa = (arr, keyFn) => { const m = {}; arr.forEach(p=>{ const k = keyFn(p); if(!m[k]) m[k]={label:k, nProc:0, nOc:0, montoUsd:0, procs:[]}; m[k].procs.push(p); m[k].nProc++; m[k].nOc+=p.nOc; m[k].montoUsd+=p.montoUsd; }); return m; };
   const ccData = {};
   CC_TIPOS.concat([{key:'No determinado', slug:'nodet'}]).forEach(t => {
     const arr = (md.procesos||[]).filter(p=>p.tipo===t.key);
@@ -1554,7 +1610,7 @@ function renderDetailPage(m){
       <p class="block-note">${t.nota} Las cifras por proceso cubren todo el período cargado (${esc(DATA.periodo)}) y no responden al filtro de fechas.</p>
       <div class="kpis" style="margin:1rem 0 1.25rem;">
         ${ccKpi('Procesos', fmt(st.n), ccPct(st.n, md.procesos.length)+' % de los procesos de Compra Coordinada')}
-        ${ccKpi('Órdenes de compra', fmt(st.nOc), ccPct(st.nOc, md.nOc)+' % de las OC del mecanismo')}
+        ${ccKpi('Órdenes de compra', ccOcLink('tipo:'+t.key, st.nOc, 'Todas las OC de las compras '+t.key.toLowerCase()+'s', st.arr, '', true), ccPct(st.nOc, md.nOc)+' % de las OC del mecanismo · clic en el número para descargar el listado')}
         ${ccKpi('Monto transado', fmtUsd(st.monto), ccPct(st.monto, md.montoUsd)+' % del monto del mecanismo')}
         ${ccKpi('Monto promedio por OC', st.nOc>0 ? fmtUsd(st.monto/st.nOc) : '—', 'USD por orden de compra')}
         ${ccKpi('Organismos por proceso', 'mediana '+fmt(st.orgMed), 'máximo '+fmt(st.orgMax)+' · '+fmt(st.un1)+' procesos con un solo organismo')}
@@ -1996,7 +2052,7 @@ function renderDetailPage(m){
     const cmpTipos = ['Mandatada','Conjunta'].concat(ccData['nodet'].n ? ['No determinado'] : []);
     const cmpSlug = {'Mandatada':'mandatada','Conjunta':'conjunta','No determinado':'nodet'};
     const cmpItems = f => cmpTipos.map(k=>({label:k, value:f(ccData[cmpSlug[k]]), st:ccData[cmpSlug[k]]}));
-    renderBarList(document.getElementById('ccCmpOc'), cmpItems(x=>x.nOc), it=>`${fmt(it.value)} OC · ${ccPct(it.value, md.nOc)} %`, cssvar('--cc-blue'), null, null);
+    renderBarList(document.getElementById('ccCmpOc'), cmpItems(x=>x.nOc), it=>`${ccOcLink('tipo:'+it.label, it.value, 'Todas las OC de las compras '+it.label.toLowerCase()+'s', it.st.arr)} OC · ${ccPct(it.value, md.nOc)} %`, cssvar('--cc-blue'), null, null);
     renderBarList(document.getElementById('ccCmpMonto'), cmpItems(x=>x.monto), it=>`${fmtUsd(it.value)} · ${ccPct(it.value, md.montoUsd)} %`, cssvar('--cc-green'), null, null);
     renderBarList(document.getElementById('ccCmpProc'), cmpItems(x=>x.n), it=>`${fmt(it.value)} procesos`, cssvar('--cc-navy'), null, null);
     renderBarList(document.getElementById('ccCmpTicket'), cmpItems(x=>x.nOc>0 ? x.monto/x.nOc : 0), it=>`${fmtUsd(it.value)} por OC`, cssvar('--cc-purple'), null, null);
@@ -2028,7 +2084,7 @@ function renderDetailPage(m){
       setDlSheets(KEY, () => ccProcSheets(ccProcView([cur], '', ''), {tipoSel: '', reporte: true}));
       const sv = (i, k) => String(ccV(T, k, i) || '');
       const lista = e.rows.filter(i => !orgSel || ccV(T, c.ocod, i) === orgSel).sort((a, b) => sv(a, c.org).localeCompare(sv(b, c.org), 'es') || sv(a, c.fe).localeCompare(sv(b, c.fe)) || sv(a, c.cod).localeCompare(sv(b, c.cod)));
-      const orgRows = orgs.map(o => `<tr class="cc-rep-org${o.cod === orgSel ? ' sel' : ''}" data-org="${esc(o.cod)}" style="cursor:pointer;" title="Clic para ver solo las OC de este organismo"><td>${esc(o.nombre)}</td><td title="${esc([...o.ruts].sort().join(', '))}">${esc(rutTxt(o.ruts))}</td><td class="num">${fmt(o.n)}</td><td class="num">${fmtUsd(o.usd)}</td><td class="num">${totUsd > 0 ? (100 * o.usd / totUsd).toFixed(1).replace('.', ',') : '0'}%</td><td class="num">${fmt(o.prov.size)}</td></tr>`).join('');
+      const orgRows = orgs.map(o => `<tr class="cc-rep-org${o.cod === orgSel ? ' sel' : ''}" data-org="${esc(o.cod)}" style="cursor:pointer;" title="Clic para ver solo las OC de este organismo"><td>${esc(o.nombre)}</td><td title="${esc([...o.ruts].sort().join(', '))}">${esc(rutTxt(o.ruts))}</td><td class="num">${ccOcLink('proc:'+cur.codigo+':'+o.cod, o.n, 'Proceso '+cur.codigo+' · '+o.nombre, [cur], o.cod)}</td><td class="num">${fmtUsd(o.usd)}</td><td class="num">${totUsd > 0 ? (100 * o.usd / totUsd).toFixed(1).replace('.', ',') : '0'}%</td><td class="num">${fmt(o.prov.size)}</td></tr>`).join('');
       const ocRows = lista.slice(0, lim).map(i => {
         const prods = ccProductosOc(i).join('; '), cod = ccV(T, c.cod, i), u = ccV(T, c.usd, i);
         return `<tr><td>${esc(ccV(T, c.org, i))}</td><td>${esc(ccV(T, c.rutU, i))}</td><td><a href="${esc(mpLink(cod))}" target="_blank" rel="noopener">${esc(cod)}</a></td><td>${esc(fFecha(ccV(T, c.fe, i)))}</td><td>${esc(ccV(T, c.prov, i))}</td><td>${esc(ccV(T, c.rutP, i))}</td><td class="num">${fmtUsd(u)}</td><td title="${esc(prods)}" style="white-space:normal;min-width:260px;max-width:420px;">${esc(prods.length > 220 ? prods.slice(0, 217) + '…' : prods)}</td></tr>`;
@@ -2037,7 +2093,7 @@ function renderDetailPage(m){
       out.innerHTML = `
         <div class="kpis" style="margin:.5rem 0 1rem;">
           ${ccKpi('Organismos participantes', fmt(orgs.length), esc(cur.codigo) + ' · ' + esc(cur.via || ''))}
-          ${ccKpi('Órdenes de compra', fmt(e.rows.length), 'emitidas en el proceso')}
+          ${ccKpi('Órdenes de compra', ccOcLink('proc:'+cur.codigo, e.rows.length, 'Proceso '+cur.codigo, [cur], '', true), 'emitidas en el proceso · clic en el número para descargar')}
           ${ccKpi('Monto transado', fmtUsd(totUsd), 'USD, al dólar del día de envío')}
           ${ccKpi('Proveedores distintos', fmt(provAll.size), 'con OC en el proceso')}
           ${ccKpi('Período de emisión', f0 ? fFecha(f0) : '—', f1 ? 'hasta ' + fFecha(f1) : '')}
@@ -2045,10 +2101,10 @@ function renderDetailPage(m){
         <div class="dl-bar" style="margin:0 0 10px;">${dlBtn(KEY, 'reporte_proceso_' + cur.codigo + '.csv', 'Descargar reporte de este proceso (Excel: organismos, RUT, OC, proveedores, montos, productos y todos los campos de la OC)')}</div>
         <h3 class="cc-h3">Organismos que participan en el proceso <span style="font-weight:400;color:var(--text-secondary);">· clic en un organismo para filtrar sus OC</span></h3>
         <div class="table-wrap" style="max-height:300px;"><table class="dt"><thead><tr><th>Organismo</th><th>RUT unidad de compra</th><th class="num">N° OC</th><th class="num">Monto (USD)</th><th class="num">% del proceso</th><th class="num">Proveedores</th></tr></thead><tbody>${orgRows}</tbody></table></div>
-        <h3 class="cc-h3" style="margin-top:16px;">Órdenes de compra emitidas${nombreOrg ? ' por ' + esc(nombreOrg) : ''} <span style="font-weight:400;color:var(--text-secondary);">· ${fmt(lista.length)} OC${orgSel ? ' · <a href="#" class="cc-rep-all">ver las de todos los organismos</a>' : ''}</span></h3>
+        <h3 class="cc-h3" style="margin-top:16px;">Órdenes de compra emitidas${nombreOrg ? ' por ' + esc(nombreOrg) : ''} <span style="font-weight:400;color:var(--text-secondary);">· ${ccOcLink('proc:'+cur.codigo+(orgSel?':'+orgSel:''), lista.length, 'Proceso '+cur.codigo+(orgSel?' · '+nombreOrg:''), [cur], orgSel)} OC${orgSel ? ' · <a href="#" class="cc-rep-all">ver las de todos los organismos</a>' : ''}</span></h3>
         <div class="table-wrap" style="max-height:540px;"><table class="dt"><thead><tr><th>Organismo</th><th>RUT unidad de compra</th><th>ID de la OC</th><th>Fecha de emisión</th><th>Proveedor</th><th>RUT proveedor</th><th class="num">Monto (USD)</th><th>Productos</th></tr></thead><tbody>${ocRows}</tbody></table></div>
         ${lista.length > lim ? `<p style="margin:8px 0 0;"><button type="button" class="dl-btn cc-rep-more">Mostrar todas las OC (${fmt(lista.length)}; se muestran ${fmt(lim)})</button></p>` : ''}`;
-      out.querySelectorAll('tr.cc-rep-org').forEach(tr => tr.addEventListener('click', () => { orgSel = (orgSel === tr.dataset.org) ? '' : tr.dataset.org; lim = LIM; draw(); }));
+      out.querySelectorAll('tr.cc-rep-org').forEach(tr => tr.addEventListener('click', ev => { if(ev.target.closest('a')) return; orgSel = (orgSel === tr.dataset.org) ? '' : tr.dataset.org; lim = LIM; draw(); }));
       const more = out.querySelector('.cc-rep-more'); if(more) more.addEventListener('click', () => { lim = Infinity; draw(); });
       const all = out.querySelector('.cc-rep-all'); if(all) all.addEventListener('click', ev => { ev.preventDefault(); orgSel = ''; lim = LIM; draw(); });
     }
@@ -2061,23 +2117,23 @@ function renderDetailPage(m){
     ccRepWire(t, arr);
     const lbl = p => (p.nombre ? p.nombre+' — ' : '')+p.codigo;
     const top = (key) => arr.slice().sort((x,y)=>y[key]-x[key]).slice(0,10);
-    renderBarList(document.getElementById('ccTopMonto_'+t.slug), top('montoUsd').map(p=>({label:lbl(p), value:p.montoUsd, nOc:p.nOc, nOrg:p.nOrganismos})),
-      it=>`${fmtUsd(it.value)} · ${fmt(it.nOc)} OC · ${fmt(it.nOrg)} org.`, color, null, null);
-    renderBarList(document.getElementById('ccTopOc_'+t.slug), top('nOc').map(p=>({label:lbl(p), value:p.nOc, montoUsd:p.montoUsd, nOrg:p.nOrganismos})),
-      it=>`${fmt(it.value)} OC · ${fmtUsd(it.montoUsd)} · ${fmt(it.nOrg)} org.`, color, null, null);
-    const grpItems = (map, orden) => { const keys = orden || Object.keys(map).sort((x,y)=>map[y].montoUsd-map[x].montoUsd); return keys.filter(k=>map[k]).map(k=>({label:k, value:map[k].montoUsd, nProc:map[k].nProc, nOc:map[k].nOc})); };
-    const fGrp = it=>`${fmtUsd(it.value)} · ${fmt(it.nProc)} ${it.nProc===1?'proceso':'procesos'} · ${fmt(it.nOc)} OC`;
-    renderBarList(document.getElementById('ccOrgs_'+t.slug), grpItems(ccAgrupa(arr, p=>ccTramoOrg(p.nOrganismos)), ccTramoOrgOrden), fGrp, color, null, null);
-    renderBarList(document.getElementById('ccTramos_'+t.slug), grpItems(ccAgrupa(arr, p=>ccTramoMonto(p.montoUsd)), ccTramoMontoOrden), fGrp, color, null, null);
-    renderBarList(document.getElementById('ccSufijo_'+t.slug), grpItems(ccAgrupa(arr, p=>ccInfoId(p).suf)), fGrp, color, null, null);
+    renderBarList(document.getElementById('ccTopMonto_'+t.slug), top('montoUsd').map(p=>({label:lbl(p), value:p.montoUsd, nOc:p.nOc, nOrg:p.nOrganismos, p})),
+      it=>`${fmtUsd(it.value)} · ${ccOcLink('proc:'+it.p.codigo, it.nOc, 'Proceso '+it.p.codigo, [it.p])} OC · ${fmt(it.nOrg)} org.`, color, null, null);
+    renderBarList(document.getElementById('ccTopOc_'+t.slug), top('nOc').map(p=>({label:lbl(p), value:p.nOc, montoUsd:p.montoUsd, nOrg:p.nOrganismos, p})),
+      it=>`${ccOcLink('proc:'+it.p.codigo, it.value, 'Proceso '+it.p.codigo, [it.p])} OC · ${fmtUsd(it.montoUsd)} · ${fmt(it.nOrg)} org.`, color, null, null);
+    const grpItems = (map, orden) => { const keys = orden || Object.keys(map).sort((x,y)=>map[y].montoUsd-map[x].montoUsd); return keys.filter(k=>map[k]).map(k=>({label:k, value:map[k].montoUsd, nProc:map[k].nProc, nOc:map[k].nOc, procs:map[k].procs})); };
+    const fGrpFor = gid => it=>`${fmtUsd(it.value)} · ${fmt(it.nProc)} ${it.nProc===1?'proceso':'procesos'} · ${ccOcLink('grp:'+t.slug+':'+gid+':'+it.label, it.nOc, 'Compras '+t.key.toLowerCase()+'s · '+it.label, it.procs)} OC`;
+    renderBarList(document.getElementById('ccOrgs_'+t.slug), grpItems(ccAgrupa(arr, p=>ccTramoOrg(p.nOrganismos)), ccTramoOrgOrden), fGrpFor('org'), color, null, null);
+    renderBarList(document.getElementById('ccTramos_'+t.slug), grpItems(ccAgrupa(arr, p=>ccTramoMonto(p.montoUsd)), ccTramoMontoOrden), fGrpFor('monto'), color, null, null);
+    renderBarList(document.getElementById('ccSufijo_'+t.slug), grpItems(ccAgrupa(arr, p=>ccInfoId(p).suf)), fGrpFor('suf'), color, null, null);
     const anioMap = ccAgrupa(arr, p=>ccInfoId(p).anio);
     const anioKeys = Object.keys(anioMap).sort((x,y)=>{ const nx=/^\d{4}$/.test(x), ny=/^\d{4}$/.test(y); return nx&&ny ? Number(x)-Number(y) : nx ? -1 : ny ? 1 : x<y?-1:1; });
-    renderBarList(document.getElementById('ccAnio_'+t.slug), grpItems(anioMap, anioKeys), fGrp, color, null, null);
+    renderBarList(document.getElementById('ccAnio_'+t.slug), grpItems(anioMap, anioKeys), fGrpFor('anio'), color, null, null);
   });
   if(document.getElementById('detailProcesosChart')){
-    const procItems = md.procesos.slice(0,20).map(p=>({label:(p.nombre?p.nombre+' — ':'')+p.codigo, value:p.montoUsd, nOc:p.nOc}));
+    const procItems = md.procesos.slice(0,20).map(p=>({label:(p.nombre?p.nombre+' — ':'')+p.codigo, value:p.montoUsd, nOc:p.nOc, p}));
     renderBarList(document.getElementById('detailProcesosChart'), procItems,
-      it=>`${fmt(it.nOc)} OC · ${fmtUsd(it.value)}`, cssvar(meta.color), null, null);
+      it=>`${ccOcLink('proc:'+it.p.codigo, it.nOc, 'Proceso '+it.p.codigo, [it.p])} OC · ${fmtUsd(it.value)}`, cssvar(meta.color), null, null);
 
     const procesosSort = {key:'monto', dir:'desc'};
     const procesosGet = {n:p=>p.nOc, norg:p=>p.nOrganismos, monto:p=>p.montoUsd};
@@ -2109,7 +2165,7 @@ function renderDetailPage(m){
       const sorted = sortByKeyDir(base, procesosGet, procesosSort);
       const shown = sorted.slice(0,50);
       document.getElementById('procesosTbody').innerHTML = shown.map(p=>
-        `<tr><td>${esc(p.nombre||'(sin nombre)')}</td><td>${esc(p.codigo)}</td><td>${esc(p.via||'')}</td><td>${esc(p.tipo||'')}</td><td>${procOrgCell(p, orgSel)}</td><td class="num">${fmt(p.nOc)}</td><td class="num">${fmt(p.nOrganismos)}</td><td class="num">${fmtUsd(p.montoUsd)}</td></tr>`
+        `<tr><td>${esc(p.nombre||'(sin nombre)')}</td><td>${esc(p.codigo)}</td><td>${esc(p.via||'')}</td><td>${esc(p.tipo||'')}</td><td>${procOrgCell(p, orgSel)}</td><td class="num">${hasOcDet ? ccOcLink('proc:'+p.codigo+(orgSel?':'+orgSel:''), p.nOc, 'Proceso '+p.codigo+(orgSel?' (solo las OC del organismo elegido)':''), [p], orgSel) : fmt(p.nOc)}</td><td class="num">${fmt(p.nOrganismos)}</td><td class="num">${fmtUsd(p.montoUsd)}</td></tr>`
       ).join('') || '<tr><td colspan="8">Sin datos</td></tr>';
       const capNote = document.getElementById('procesosCapNote');
       const orgNom = orgSel ? ((ccIndex().orgs.find(o=>o.cod===orgSel)||{}).nombre || orgSel) : '';
