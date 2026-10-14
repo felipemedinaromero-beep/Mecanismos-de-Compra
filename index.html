@@ -965,6 +965,10 @@ function czScan(){
   if(g && !g.dataset.cz && !g.closest('.cz-body')){ g.dataset.cz = '1'; czUnit('ecoMes', [g]); }
 }
 window.addEventListener('hashchange', () => CZ_OPEN.clear());
+document.addEventListener('click', ev => {
+  const a = ev.target && ev.target.closest ? ev.target.closest('a.cc-plz-go') : null; if(!a) return;
+  ev.preventDefault(); const sl = document.getElementById('ccRepSel_mandatada'); if(sl && sl.ccGo) sl.ccGo(a.dataset.cod);
+});
 new MutationObserver(czScan).observe(document.documentElement, {childList: true, subtree: true});
 czScan();
 function ccPlzTxt(q){ return q && q.plazo ? q.plazo + ' días ' + (q.unid === 'corridos' ? 'corridos' : 'hábiles') : ''; }
@@ -986,10 +990,10 @@ function ccPlzStats(){
   const procs = md.procesos.filter(p => p.tipo === 'Mandatada'), tot = {n: 0, noObsFuera: 0}, rows = [];
   CC_PLZ_RES.forEach(r => { tot[r] = 0; });
   procs.forEach(p => {
-    const e = ix.byProc.get(p.codigo), s = {p, n: 0, first: null, last: null}; CC_PLZ_RES.forEach(r => { s[r] = 0; });
+    const e = ix.byProc.get(p.codigo), s = {p, n: 0, first: null, last: null, orgs: new Set()}; CC_PLZ_RES.forEach(r => { s[r] = 0; });
     const q = CC_PLZ[p.codigo];
     e.rows.forEach(i => { const f = String(ccV(T, c.fe, i) || '').slice(0, 10), ev = ccPlzEval(p.codigo, f), r = ev ? ev.res : 'Sin plazo identificado';
-      s.n++; s[r]++; if(f){ if(!s.first || f < s.first) s.first = f; if(!s.last || f > s.last) s.last = f; }
+      s.n++; s[r]++; s.orgs.add(ccV(T, c.ocod, i)); if(f){ if(!s.first || f < s.first) s.first = f; if(!s.last || f > s.last) s.last = f; }
       if(r === 'Fuera del plazo' && q && q.limite && q.limite < CC_PLZ_INI) tot.noObsFuera++; });
     CC_PLZ_RES.forEach(r => { tot[r] += s[r]; }); tot.n += s.n; rows.push(s);
   });
@@ -1012,13 +1016,13 @@ function ccPlzHtml(){
   const rows = S.rows.slice().sort((a, b) => b.n - a.n).map(s => {
     const p = s.p, q = CC_PLZ[p.codigo] || {}, id = 'plz:p:' + p.codigo;
     const pl = ccPlzTxt(q) || '—';
-    return `<tr><td>${esc(p.nombre || '(sin nombre)')}</td><td>${esc(p.codigo)}</td><td>${q.adj ? ccFd(q.adj) : '—'}</td><td title="${esc(q.clausula || '')}" style="cursor:help;">${pl}</td><td>${q.limite ? ccFd(q.limite) : '—'}</td>`
-      + `<td class="num">${ccOcLink(id, s.n, 'Proceso ' + p.codigo, [p])}</td><td class="num">${ccOcLink(id + ':d', s['Dentro del plazo'], 'Proceso ' + p.codigo + ' · OC dentro del plazo', [p], '', false, 'Dentro del plazo')}</td><td class="num">${ccOcLink(id + ':f', s['Fuera del plazo'], 'Proceso ' + p.codigo + ' · OC fuera del plazo', [p], '', false, 'Fuera del plazo')}</td>`
+    return `<tr><td><a href="#" class="cc-plz-go" data-cod="${esc(p.codigo)}" title="Ver los organismos participantes y las OC de este proceso (Reporte por proceso)">${esc(p.nombre || '(sin nombre)')}</a></td><td>${esc(p.codigo)}</td><td>${q.adj ? ccFd(q.adj) : '—'}</td><td title="${esc(q.clausula || '')}" style="cursor:help;">${pl}</td><td>${q.limite ? ccFd(q.limite) : '—'}</td>`
+      + `<td class="num">${fmt(s.orgs.size)}</td><td class="num">${ccOcLink(id, s.n, 'Proceso ' + p.codigo, [p])}</td><td class="num">${ccOcLink(id + ':d', s['Dentro del plazo'], 'Proceso ' + p.codigo + ' · OC dentro del plazo', [p], '', false, 'Dentro del plazo')}</td><td class="num">${ccOcLink(id + ':f', s['Fuera del plazo'], 'Proceso ' + p.codigo + ' · OC fuera del plazo', [p], '', false, 'Fuera del plazo')}</td>`
       + `<td>${ccFd(s.first)}</td><td style="white-space:normal;min-width:220px;font-size:12px;color:var(--text-secondary);">${esc(ccPlzEstado(p))}</td></tr>`;
   }).join('');
   return `<div class="cc-plz" id="ccPlz" style="margin-top:26px;">
     <h3 class="cc-h3" style="font-size:14px;">Plazo para suscribir el contrato (bases) y fecha de emisión de las OC</h3>
-    <p class="block-note" style="margin-top:0;">Las bases fijan un plazo, en días hábiles, para suscribir el contrato. Ese plazo corre desde la resolución de adjudicación (licitación) o de selección (gran compra). Aquí se cuenta desde la <b>fecha de adjudicación que publica la ficha de Mercado Público</b> y una OC queda <b>dentro del plazo</b> si su fecha de emisión (envío) es igual o anterior a la fecha límite. Plazos leídos de las bases publicadas en la ficha de cada licitación; los de 7-LR24, 12-LR24 y las grandes compras 76613 y 83189 fueron informados por el equipo ChileCompra desde las bases e intención de compra (14-10-2026). Haz clic en un número para bajar las OC en Excel.</p>
+    <p class="block-note" style="margin-top:0;">Las bases fijan un plazo, en días hábiles, para suscribir el contrato. Ese plazo corre desde la resolución de adjudicación (licitación) o de selección (gran compra). Aquí se cuenta desde la <b>fecha de adjudicación que publica la ficha de Mercado Público</b> y una OC queda <b>dentro del plazo</b> si su fecha de emisión (envío) es igual o anterior a la fecha límite. Plazos leídos de las bases publicadas en la ficha de cada licitación; los de 7-LR24, 12-LR24 y las grandes compras 76613 y 83189 fueron informados por el equipo ChileCompra desde las bases e intención de compra (14-10-2026). Haz clic en un número para bajar las OC en Excel, o en el nombre de la compra para ver los organismos participantes y sus OC (Reporte por proceso, más abajo). OOPP: organismos públicos que emitieron OC en el proceso.</p>
     <div class="kpis" style="margin:.75rem 0 1rem;">
       ${kp('OC analizadas', '', 'las ' + fmt(procs.length) + ' compras mandatadas')}
       ${kp('Dentro del plazo', 'Dentro del plazo', pc(tot['Dentro del plazo']) + ' % de las OC')}
@@ -1026,7 +1030,7 @@ function ccPlzHtml(){
       ${tot['Sin plazo identificado'] ? kp('Sin plazo identificado', 'Sin plazo identificado', 'no consta el plazo de firma') : ''}
       ${tot['Selección pendiente (gran compra)'] ? kp('Gran compra', 'Selección pendiente (gran compra)', 'falta la fecha de selección y el plazo') : ''}
     </div>
-    <div class="table-wrap" style="max-height:560px;"><table class="dt"><thead><tr><th>Nombre de la compra</th><th>ID del proceso</th><th>Adjudicación / selección</th><th>Plazo de las bases</th><th>Fecha límite</th><th class="num">N° OC</th><th class="num">Dentro</th><th class="num">Fuera</th><th>Primera OC</th><th>Observación</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="table-wrap" style="max-height:560px;"><table class="dt"><thead><tr><th>Nombre de la compra</th><th>ID del proceso</th><th>Adjudicación / selección</th><th>Plazo de las bases</th><th>Fecha límite</th><th class="num" title="Organismos públicos (OOPP) que emitieron OC en el proceso">OOPP</th><th class="num">N° OC</th><th class="num">Dentro</th><th class="num">Fuera</th><th>Primera OC</th><th>Observación</th></tr></thead><tbody>${rows}</tbody></table></div>
     <p class="cp-cap-note">Cómo leer el resultado: (1) los datos de OC parten en enero de 2025; en los procesos adjudicados antes, el plazo venció antes y solo se ven OC posteriores. (2) En contratos de suministro de varios años (arriendos de 36 meses, telefonía, insumos) los organismos emiten OC durante toda la vigencia: el plazo de las bases rige para firmar el contrato, así que una OC posterior no prueba por sí sola un incumplimiento. (3) Días hábiles: lunes a viernes sin feriados legales. La notificación se entiende hecha el día de la adjudicación o selección; no se sumó ese día adicional. En 7-LR24 y 12-LR24 la resolución «totalmente tramitada» podría ser posterior a la fecha de adjudicación y el límite sería entonces posterior.</p>
   </div>`;
 }
@@ -1747,6 +1751,8 @@ function renderDetailPage(m){
       ${typeof CC_OC !== 'undefined' ? `<div class="cc-rep" id="ccRep_${t.slug}" style="margin-top:26px;">
         <h3 class="cc-h3" style="font-size:14px;">Reporte por proceso: organismos participantes y órdenes de compra</h3>
         <p class="block-note" style="margin-top:0;">Elige un proceso para ver qué organismos participan (con su RUT) y las órdenes de compra que emitió cada uno: ID de la OC, fecha de emisión, proveedor, RUT del proveedor, monto y productos. El Excel agrega todos los campos de cada OC y las líneas de producto.</p>
+        <div class="filter-row"><div class="filter-field" style="min-width:min(100%,640px);"><label for="ccRepQ_${t.slug}">Buscar proceso</label>
+          <input type="text" id="ccRepQ_${t.slug}" placeholder="Palabras del nombre o ID del proceso (ej.: telefonía, 7-LR24, 76613)" autocomplete="off"><span class="block-note" id="ccRepQn_${t.slug}" style="margin:4px 0 0;display:block;"></span></div></div>
         <div class="filter-row"><div class="filter-field" style="min-width:min(100%,640px);"><label for="ccRepSel_${t.slug}">Proceso</label>
           <select id="ccRepSel_${t.slug}"><option value="">— Elige un proceso (${fmt(st.n)}) —</option>${st.arr.slice().sort((x,y)=>y.montoUsd-x.montoUsd).map(p=>`<option value="${esc(p.codigo)}">${esc((p.nombre||'Sin nombre').slice(0,70))} · ${esc(p.codigo)} · ${fmt(p.nOc)} OC · ${fmtUsd(p.montoUsd)}</option>`).join('')}</select></div></div>
         <div id="ccRepOut_${t.slug}"></div>
@@ -2186,6 +2192,28 @@ function renderDetailPage(m){
     const KEY = 'ccRep_' + t.slug, LIM = 200;
     const rutTxt = set => { const a = [...set].sort(); return a.slice(0, 2).join(', ') + (a.length > 2 ? ' (+' + (a.length - 2) + ' más)' : ''); };
     let cur = null, lim = LIM, orgSel = '';
+    // buscador por palabras (nombre o ID del proceso; sin distinguir tildes ni mayúsculas)
+    const qIn = document.getElementById('ccRepQ_' + t.slug), qN = document.getElementById('ccRepQn_' + t.slug);
+    const norm = x => String(x || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const sorted = arr.slice().sort((x, y) => y.montoUsd - x.montoUsd);
+    const optH = p => `<option value="${esc(p.codigo)}">${esc((p.nombre || 'Sin nombre').slice(0, 70))} · ${esc(p.codigo)} · ${fmt(p.nOc)} OC · ${fmtUsd(p.montoUsd)}</option>`;
+    function fill(q){
+      const words = norm(q).split(/\s+/).filter(Boolean), keep = sel.value;
+      const m = words.length ? sorted.filter(p => { const h = norm((p.nombre || '') + ' ' + p.codigo); return words.every(w => h.includes(w)); }) : sorted;
+      sel.innerHTML = `<option value="">— ${words.length ? fmt(m.length) + ' coincidencia' + (m.length === 1 ? '' : 's') + ' de ' + fmt(arr.length) : 'Elige un proceso (' + fmt(arr.length) + ')'} —</option>` + m.map(optH).join('');
+      if(keep && m.some(p => p.codigo === keep)) sel.value = keep;
+      if(qN) qN.textContent = words.length ? (m.length ? (m.length === 1 ? 'Se encontró 1 proceso: elígelo en la lista de abajo (o pulsa Enter).' : 'Se encontraron ' + fmt(m.length) + ' procesos: elige uno en la lista de abajo (o pulsa Enter para abrir el primero).') : 'Ningún proceso coincide con la búsqueda.') : '';
+      return m;
+    }
+    if(qIn){
+      qIn.addEventListener('input', () => { fill(qIn.value); });
+      qIn.addEventListener('keydown', ev => { if(ev.key !== 'Enter') return; ev.preventDefault(); const m = fill(qIn.value); if(m.length >= 1){ sel.value = m[0].codigo; sel.dispatchEvent(new Event('change')); } });
+    }
+    sel.ccGo = cod => {
+      if(qIn){ qIn.value = ''; fill(''); }
+      sel.value = cod; sel.dispatchEvent(new Event('change'));
+      const box = document.getElementById('ccRep_' + t.slug); if(box) box.scrollIntoView({behavior: 'smooth', block: 'start'});
+    };
     function draw(){
       if(!cur){ out.innerHTML = '<p class="cc-placeholder">Elige un proceso para ver sus organismos y órdenes de compra.</p>'; return; }
       const ix = ccIndex(), c = ccRepCols(), T = c.T, e = ix.byProc.get(cur.codigo);
