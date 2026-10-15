@@ -796,14 +796,20 @@ function ocdSheets(OCD, rows, extra){
     (ix.get(i) || []).forEach(k => { itRows.push([cod, pr, og].concat(I.cols.map((_, c) => ccV(I, c, k)))); }); });
   return [{name: 'OC', headers: hdr, rows: ocRows}, {name: 'Ítems', headers: ['Código OC', 'Proceso', 'Organismo público comprador'].concat(I.cols), rows: itRows}];
 }
-let CC_IX = null;
+let CC_IX = null, CC_IX_KEY = null;
+const CC_MES_ABR = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+// Índice de mes (DATA.meses) de una fecha 'AAAA-MM-DD'; -1 si no se puede determinar.
+function ccMesIdx(f){ const m = /^(\d{4})-(\d{2})/.exec(String(f || '')); if(!m) return -1; const k = MES_IDX[CC_MES_ABR[Number(m[2]) - 1] + '-' + m[1]]; return k == null ? -1 : k; }
 function ccIndex(){
-  if(CC_IX) return CC_IX;
+  const rg = (typeof GLOBAL_RANGE !== 'undefined' && GLOBAL_RANGE && !isFullRange(GLOBAL_RANGE)) ? GLOBAL_RANGE : null, key = rg ? rg.join('-') : 'full';
+  if(CC_IX && CC_IX_KEY === key) return CC_IX;
+  CC_IX_KEY = key; if(typeof CC_PLZ_ST !== 'undefined') CC_PLZ_ST = null;
   const T = CC_OC.oc, cProc = T.cols.indexOf('Proceso (licitación o gran compra)'), cOrgC = T.cols.indexOf('Código organismo'),
         cOrg = T.cols.indexOf('Organismo público comprador'), cUsd = T.cols.indexOf('Monto total (USD, valor del panel)');
-  const byProc = new Map(), orgs = new Map(), byCode = new Map();
+  const byProc = new Map(), orgs = new Map(), byCode = new Map(), cFe = T.cols.indexOf('Fecha envío');
   for(let i = 0; i < T.n; i++){
     byCode.set(ccV(T, 0, i), i);
+    if(rg){ const mi = ccMesIdx(ccV(T, cFe, i)); if(mi < rg[0] || mi > rg[1]) continue; }
     const p = ccV(T, cProc, i), oc = ccV(T, cOrgC, i), on = ccV(T, cOrg, i), u = ccV(T, cUsd, i) || 0;
     let e = byProc.get(p); if(!e){ e = {rows: [], orgs: new Map()}; byProc.set(p, e); }
     e.rows.push(i);
@@ -815,6 +821,19 @@ function ccIndex(){
   lista.forEach(o => { o.label = dup[o.nombre] > 1 ? o.nombre + ' · cód. ' + o.cod : o.nombre; });
   CC_IX = {byProc, byCode, orgs: lista, cProc, cOrgC, cOrg, cUsd};
   return CC_IX;
+}
+// Procesos de Compra Coordinada con N° OC, monto y organismos recalculados para el rango de fechas elegido
+// (los procesos sin OC en el rango quedan fuera). Con todo el período devuelve md.procesos tal cual.
+function ccProcsForRange(md){
+  if(!md || !md.procesos) return md ? md.procesos : md;
+  if(typeof CC_OC === 'undefined' || !GLOBAL_RANGE || isFullRange(GLOBAL_RANGE)) return md.procesos;
+  const ix = ccIndex(), c = ccRepCols(), T = c.T, out = [];
+  md.procesos.forEach(p => {
+    const e = ix.byProc.get(p.codigo); if(!e || !e.rows.length) return;
+    let usd = 0; e.rows.forEach(i => { usd += ccV(T, c.usd, i) || 0; });
+    out.push(Object.assign({}, p, {nOc: e.rows.length, montoUsd: usd, nOrganismos: e.orgs.size}));
+  });
+  return out;
 }
 // Vista de procesos con organismos compradores; con orgSel (código) solo los procesos en que ese organismo tiene OC,
 // y N° OC / monto pasan a ser los de ese organismo dentro de cada proceso.
@@ -894,7 +913,7 @@ function ccProcSheets(view, info){
   const extra = {headers: ['Vía', 'Tipo de compra coordinada'], values: i => { const p = meta.get(i); return [p.via || '', p.tipo || '']; }};
   const orgNom = info.orgSel ? ((ix.orgs.find(o => o.cod === info.orgSel) || {}).label || info.orgSel) : 'todos';
   const notas = [
-    'Compra Coordinada · detalle de procesos y órdenes de compra · período ' + DATA.periodo + ' · generado ' + DATA.generado + '.',
+    'Compra Coordinada · detalle de procesos y órdenes de compra · período ' + rangeLabel(currentRange()) + ' · generado ' + DATA.generado + '.',
     'Filtros aplicados al exportar: tipo = ' + (info.tipoSel || 'todos') + '; organismo comprador = ' + orgNom + '.',
     'Hoja Procesos: una fila por proceso (licitación o gran compra). Con un organismo elegido, N° OC y monto son los de ese organismo dentro de cada proceso; la última columna lista todos los organismos que compraron en el proceso.',
     'Hoja OC: una fila por orden de compra (' + fmt(rows.length) + ' OC) con todos los campos de cabecera de los datos abiertos de Mercado Público. Solo OC en estado Recepción Conforme o Aceptada.',
@@ -987,7 +1006,7 @@ function ccPlzEval(proc, fe){
 function ccPlzStats(){
   if(CC_PLZ_ST) return CC_PLZ_ST;
   const ix = ccIndex(), c = ccRepCols(), T = c.T, md = DATA.mecanismos['Compra Coordinada'];
-  const procs = md.procesos.filter(p => p.tipo === 'Mandatada'), tot = {n: 0, noObsFuera: 0}, rows = [];
+  const procs = ccProcsForRange(md).filter(p => p.tipo === 'Mandatada'), tot = {n: 0, noObsFuera: 0}, rows = [];
   CC_PLZ_RES.forEach(r => { tot[r] = 0; });
   procs.forEach(p => {
     const e = ix.byProc.get(p.codigo), s = {p, n: 0, first: null, last: null, orgs: new Set()}; CC_PLZ_RES.forEach(r => { s[r] = 0; });
@@ -1010,6 +1029,7 @@ function ccPlzEstado(p){
 }
 function ccPlzHtml(){
   if(typeof CC_OC === 'undefined') return '';
+  CC_PLZ_ST = null;
   const S = ccPlzStats(), tot = S.tot, procs = S.procs;
   const kp = (lbl, res, sub) => `<div class="kpi"><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${ccOcLink('plz:' + (res || 'all'), res ? tot[res] : tot.n, res ? 'Mandatadas · OC: ' + res.toLowerCase() : 'Mandatadas · todas las OC con evaluación de plazo', procs, '', true, res || '')}</div><div class="sub">${sub}</div></div></div>`;
   const pc = x => tot.n > 0 ? (100 * x / tot.n).toFixed(1).replace('.', ',') : '0';
@@ -1022,7 +1042,7 @@ function ccPlzHtml(){
   }).join('');
   return `<div class="cc-plz" id="ccPlz" style="margin-top:26px;">
     <h3 class="cc-h3" style="font-size:14px;">Plazo para suscribir el contrato (bases) y fecha de emisión de las OC</h3>
-    <p class="block-note" style="margin-top:0;">Las bases fijan un plazo, en días hábiles, para suscribir el contrato. Ese plazo corre desde la resolución de adjudicación (licitación) o de selección (gran compra). Aquí se cuenta desde la <b>fecha de adjudicación que publica la ficha de Mercado Público</b> y una OC queda <b>dentro del plazo</b> si su fecha de emisión (envío) es igual o anterior a la fecha límite. Plazos leídos de las bases publicadas en la ficha de cada licitación; los de 7-LR24, 12-LR24 y las grandes compras 76613 y 83189 fueron informados por el equipo ChileCompra desde las bases e intención de compra (14-10-2026). Haz clic en un número para bajar las OC en Excel, o en el nombre de la compra para ver los organismos participantes y sus OC (Reporte por proceso, más abajo). OOPP: organismos públicos que emitieron OC en el proceso.</p>
+    <p class="block-note" style="margin-top:0;">Las bases fijan un plazo, en días hábiles, para suscribir el contrato. Ese plazo corre desde la resolución de adjudicación (licitación) o de selección (gran compra). Aquí se cuenta desde la <b>fecha de adjudicación que publica la ficha de Mercado Público</b> y una OC queda <b>dentro del plazo</b> si su fecha de emisión (envío) es igual o anterior a la fecha límite. Plazos leídos de las bases publicadas en la ficha de cada licitación; los de 7-LR24, 12-LR24 y las grandes compras 76613 y 83189 fueron informados por el equipo ChileCompra desde las bases e intención de compra (14-10-2026). Haz clic en un número para bajar las OC en Excel, o en el nombre de la compra para ver los organismos participantes y sus OC (Reporte por proceso, más abajo). OOPP: organismos públicos que emitieron OC en el proceso. Período de las OC: ${esc(rangeLabel(currentRange()))}.</p>
     <div class="kpis" style="margin:.75rem 0 1rem;">
       ${kp('OC analizadas', '', 'las ' + fmt(procs.length) + ' compras mandatadas')}
       ${kp('Dentro del plazo', 'Dentro del plazo', pc(tot['Dentro del plazo']) + ' % de las OC')}
@@ -1067,7 +1087,7 @@ function ccOcSheetsFor(sp){
   const extra = {headers: ['Vía', 'Tipo de compra coordinada'], values: i => { const p = meta.get(i); return [p.via || '', p.tipo || '']; }};
   const ocSh = ocdSheets(CC_OC, rows, extra); ocSh[0].name = 'OC (todos los campos)';
   const notas = [
-    'Compra Coordinada · listado de órdenes de compra · período ' + DATA.periodo + ' · generado ' + DATA.generado + '.',
+    'Compra Coordinada · listado de órdenes de compra · período ' + rangeLabel(currentRange()) + ' · generado ' + DATA.generado + '.',
     'Selección: ' + sp.label + '. Total: ' + fmt(rows.length) + ' OC en ' + fmt(agg.size) + (agg.size === 1 ? ' proceso.' : ' procesos.'),
     'Hoja Listado de OC: una fila por orden de compra, con el ID de la OC, el ID del proceso, la fecha de emisión, el nombre de la compra, el proveedor y sus datos principales.',
     'Hoja Procesos: resumen de los procesos incluidos (N° de OC, organismos, proveedores y monto de las OC seleccionadas).',
@@ -1673,15 +1693,16 @@ function renderDetailPage(m){
       </div>
     </section>` : '';
 
-  const procesosConCodigo = (md.procesos||[]).reduce((s,p)=>s+p.nOc,0);
-  const procesosCobertura = md.nOc>0 ? Math.round(1000*procesosConCodigo/md.nOc)/10 : 0;
+  const PROCS = ccProcsForRange(md), RS = isFullRange(currentRange()) ? {nOc: md.nOc, montoUsd: md.montoUsd} : mecStatsRange(m, currentRange());
+  const procesosConCodigo = (PROCS||[]).reduce((s,p)=>s+p.nOc,0);
+  const procesosCobertura = RS.nOc>0 ? Math.round(1000*procesosConCodigo/RS.nOc)/10 : 0;
   setDl('detailProcesos', ['Nombre de la compra','ID licitación / gran compra','Vía','Tipo','N° OC','Organismos','Monto (USD)','Monto promedio por OC (USD)'],
-    (md.procesos||[]).map(p=>[p.nombre||'', p.codigo, p.via||'', p.tipo||'', p.nOc, p.nOrganismos, p.montoUsd, p.nOc>0?Math.round(p.montoUsd/p.nOc):0]));
+    (PROCS||[]).map(p=>[p.nombre||'', p.codigo, p.via||'', p.tipo||'', p.nOc, p.nOrganismos, p.montoUsd, p.nOc>0?Math.round(p.montoUsd/p.nOc):0]));
 
   // Compra Coordinada Mandatada vs Conjunta, cruzado con la vía (licitación / gran compra).
   const tipoViaBreakdown = (() => {
     const map = {};
-    (md.procesos||[]).forEach(p => {
+    (PROCS||[]).forEach(p => {
       const key = (p.via||'—') + '|' + (p.tipo||'—');
       if(!map[key]) map[key] = {via:p.via||'—', tipo:p.tipo||'—', nProcesos:0, nOc:0, montoUsd:0, procs:[]};
       map[key].procs.push(p);
@@ -1693,8 +1714,8 @@ function renderDetailPage(m){
     return Object.values(map).sort((a,b)=> (a.tipo===b.tipo ? (a.via<b.via?-1:1) : (tipoOrden[a.tipo]??9)-(tipoOrden[b.tipo]??9)));
   })();
   setDl('detailTipoCoordinada', ['Tipo','Vía','N° procesos','N° OC','% OC del mecanismo','Monto (USD)','% Monto del mecanismo'],
-    tipoViaBreakdown.map(r=>[r.tipo, r.via, r.nProcesos, r.nOc, md.nOc>0?(100*r.nOc/md.nOc).toFixed(1):'0', r.montoUsd, md.montoUsd>0?(100*r.montoUsd/md.montoUsd).toFixed(1):'0']));
-  const tipoViaRows = tipoViaBreakdown.map(r=>`<tr><td>${esc(r.tipo)}</td><td>${esc(r.via)}</td><td class="num">${fmt(r.nProcesos)}</td><td class="num">${ccOcLink('tv:'+r.tipo+'|'+r.via, r.nOc, 'Compras '+r.tipo.toLowerCase()+'s por '+r.via.toLowerCase(), r.procs)}</td><td class="num">${md.nOc>0?(100*r.nOc/md.nOc).toFixed(1):'0'}%</td><td class="num">${fmtUsd(r.montoUsd)}</td><td class="num">${md.montoUsd>0?(100*r.montoUsd/md.montoUsd).toFixed(1):'0'}%</td></tr>`).join('');
+    tipoViaBreakdown.map(r=>[r.tipo, r.via, r.nProcesos, r.nOc, RS.nOc>0?(100*r.nOc/RS.nOc).toFixed(1):'0', r.montoUsd, RS.montoUsd>0?(100*r.montoUsd/RS.montoUsd).toFixed(1):'0']));
+  const tipoViaRows = tipoViaBreakdown.map(r=>`<tr><td>${esc(r.tipo)}</td><td>${esc(r.via)}</td><td class="num">${fmt(r.nProcesos)}</td><td class="num">${ccOcLink('tv:'+r.tipo+'|'+r.via, r.nOc, 'Compras '+r.tipo.toLowerCase()+'s por '+r.via.toLowerCase(), r.procs)}</td><td class="num">${RS.nOc>0?(100*r.nOc/RS.nOc).toFixed(1):'0'}%</td><td class="num">${fmtUsd(r.montoUsd)}</td><td class="num">${RS.montoUsd>0?(100*r.montoUsd/RS.montoUsd).toFixed(1):'0'}%</td></tr>`).join('');
   // ---- Analisis individual de Mandatadas y Conjuntas -------------------------------------------
   // Criterio: ID de proceso con prefijo 1122317 (unidad Compras Coordinadas de ChileCompra) = Mandatada;
   // el resto = Conjunta (organismos como los servicios de salud). En grandes compras se mantiene la
@@ -1713,7 +1734,7 @@ function renderDetailPage(m){
   const ccAgrupa = (arr, keyFn) => { const m = {}; arr.forEach(p=>{ const k = keyFn(p); if(!m[k]) m[k]={label:k, nProc:0, nOc:0, montoUsd:0, procs:[]}; m[k].procs.push(p); m[k].nProc++; m[k].nOc+=p.nOc; m[k].montoUsd+=p.montoUsd; }); return m; };
   const ccData = {};
   CC_TIPOS.concat([{key:'No determinado', slug:'nodet'}]).forEach(t => {
-    const arr = (md.procesos||[]).filter(p=>p.tipo===t.key);
+    const arr = (PROCS||[]).filter(p=>p.tipo===t.key);
     const nOc = arr.reduce((x,p)=>x+p.nOc,0), monto = arr.reduce((x,p)=>x+p.montoUsd,0);
     const orgs = arr.map(p=>p.nOrganismos).sort((x,y)=>x-y);
     ccData[t.slug] = {arr, n:arr.length, nOc, monto, orgMed: orgs.length ? orgs[Math.floor(orgs.length/2)] : 0, orgMax: orgs.length ? orgs[orgs.length-1] : 0,
@@ -1731,11 +1752,11 @@ function renderDetailPage(m){
     return `
     <section class="block" id="cc-${t.slug}">
       <h2>${t.titulo}</h2>
-      <p class="block-note">${t.nota} Las cifras por proceso cubren todo el período cargado (${esc(DATA.periodo)}) y no responden al filtro de fechas.</p>
+      <p class="block-note">${t.nota} Las cifras por proceso corresponden al período elegido arriba (${esc(rangeLabel(currentRange()))}).</p>
       <div class="kpis" style="margin:1rem 0 1.25rem;">
-        ${ccKpi('Procesos', fmt(st.n), ccPct(st.n, md.procesos.length)+' % de los procesos de Compra Coordinada')}
-        ${ccKpi('Órdenes de compra', ccOcLink('tipo:'+t.key, st.nOc, 'Todas las OC de las compras '+t.key.toLowerCase()+'s', st.arr, '', true), ccPct(st.nOc, md.nOc)+' % de las OC del mecanismo · clic en el número para descargar el listado')}
-        ${ccKpi('Monto transado', fmtUsd(st.monto), ccPct(st.monto, md.montoUsd)+' % del monto del mecanismo')}
+        ${ccKpi('Procesos', fmt(st.n), ccPct(st.n, PROCS.length)+' % de los procesos de Compra Coordinada')}
+        ${ccKpi('Órdenes de compra', ccOcLink('tipo:'+t.key, st.nOc, 'Todas las OC de las compras '+t.key.toLowerCase()+'s', st.arr, '', true), ccPct(st.nOc, RS.nOc)+' % de las OC del mecanismo · clic en el número para descargar el listado')}
+        ${ccKpi('Monto transado', fmtUsd(st.monto), ccPct(st.monto, RS.montoUsd)+' % del monto del mecanismo')}
         ${ccKpi('Monto promedio por OC', st.nOc>0 ? fmtUsd(st.monto/st.nOc) : '—', 'USD por orden de compra')}
         ${ccKpi('Organismos por proceso', 'mediana '+fmt(st.orgMed), 'máximo '+fmt(st.orgMax)+' · '+fmt(st.un1)+' procesos con un solo organismo')}
       </div>
@@ -1761,7 +1782,7 @@ function renderDetailPage(m){
     </section>`;
   };
   const ccNd = ccData['nodet'];
-  const tipoCoordinadaSection = (md.procesos && md.procesos.length) ? `
+  const tipoCoordinadaSection = (PROCS && PROCS.length) ? `
     <section class="block">
       <h2>Compra Coordinada Mandatada vs Conjunta</h2>
       <p class="block-note"><b>Mandatada</b>: la crea y dirige ChileCompra desde la unidad Compras Coordinadas; los procesos (licitaciones y grandes compras) llevan el ID con prefijo <b>1122317</b>. <b>Conjunta</b>: el resto, es decir, procesos que crea otro organismo (por ejemplo un servicio de salud) y en los que compran varios organismos. En grandes compras de Convenio Marco (sin licitación asociada) se verificó en el buscador público de Grandes Compras de Mercado Público qué organismo la creó, porque cualquier organismo que compra sobre 1.000 UTM en Convenio Marco debe usar esa herramienta aunque compre solo para sí mismo, y eso no es una compra coordinada (la gran compra ID 76613, de computadores, corresponde a la unidad de compra Compras Coordinadas de ChileCompra y se clasificó como Mandatada); los grupos de un solo organismo comprador se excluyeron de Compra Coordinada y se reclasificaron como Convenio Marco en todo el panel (27 OC en total). ${ccNd.n ? `<b>No determinado</b>: ${fmt(ccNd.n)} gran compra (${fmt(ccNd.nOc)} OC) cuyo organismo creador no se ha verificado.` : ''}</p>
@@ -1779,10 +1800,10 @@ function renderDetailPage(m){
     </section>
     ${CC_TIPOS.map(ccPanelHtml).join('')}` : '';
 
-  const procesosSection = (md.procesos && md.procesos.length) ? `
+  const procesosSection = (PROCS && PROCS.length) ? `
     <section class="block">
       <h2>Procesos (licitaciones o grandes compras)</h2>
-      <p class="block-note">La Compra Coordinada agrega demanda de varios organismos bajo un proceso competitivo único (Art. 29 inciso final Ley 19.886). Las ${fmt(md.nOc)} OC de este mecanismo corresponden a <b>${fmt(md.procesos.length)} procesos</b> distintos (ID de licitación o gran compra); ${procesosCobertura}% de las OC identifican el proceso de origen. En grandes compras sin un ID de gran compra reconocible en el nombre de la OC, cada orden queda como su propio proceso (no se fuerza una agrupación).</p>
+      <p class="block-note">La Compra Coordinada agrega demanda de varios organismos bajo un proceso competitivo único (Art. 29 inciso final Ley 19.886). Las ${fmt(RS.nOc)} OC de este mecanismo corresponden a <b>${fmt(PROCS.length)} procesos</b> distintos (ID de licitación o gran compra); ${procesosCobertura}% de las OC identifican el proceso de origen. En grandes compras sin un ID de gran compra reconocible en el nombre de la OC, cada orden queda como su propio proceso (no se fuerza una agrupación).</p>
       <div id="detailProcesosChart"></div>
       <div class="filter-row" style="margin:12px 0 4px;">
         <div class="filter-field" style="min-width:220px;">
@@ -1944,6 +1965,18 @@ function renderDetailPage(m){
     setDl('detailLineMonto', ['Mes','Monto (USD)'], cats.map((mm,i)=>[mm, seriesForMonto(m).slice(range[0],range[1]+1)[i]]));
   }
   CURRENT_APPLY_RANGE = function(){ applyDetailRange(currentRange()); };
+  if(m === 'Compra Coordinada' && typeof CC_OC !== 'undefined'){
+    // Las compras Mandatadas, Conjuntas, el desglose por tipo y el listado de procesos se recalculan con el rango elegido:
+    // se vuelve a dibujar el detalle conservando el scroll y las selecciones.
+    CURRENT_APPLY_RANGE = function(){
+      const ids = ['ccRepSel_mandatada', 'ccRepSel_conjunta', 'selProcesosTipo', 'selProcesosOrg', 'buscarProcesosOrg'], snap = {};
+      ids.forEach(id => { const e = document.getElementById(id); if(e) snap[id] = e.value; });
+      const y = window.scrollY;
+      renderDetailPage(m);
+      ids.forEach(id => { const e = document.getElementById(id); if(!e || !snap[id]) return; e.value = snap[id]; if(e.value !== snap[id]) return; e.dispatchEvent(new Event(e.tagName === 'INPUT' ? 'input' : 'change')); });
+      window.scrollTo(0, y);
+    };
+  }
   applyDetailRange(currentRange());
 
   {
@@ -2280,7 +2313,7 @@ function renderDetailPage(m){
     renderBarList(document.getElementById('ccAnio_'+t.slug), grpItems(anioMap, anioKeys), fGrpFor('anio'), color, null, null);
   });
   if(document.getElementById('detailProcesosChart')){
-    const procItems = md.procesos.slice(0,20).map(p=>({label:(p.nombre?p.nombre+' — ':'')+p.codigo, value:p.montoUsd, nOc:p.nOc, p}));
+    const procItems = PROCS.slice(0,20).map(p=>({label:(p.nombre?p.nombre+' — ':'')+p.codigo, value:p.montoUsd, nOc:p.nOc, p}));
     renderBarList(document.getElementById('detailProcesosChart'), procItems,
       it=>`${ccOcLink('proc:'+it.p.codigo, it.nOc, 'Proceso '+it.p.codigo, [it.p])} OC · ${fmtUsd(it.value)}`, cssvar(meta.color), null, null);
 
@@ -2310,7 +2343,7 @@ function renderDetailPage(m){
     function renderProcesosTbody(){
       const tipoSel = selProcesosTipo ? selProcesosTipo.value : '';
       const orgSel = (hasOcDet && selProcesosOrg) ? selProcesosOrg.value : '';
-      const base = hasOcDet ? ccProcView(md.procesos, tipoSel, orgSel) : md.procesos.filter(p=>!tipoSel || p.tipo===tipoSel).map(p=>Object.assign({}, p, {orgs:[], orgsAll:[]}));
+      const base = hasOcDet ? ccProcView(PROCS, tipoSel, orgSel) : PROCS.filter(p=>!tipoSel || p.tipo===tipoSel).map(p=>Object.assign({}, p, {orgs:[], orgsAll:[]}));
       const sorted = sortByKeyDir(base, procesosGet, procesosSort);
       const shown = sorted.slice(0,50);
       document.getElementById('procesosTbody').innerHTML = shown.map(p=>
