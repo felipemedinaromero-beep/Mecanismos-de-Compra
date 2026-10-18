@@ -5231,7 +5231,7 @@ const GORE_LIST = [
 ];
 const GORE_MEC = ["Convenio Marco","Licitación Pública","Licitación Privada","Trato o Contratación Directa","Compra Ágil","Compra Coordinada","Contratación por Cotización","Otro / Sin clasificar"];
 const GORE_TD = 3;
-const GORE_ST = {sel: -1, q: ''};
+const GORE_ST = {sel: -1, uni: -1, q: ''};
 const GORE_EXT = {lic: null, rec: null, tcp: null, obs: null};
 let GORE_DLS = [];
 (function(){
@@ -5353,7 +5353,8 @@ async function goreDl(k, ev){
   finally { if(el){ el.textContent = old; el.style.pointerEvents = ''; } }
 }
 async function goreDlAll(btn){
-  const k = GORE_DLS.push({flt: GORE_ST.sel >= 0 ? {g: [GORE_ST.sel]} : {}, label: GORE_ST.sel >= 0 ? 'Gobierno Regional de ' + GORE_LIST[GORE_ST.sel].corto : 'Los 16 Gobiernos Regionales', rg: currentRange().slice()}) - 1;
+  const uu = GORE_ST.sel >= 0 && GORE_ST.uni >= 0 ? GORE_ST.uni : -1;
+  const k = GORE_DLS.push({flt: GORE_ST.sel >= 0 ? (uu >= 0 ? {g: [GORE_ST.sel], uni: uu} : {g: [GORE_ST.sel]}) : {}, label: GORE_ST.sel >= 0 ? 'Gobierno Regional de ' + GORE_LIST[GORE_ST.sel].corto + (uu >= 0 ? ' · ' + GORE_DATA.uni[uu][0] : '') : 'Los 16 Gobiernos Regionales', rg: currentRange().slice()}) - 1;
   const old = btn.innerHTML; btn.disabled = true; btn.textContent = 'Generando Excel…';
   try { await goreDl(k, {preventDefault(){}, currentTarget: null}); } finally { btn.disabled = false; btn.innerHTML = old; }
 }
@@ -5372,43 +5373,47 @@ function goreTable(cols, rowsHtml, empty){
   if(!rowsHtml.length) return `<p class="cp-placeholder">${empty || 'Sin datos en el período.'}</p>`;
   return `<div class="gore-tw"><table class="dt"><thead><tr>${cols.map(c => `<th${c[1] ? ' class="num"' : ''}>${c[0]}</th>`).join('')}</tr></thead><tbody>${rowsHtml.join('')}</tbody></table></div>`;
 }
-function goreSelect(i){ location.hash = i < 0 ? '#gore' : '#gore=' + encodeURIComponent(GORE_LIST[i].rut); }
+function goreSelect(i, u){ location.hash = i < 0 ? '#gore' : '#gore=' + encodeURIComponent(GORE_LIST[i].rut) + (u != null && u >= 0 ? '&unidad=' + u : ''); }
 function goreFind(q){
   const t = normTxt(q.trim()), r = goreRutKey(q);
   if(!t) return [];
   return GORE_LIST.map((g, i) => i).filter(i => { const g = GORE_LIST[i]; return (r.length >= 3 && goreRutKey(g.rut).indexOf(r) >= 0) || normTxt(g.region + ' ' + g.corto + ' ' + g.gob + ' gobierno regional').indexOf(t) >= 0; });
 }
-function renderGorePage(arg){
+function renderGorePage(arg, uArg){
   const view = document.getElementById('goreView'), D = GORE_DATA, G = GORE_LIST;
   CURRENT_APPLY_RANGE = () => renderGorePage(null);
   if(arg !== null){
     const k = goreRutKey(arg || ''); const i = arg ? G.findIndex(g => goreRutKey(g.rut) === k) : -1;
-    GORE_ST.sel = i;
+    GORE_ST.sel = i; GORE_ST.uni = (i >= 0 && uArg != null && isFinite(uArg)) ? uArg : -1;
   }
   GORE_DLS = [];
   const sel = GORE_ST.sel, rg = currentRange(), gAll = sel < 0;
-  const rows = D.rows.filter(r => goreMatch(r, gAll ? {} : {g: [sel]}, rg));
-  const S = goreStats(rows), nm = gAll ? 'Los 16 Gobiernos Regionales' : 'Gobierno Regional de ' + G[sel].corto;
+  const rowsG = D.rows.filter(r => goreMatch(r, gAll ? {} : {g: [sel]}, rg));
+  const uSel = gAll ? -1 : GORE_ST.uni, uNom = uSel >= 0 && D.uni[uSel] ? D.uni[uSel][0] : '';
+  const rows = uSel >= 0 ? rowsG.filter(r => r[7] === uSel) : rowsG;
+  const S = goreStats(rows), nm = gAll ? 'Los 16 Gobiernos Regionales' : 'Gobierno Regional de ' + G[sel].corto + (uSel >= 0 ? ' · ' + uNom : '');
   const periodo = rangeLabel(rg);
-  const scope = gAll ? {} : {g: [sel]};
+  const scope = gAll ? {} : (uSel >= 0 ? {g: [sel], uni: uSel} : {g: [sel]});
   const L = (n, extra, lbl) => goreLink(n, Object.assign({}, scope, extra || {}), nm + (lbl ? ' · ' + lbl : ''));
   const ico = {doc: '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/>', usd: '<line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>', users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'};
   const dlKey = (k, hdr, data) => { setDl(k, hdr, data); };
 
   // ---- selector ----
+  const uOpts = gAll ? [] : goreAggBy(rowsG, r => r[7]);
   const opts = `<option value="-1"${gAll ? ' selected' : ''}>Todos los Gobiernos Regionales (nivel general)</option>` + G.map((g, i) => `<option value="${i}"${i === sel ? ' selected' : ''}>${esc(g.corto)} · ${esc(g.rut)}</option>`).join('');
   let html = `<a class="back-link" href="${esc(location.pathname + location.search)}" onclick="goHome(event)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Volver al panel de mecanismos</a>
-    <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Gobiernos Regionales${gAll ? '' : ' · ' + esc(G[sel].corto)}</h1>
+    <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Gobiernos Regionales${gAll ? '' : ' · ' + esc(G[sel].corto)}${uSel >= 0 ? `<span class="gore-tag" style="font-size:13px;">Unidad: ${esc(uNom)}</span>` : ''}</h1>
     <p class="block-note">Análisis de las Órdenes de Compra (Recepción Conforme o Aceptada) de los 16 Gobiernos Regionales, período <b>${esc(periodo)}</b> (se ajusta con el filtro de fechas de arriba). Todos los N° de OC son enlaces que descargan el Excel con esas OC y sus resúmenes.${(() => { const z = rows.filter(r => !r[14] && D.mon[r[13]] !== 'CLP').length; return z ? ` <span class="cp-cap-note">Nota: ${fmt(z)} OC están en UF o UTM; igual que en el resto del panel no se convierten a USD y no suman al monto (sí cuentan como OC).</span>` : ''; })()}</p>
     <div class="filter-row">
       <div class="filter-field" style="min-width:260px;"><label for="goreQ">Buscar por RUT, región o gobernador/a</label><input type="text" id="goreQ" placeholder="Ej.: 72.224.100-2, Antofagasta, Orrego…" autocomplete="off" value="${esc(GORE_ST.q)}"></div>
       <div class="filter-field" style="min-width:300px;"><label for="goreSel">Gobierno Regional</label><select id="goreSel">${opts}</select></div>
-      <div class="filter-field" style="align-self:flex-end;"><button type="button" class="dl-btn" id="goreDlAll"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel completo (${gAll ? '16 GORE' : esc(G[sel].corto)})</button></div>
+      <div class="filter-field" style="min-width:320px;"><label for="goreUni">Unidad de compra</label><select id="goreUni"${gAll ? ' disabled' : ''}>${gAll ? '<option>Elige primero un Gobierno Regional</option>' : `<option value="-1"${uSel < 0 ? ' selected' : ''}>Todas las unidades de compra (${fmt(uOpts.length)})</option>` + uOpts.map(o => `<option value="${o.k}"${o.k === uSel ? ' selected' : ''}>${esc(D.uni[o.k][0])} · ${fmt(o.n)} OC</option>`).join('')}</select></div>
+      <div class="filter-field" style="align-self:flex-end;"><button type="button" class="dl-btn" id="goreDlAll"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel completo (${gAll ? '16 GORE' : esc(G[sel].corto) + (uSel >= 0 ? ' · unidad' : '')})</button></div>
     </div><p id="goreQmsg" class="def-text" style="margin:-8px 0 12px;"></p>`;
 
   if(!gAll){
-    const g = G[sel], units = S.uni.map(o => D.uni[o.k][0]).slice(0, 6).join('; ');
-    html += `<div class="gore-card"><div><b>Gobierno Regional</b>${esc(g.region)}</div><div><b>RUT</b>${esc(g.rut)}</div><div><b>Gobernador/a regional</b>${esc(g.gob)}</div><div><b>Correo</b>${g.mail ? `<a href="mailto:${esc(g.mail)}">${esc(g.mail)}</a>` : '—'}</div><div><b>Código de organismo (Mercado Público)</b>${esc(g.cod)}</div><div><b>Unidades de compra con OC</b>${esc(units || '—')}${S.uni.length > 6 ? ' (+' + (S.uni.length - 6) + ')' : ''}</div></div>`;
+    const g = G[sel];
+    html += `<div class="gore-card"><div><b>Gobierno Regional</b>${esc(g.region)}</div><div><b>RUT</b>${esc(g.rut)}</div><div><b>Gobernador/a regional</b>${esc(g.gob)}</div><div><b>Correo</b>${g.mail ? `<a href="mailto:${esc(g.mail)}">${esc(g.mail)}</a>` : '—'}</div><div><b>Código de organismo (Mercado Público)</b>${esc(g.cod)}</div><div style="grid-column:1/-1;"><b>Unidades de compra con OC (haz clic para ver su detalle)</b>${uOpts.map(o => `<a href="#gore=${encodeURIComponent(g.rut)}&unidad=${o.k}" class="gore-tag" style="${o.k === uSel ? 'background:var(--cc-blue);color:#fff;' : ''}">${esc(D.uni[o.k][0])} · ${fmt(o.n)}</a>`).join(' ') || '—'}${uSel >= 0 ? ` <a href="#gore=${encodeURIComponent(g.rut)}" style="font-size:12px;margin-left:6px;">Ver todas las unidades</a>` : ''}</div></div>`;
   }
   // ---- KPIs ----
   html += `<div class="kpis" style="margin:1rem 0 1.25rem;">
@@ -5439,6 +5444,19 @@ function renderGorePage(arg){
       ${goreRevWrap(per.map(p => { const tot = p.s.usd || 1; return `<div class="share-row" style="cursor:default;"><span class="name"><a href="#gore=${encodeURIComponent(p.g.rut)}">${esc(p.g.corto)}</a></span>
         <span style="flex:1 1 auto;display:flex;"><span class="gore-stack" style="width:${Math.max(2, 100 * p.s.usd / maxU)}%;">${p.s.byMec.map(o => `<span style="width:${100 * o.usd / tot}%;background:${goreMecColor(o.k)};" title="${esc(GORE_MEC[o.k])}: ${fmtUsd(o.usd)} · ${fmt(o.n)} OC"></span>`).join('')}</span></span>
         <span class="pct" style="flex-basis:210px;">${fmtUsd(p.s.usd)} · ${goreLink(p.s.n, {g: [p.i]}, 'Gobierno Regional de ' + p.g.corto)} OC</span></div>`; }).join(''))}</section>`;
+  }
+
+  // ---- Unidades de compra (solo con un GORE elegido) ----
+  if(!gAll){
+    const hdr = ['Unidad de compra', 'RUT unidad', 'N° OC', 'Monto USD', '% del monto del GORE', 'N° proveedores', 'N° OC en trato directo'];
+    const totG = rowsG.reduce((a, r) => a + (r[14] || 0), 0);
+    const us = uOpts.map(o => ({o, u: D.uni[o.k], td: rowsG.filter(r => r[7] === o.k && r[4] === GORE_TD).length}));
+    dlKey('goreUni', hdr, us.map(x => [x.u[0], x.u[1], x.o.n, goreR2(x.o.usd), totG ? goreR2(100 * x.o.usd / totG) : 0, x.o.provs.size, x.td]));
+    const gl = 'Gobierno Regional de ' + G[sel].corto;
+    html += `<section class="block"><h2>Unidades de compra de ${esc(G[sel].corto)}</h2>
+      <p class="block-note">Cada unidad de compra del GORE con OC en el período. Haz clic en su nombre para ver todo el panel solo con esa unidad; el N° de OC descarga el Excel de la unidad.${uSel >= 0 ? ` Estás viendo solo <b>${esc(uNom)}</b>.` : ''}</p>
+      ${goreTable([['Unidad de compra'], ['RUT unidad'], ['N° OC', 1], ['Monto USD', 1], ['% monto GORE', 1], ['Proveedores', 1], ['OC en trato directo', 1]], us.map(x => `<tr${x.o.k === uSel ? ' style="background:rgba(0,112,150,.08)"' : ''}><td><a href="#gore=${encodeURIComponent(G[sel].rut)}&unidad=${x.o.k}"><b>${esc(x.u[0])}</b></a></td><td>${esc(x.u[1])}</td><td class="num">${goreLink(x.o.n, {g: [sel], uni: x.o.k}, gl + ' · ' + x.u[0])}</td><td class="num">${fmtUsd(x.o.usd)}</td><td class="num">${gorePct(x.o.usd, totG)}</td><td class="num">${fmt(x.o.provs.size)}</td><td class="num">${x.td ? goreLink(x.td, {g: [sel], uni: x.o.k, mec: GORE_TD}, gl + ' · ' + x.u[0] + ' · tratos directos') : '0'}</td></tr>`))}
+      ${dlBtn('goreUni', 'gore_unidades_de_compra.csv', 'Descargar unidades de compra (Excel)')}</section>`;
   }
 
   // ---- Procedimientos de compra ----
@@ -5542,6 +5560,7 @@ function renderGorePage(arg){
   // ---- eventos ----
   const q = document.getElementById('goreQ'), s = document.getElementById('goreSel'), msg = document.getElementById('goreQmsg');
   s.onchange = () => goreSelect(Number(s.value));
+  const su = document.getElementById('goreUni'); if(su && !gAll) su.onchange = () => goreSelect(sel, Number(su.value));
   q.oninput = () => { GORE_ST.q = q.value; const f = goreFind(q.value); msg.textContent = !q.value.trim() ? '' : (f.length ? 'Coincidencias: ' + f.map(i => G[i].corto).join(', ') + (f.length > 1 ? ' (afina la búsqueda o elígelo en la lista).' : '') : 'Ningún Gobierno Regional coincide.'); };
   q.onkeydown = ev => { if(ev.key === 'Enter'){ const f = goreFind(q.value); if(f.length === 1) goreSelect(f[0]); } };
   if(q.value) q.oninput();
@@ -5559,31 +5578,63 @@ function goreCellVal(t){
   if(GORE_NUM_RE.test(t)){ const m = /-?[\d.]+(,\d+)?/.exec(t.replace(/^US\$/, '')); if(m){ const v = parseFloat(m[0].replace(/\./g, '').replace(',', '.')); if(isFinite(v)) return {n: v, s: t}; } }
   return {n: null, s: t};
 }
-// Todas las tablas del panel se ordenan con clic en el encabezado (primer clic de mayor a menor, segundo de menor a mayor).
-function goreWireSort(view){
-  view.querySelectorAll('table.dt').forEach(tb => {
-    const ths = Array.from(tb.querySelectorAll('thead th')), body = tb.tBodies[0]; if(!body) return;
-    const st = {col: -1, dir: 'desc'};
-    ths.forEach((th, ci) => {
-      th.classList.add('sortable'); th.tabIndex = 0; th.title = 'Haz clic para ordenar (mayor a menor / menor a mayor)';
-      th.insertAdjacentHTML('beforeend', ' <span class="sort-arrow">↕</span>');
-      const go = () => {
-        { const f = body.rows[0] && body.rows[0].cells[ci] ? goreCellVal(body.rows[0].cells[ci].textContent) : {n: 1}; st.dir = st.col === ci ? (st.dir === 'desc' ? 'asc' : 'desc') : (f.n == null ? 'asc' : 'desc'); } st.col = ci;
-        const rows = Array.from(body.rows).map((r, i) => ({r, i, v: goreCellVal(r.cells[ci] ? r.cells[ci].textContent : '')})), sg = st.dir === 'desc' ? -1 : 1;
-        rows.sort((a, b) => {
-          if(a.v.n != null && b.v.n != null) return sg * (a.v.n - b.v.n) || a.i - b.i;
-          if(a.v.n != null) return -1; if(b.v.n != null) return 1;
-          if(!a.v.s && b.v.s) return 1; if(a.v.s && !b.v.s) return -1;
-          return sg * a.v.s.localeCompare(b.v.s, 'es') || a.i - b.i;
-        });
-        rows.forEach(x => body.appendChild(x.r));
-        ths.forEach((h, j) => { h.classList.toggle('sort-active', j === ci); const a = h.querySelector('.sort-arrow'); if(a) a.textContent = j === ci ? (st.dir === 'desc' ? '▼' : '▲') : '↕'; });
-      };
-      th.onclick = go; th.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } };
-    });
+// Ordenamiento con clic en el encabezado (primer clic de mayor a menor; en columnas de texto, de A a Z). Se aplica a TODAS las tablas del tablero.
+function goreSortTable(tb){
+  const ths = Array.from(tb.querySelectorAll('thead th')), body = tb.tBodies[0]; if(!body) return;
+  const st = {col: -1, dir: 'desc'}, mine = [];
+  tb.dataset.gs = '1';
+  ths.forEach((th, ci) => {
+    if(th.classList.contains('sortable') || th.dataset.sort) return;
+    mine.push(ci); th.dataset.gsMine = '1';
+    th.classList.add('sortable'); th.tabIndex = 0; th.title = 'Haz clic para ordenar (mayor a menor / menor a mayor)';
+    th.insertAdjacentHTML('beforeend', ' <span class="sort-arrow">↕</span>');
+    const go = () => {
+      { const f = body.rows[0] && body.rows[0].cells[ci] ? goreCellVal(body.rows[0].cells[ci].textContent) : {n: 1}; st.dir = st.col === ci ? (st.dir === 'desc' ? 'asc' : 'desc') : (f.n == null ? 'asc' : 'desc'); } st.col = ci;
+      const rows = Array.from(body.rows).map((r, i) => ({r, i, v: goreCellVal(r.cells[ci] ? r.cells[ci].textContent : '')})), sg = st.dir === 'desc' ? -1 : 1;
+      rows.sort((a, b) => {
+        if(a.v.n != null && b.v.n != null) return sg * (a.v.n - b.v.n) || a.i - b.i;
+        if(a.v.n != null) return -1; if(b.v.n != null) return 1;
+        if(!a.v.s && b.v.s) return 1; if(a.v.s && !b.v.s) return -1;
+        return sg * a.v.s.localeCompare(b.v.s, 'es') || a.i - b.i;
+      });
+      rows.forEach(x => body.appendChild(x.r));
+      mine.forEach(j => { const h = ths[j]; h.classList.toggle('sort-active', j === ci); const a = h.querySelector('.sort-arrow'); if(a) a.textContent = j === ci ? (st.dir === 'desc' ? '▼' : '▲') : '↕'; });
+    };
+    th.onclick = go; th.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } };
   });
-  view.querySelectorAll('.gore-rev').forEach(btn => { btn.onclick = () => { const box = btn.parentElement.querySelector('.gore-bl-rows'); Array.from(box.children).reverse().forEach(c => box.appendChild(c)); }; });
+  if(mine.length && ths.length > mine.length && tb.tHead) tb.tHead.addEventListener('click', e => { if(e.target.closest('th[data-gs-mine]')) return; st.col = -1; mine.forEach(j => { const h = ths[j]; h.classList.remove('sort-active'); const a = h.querySelector('.sort-arrow'); if(a) a.textContent = '↕'; }); });
 }
+function goreRevClick(btn){ const box = btn.parentElement.querySelector('.gore-bl-rows') || btn.nextElementSibling; if(box) Array.from(box.children).reverse().forEach(c => box.appendChild(c)); }
+function goreWireSort(view){
+  view.querySelectorAll('table.dt').forEach(tb => { if(!tb.dataset.gs) goreSortTable(tb); });
+  view.querySelectorAll('.gore-rev').forEach(btn => { btn.onclick = () => goreRevClick(btn); });
+}
+// Barrido global: cualquier tabla (table.dt) o lista de barras (.share-row) de cualquier panel queda ordenable.
+function gsScan(){
+  document.querySelectorAll('table.dt').forEach(tb => {
+    if(tb.dataset.gs) return;
+    const th = tb.tHead, body = tb.tBodies[0];
+    if(!th || !body || th.rows.length !== 1) return;
+    if(body.rows.length < 2) return;
+    if(Array.from(th.rows[0].cells).every(c => c.classList.contains('sortable') || c.dataset.sort)){ tb.dataset.gs = 'x'; return; }
+    const bad = Array.from(body.rows).some(r => r.hidden || /detail|nw-det/.test(r.className) || Array.from(r.cells).some(c => c.colSpan > 1 || c.rowSpan > 1));
+    if(bad || th.rows[0].cells.length !== body.rows[0].cells.length){ tb.dataset.gs = 'x'; return; }
+    goreSortTable(tb);
+  });
+  const seen = new Set();
+  document.querySelectorAll('.share-row').forEach(r => {
+    const par = r.parentElement; if(!par || seen.has(par) || par.dataset.gsb || par.closest('.gore-bl')) return; seen.add(par);
+    const kids = Array.from(par.children);
+    if(kids.length < 3 || !kids.every(k => k.classList.contains('share-row'))) return;
+    par.dataset.gsb = '1';
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'gore-rev'; btn.textContent = '↕ Invertir orden'; btn.title = 'Invierte el orden de las barras (de mayor a menor y de menor a mayor)';
+    btn.onclick = () => { Array.from(par.children).reverse().forEach(c => par.appendChild(c)); };
+    par.insertAdjacentElement('beforebegin', btn);
+  });
+}
+let GS_T = null;
+new MutationObserver(() => { clearTimeout(GS_T); GS_T = setTimeout(gsScan, 80); }).observe(document.documentElement, {childList: true, subtree: true});
+gsScan();
 function gorePaintCz(){ if(typeof czScan === 'function') czScan(); }
 // ---- Lectura de CSV (también por bloques, para archivos grandes) ----
 function goreCsvParser(delim, onRow){
@@ -5699,7 +5750,7 @@ function route(){
     renderRubroPage(rubroMatch[1]!=null ? decodeURIComponent(rubroMatch[1]) : null);
   } else if(goreRt){
     document.getElementById('goreView').style.display = 'block';
-    renderGorePage(goreRt[1] ? decodeURIComponent(goreRt[1]) : '');
+    { const gp = goreRt[1] ? decodeURIComponent(goreRt[1]).split('&unidad=') : ['', null]; renderGorePage(gp[0] || '', gp[1] != null ? Number(gp[1]) : -1); }
   } else if(raw === '#nuevos'){
     document.getElementById('nuevosView').style.display = 'block';
     renderNuevosPage();
