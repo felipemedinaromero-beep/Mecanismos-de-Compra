@@ -5241,7 +5241,7 @@ let GORE_DLS = [];
     '.gore-card{background:var(--surface-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:0 0 1rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 22px;font-size:13px}.gore-card b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-secondary);font-weight:600}' +
     '.gore-ext{border:1px dashed var(--border);border-radius:10px;padding:12px 16px;margin:8px 0;background:rgba(0,112,150,.03);font-size:12.5px}.gore-ext input[type=file]{font-size:12px;margin:6px 0}' +
     '.gore-stk-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;margin:6px 0 10px}.gore-stk-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}' +
-    '.gore-tw{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:6px}.gore-sel-row{cursor:pointer}.gore-sel-row:hover td{background:rgba(0,112,150,.06)}';
+    '#goreView .kpi .val{font-size:18px;word-break:break-word;}#goreView .kpi .sub{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}.gore-rev{font-size:11px;font-weight:600;color:var(--cc-blue);background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;cursor:pointer;margin:0 0 4px}.gore-rev:hover{background:rgba(0,112,150,.08)}.gore-tw{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:6px}.gore-sel-row{cursor:pointer}.gore-sel-row:hover td{background:rgba(0,112,150,.06)}';
   document.head.appendChild(s);
 })();
 function goreMecColor(i){ const m = (typeof META !== 'undefined') ? META[GORE_MEC[i]] : null; return m ? cssvar(m.color) : '#8A8886'; }
@@ -5357,12 +5357,13 @@ async function goreDlAll(btn){
   const old = btn.innerHTML; btn.disabled = true; btn.textContent = 'Generando Excel…';
   try { await goreDl(k, {preventDefault(){}, currentTarget: null}); } finally { btn.disabled = false; btn.innerHTML = old; }
 }
+function goreRevWrap(inner){ return `<div class="gore-bl"><button type="button" class="gore-rev" title="Invierte el orden de las barras (de mayor a menor y de menor a mayor)">↕ Invertir orden</button><div class="gore-bl-rows">${inner}</div></div>`; }
 function goreBars(items, color, fmtRight){
   if(!items.length) return '<p class="cp-placeholder" style="padding:.5rem 0;">Sin datos en el período.</p>';
   const mx = Math.max(...items.map(i => i.usd), 1);
-  return items.map(it => `<div class="share-row" style="cursor:default;"><span class="name" title="${esc(it.title || it.label)}">${it.href ? `<a href="${it.href}">${esc(it.label)}</a>` : esc(it.label)}</span>
+  return goreRevWrap(items.map(it => `<div class="share-row" style="cursor:default;"><span class="name" title="${esc(it.title || it.label)}">${it.href ? `<a href="${it.href}">${esc(it.label)}</a>` : esc(it.label)}</span>
     <span class="bar-track"><span class="bar-fill" style="width:${Math.max(2, 100 * it.usd / mx)}%; background:${it.color || color};"></span></span>
-    <span class="pct" style="flex-basis:210px;">${fmtRight(it)}</span></div>`).join('');
+    <span class="pct" style="flex-basis:210px;">${fmtRight(it)}</span></div>`).join(''));
 }
 function goreKpi(cls, lbl, val, sub, icon){
   return `<div class="kpi ${cls}"><div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg></div><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${val}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div></div>`;
@@ -5414,7 +5415,7 @@ function renderGorePage(arg){
     ${goreKpi('k-org', 'N° de Órdenes de Compra', L(S.n, {}, 'todas las OC'), '', ico.doc)}
     ${goreKpi('k-monto', 'Monto transado (USD)', fmtUsd(S.usd), S.n ? 'Promedio por OC: ' + fmtUsd(S.usd / S.n) : '', ico.usd)}
     ${goreKpi('k-prov', 'Proveedores distintos', fmt(S.nProv), 'Mayor proveedor: ' + gorePct(S.top1 * 100, 100) , ico.users)}
-    ${goreKpi('k-monto', 'Trato directo', gorePct(S.td.length, S.n) + ' de las OC', `${L(S.td.length, {mec: GORE_TD}, 'tratos directos')} OC · ${gorePct(S.tdUsd, S.usd)} del monto`, ico.doc)}
+    ${goreKpi('k-monto', 'Trato directo', gorePct(S.td.length, S.n), `de las OC · ${L(S.td.length, {mec: GORE_TD}, 'tratos directos')} OC · ${gorePct(S.tdUsd, S.usd)} del monto`, ico.doc)}
     ${goreKpi('k-org', 'Licitaciones con OC', fmt(S.lic.length), `${L(S.lic.reduce((a, o) => a + o.n, 0), {licAny: true}, 'OC con licitación')} OC asociadas`, ico.doc)}
   </div>`;
 
@@ -5435,9 +5436,9 @@ function renderGorePage(arg){
     html += `<section class="block"><h2>Monto transado por Gobierno Regional y composición por mecanismo</h2>
       <p class="block-note">El largo de cada barra es proporcional al monto del GORE; los colores muestran qué parte del monto corresponde a cada mecanismo.</p>
       <div class="gore-stk-leg">${used.map(i => `<span><i style="background:${goreMecColor(i)}"></i>${esc(GORE_MEC[i])}</span>`).join('')}</div>
-      ${per.map(p => { const tot = p.s.usd || 1; return `<div class="share-row" style="cursor:default;"><span class="name"><a href="#gore=${encodeURIComponent(p.g.rut)}">${esc(p.g.corto)}</a></span>
+      ${goreRevWrap(per.map(p => { const tot = p.s.usd || 1; return `<div class="share-row" style="cursor:default;"><span class="name"><a href="#gore=${encodeURIComponent(p.g.rut)}">${esc(p.g.corto)}</a></span>
         <span style="flex:1 1 auto;display:flex;"><span class="gore-stack" style="width:${Math.max(2, 100 * p.s.usd / maxU)}%;">${p.s.byMec.map(o => `<span style="width:${100 * o.usd / tot}%;background:${goreMecColor(o.k)};" title="${esc(GORE_MEC[o.k])}: ${fmtUsd(o.usd)} · ${fmt(o.n)} OC"></span>`).join('')}</span></span>
-        <span class="pct" style="flex-basis:210px;">${fmtUsd(p.s.usd)} · ${goreLink(p.s.n, {g: [p.i]}, 'Gobierno Regional de ' + p.g.corto)} OC</span></div>`; }).join('')}</section>`;
+        <span class="pct" style="flex-basis:210px;">${fmtUsd(p.s.usd)} · ${goreLink(p.s.n, {g: [p.i]}, 'Gobierno Regional de ' + p.g.corto)} OC</span></div>`; }).join(''))}</section>`;
   }
 
   // ---- Procedimientos de compra ----
@@ -5508,7 +5509,7 @@ function renderGorePage(arg){
         kExt += goreTable([['Gobierno Regional'], ['Licitaciones con dato de ofertas', 1], ['Con 3 o más ofertas', 1], ['%', 1]], per.map(p => `<tr><td>${esc(p.g.corto)}</td><td class="num">${fmt(p.tot)}</td><td class="num">${fmt(p.c3)}</td><td class="num">${gorePct(p.c3, p.tot)}</td></tr>`));
       }
     }
-    const trs = S.lic.slice(0, 300).map(o => { const id = D.lic[o.k], e = goreExtLic(o.k);
+    const trs = S.lic.slice(0, 2000).map(o => { const id = D.lic[o.k], e = goreExtLic(o.k);
       return `<tr><td><a href="${goreLicLink(id)}" target="_blank" rel="noopener">${esc(id)}</a></td><td class="num">${L(o.n, {lic: o.k}, 'licitación ' + id)}</td><td class="num">${fmt(o.provs.size)}</td><td class="num">${fmtUsd(o.usd)}</td><td>${[...o.gs].map(g => esc(G[g].corto)).join(', ')}</td><td class="num">${e && e.of != null ? fmt(e.of) : '—'}</td><td class="num">${e && e.rc != null ? fmt(e.rc) : '—'}</td></tr>`; });
     html += `<section class="block"><h2>Licitaciones con tres o más ofertas</h2>
       <p class="block-note">Las OC informan la licitación de origen, pero <b>no cuántas ofertas recibió</b>. Aquí se listan las ${fmt(S.lic.length)} licitaciones de las que provienen las OC ${gAll ? 'de los GORE' : 'del GORE'} y los proveedores adjudicados (que no es lo mismo que ofertas). Para calcular las licitaciones con 3 o más ofertas, carga abajo el archivo de licitaciones (datos abiertos de ChileCompra) y el panel cruza por ID.</p>
@@ -5516,7 +5517,7 @@ function renderGorePage(arg){
         <input type="file" id="goreFileLic" accept=".csv,.txt"> <span id="goreFileLicMsg">${ext ? 'Cargado: ' + fmt(ext.size) + ' licitaciones de GORE encontradas en «' + esc(ext.nombre) + '».' : ''}</span></div>
       ${kExt}
       ${goreTable([['ID licitación'], ['N° OC', 1], ['Proveedores adjudicados', 1], ['Monto USD', 1], ['Gobierno Regional'], ['N° ofertas', 1], ['Reclamos', 1]], trs, 'No hay OC con licitación en el período.')}
-      ${S.lic.length > 300 ? `<p class="cp-cap-note">Se muestran las 300 de mayor monto; el Excel incluye las ${fmt(S.lic.length)}.</p>` : ''}${dlBtn('goreLic', 'gore_licitaciones.csv', 'Descargar licitaciones (Excel)')}</section>`;
+      ${dlBtn('goreLic', 'gore_licitaciones.csv', 'Descargar licitaciones (Excel)')}</section>`;
   }
 
   // ---- Registros externos (reclamos, TCP, Observatorio) ----
@@ -5537,6 +5538,7 @@ function renderGorePage(arg){
   document.title = (gAll ? 'Gobiernos Regionales' : 'GORE ' + G[sel].corto) + ' · ChileCompra';
   (view._charts || []).forEach(c => makeLineChart(c)); view._charts = null;
   gorePaintCz(view);
+  goreWireSort(view);
   // ---- eventos ----
   const q = document.getElementById('goreQ'), s = document.getElementById('goreSel'), msg = document.getElementById('goreQmsg');
   s.onchange = () => goreSelect(Number(s.value));
@@ -5549,6 +5551,38 @@ function renderGorePage(arg){
     const f = document.getElementById('goreFile_' + e[0]); if(f) f.onchange = () => goreLoadExt(e[0], f.files[0]);
     const t = document.getElementById('goreTpl_' + e[0]); if(t) t.onclick = ev => { ev.preventDefault(); const b = new Blob(['﻿' + e[3] + '\r\n'], {type: 'text/csv;charset=utf-8;'}); xlsxSave(b, 'plantilla_' + e[0] + '_gore.csv'); };
   });
+}
+const GORE_NUM_RE = /^(US\$)?\s*-?[\d.]+(,\d+)?\s*%?(\s*\(.*\))?$/;
+function goreCellVal(t){
+  t = String(t).trim();
+  if(t === '' || t === '—') return {n: null, s: ''};
+  if(GORE_NUM_RE.test(t)){ const m = /-?[\d.]+(,\d+)?/.exec(t.replace(/^US\$/, '')); if(m){ const v = parseFloat(m[0].replace(/\./g, '').replace(',', '.')); if(isFinite(v)) return {n: v, s: t}; } }
+  return {n: null, s: t};
+}
+// Todas las tablas del panel se ordenan con clic en el encabezado (primer clic de mayor a menor, segundo de menor a mayor).
+function goreWireSort(view){
+  view.querySelectorAll('table.dt').forEach(tb => {
+    const ths = Array.from(tb.querySelectorAll('thead th')), body = tb.tBodies[0]; if(!body) return;
+    const st = {col: -1, dir: 'desc'};
+    ths.forEach((th, ci) => {
+      th.classList.add('sortable'); th.tabIndex = 0; th.title = 'Haz clic para ordenar (mayor a menor / menor a mayor)';
+      th.insertAdjacentHTML('beforeend', ' <span class="sort-arrow">↕</span>');
+      const go = () => {
+        { const f = body.rows[0] && body.rows[0].cells[ci] ? goreCellVal(body.rows[0].cells[ci].textContent) : {n: 1}; st.dir = st.col === ci ? (st.dir === 'desc' ? 'asc' : 'desc') : (f.n == null ? 'asc' : 'desc'); } st.col = ci;
+        const rows = Array.from(body.rows).map((r, i) => ({r, i, v: goreCellVal(r.cells[ci] ? r.cells[ci].textContent : '')})), sg = st.dir === 'desc' ? -1 : 1;
+        rows.sort((a, b) => {
+          if(a.v.n != null && b.v.n != null) return sg * (a.v.n - b.v.n) || a.i - b.i;
+          if(a.v.n != null) return -1; if(b.v.n != null) return 1;
+          if(!a.v.s && b.v.s) return 1; if(a.v.s && !b.v.s) return -1;
+          return sg * a.v.s.localeCompare(b.v.s, 'es') || a.i - b.i;
+        });
+        rows.forEach(x => body.appendChild(x.r));
+        ths.forEach((h, j) => { h.classList.toggle('sort-active', j === ci); const a = h.querySelector('.sort-arrow'); if(a) a.textContent = j === ci ? (st.dir === 'desc' ? '▼' : '▲') : '↕'; });
+      };
+      th.onclick = go; th.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(); } };
+    });
+  });
+  view.querySelectorAll('.gore-rev').forEach(btn => { btn.onclick = () => { const box = btn.parentElement.querySelector('.gore-bl-rows'); Array.from(box.children).reverse().forEach(c => box.appendChild(c)); }; });
 }
 function gorePaintCz(){ if(typeof czScan === 'function') czScan(); }
 // ---- Lectura de CSV (también por bloques, para archivos grandes) ----
