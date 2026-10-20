@@ -5267,7 +5267,7 @@ let GORE_DLS = [];
     '.gore-card{background:var(--surface-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:0 0 1rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 22px;font-size:13px}.gore-card b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-secondary);font-weight:600}' +
     '.gore-ext{border:1px dashed var(--border);border-radius:10px;padding:12px 16px;margin:8px 0;background:rgba(0,112,150,.03);font-size:12.5px}.gore-ext input[type=file]{font-size:12px;margin:6px 0}' +
     '.gore-stk-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;margin:6px 0 10px}.gore-stk-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}' +
-    '#goreView .kpi .val{font-size:18px;white-space:nowrap;}#goreView .kpi .kpi-body{min-width:0;flex:1 1 auto;}.nw{white-space:nowrap}#goreView .kpi .sub{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}.gore-rev{font-size:11px;font-weight:600;color:var(--cc-blue);background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;cursor:pointer;margin:0 0 4px}.gore-rev:hover{background:rgba(0,112,150,.08)}.gore-tw{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:6px}.gore-sel-row{cursor:pointer}.gore-sel-row:hover td{background:rgba(0,112,150,.06)}';
+    '#goreView .kpi .val{font-size:18px;white-space:nowrap;}#goreView .kpi .kpi-body{min-width:0;flex:1 1 auto;}.nw{white-space:nowrap}#goreView .kpi .sub{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}.gore-rev{font-size:11px;font-weight:600;color:var(--cc-blue);background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;cursor:pointer;margin:0 0 4px}.gore-rev:hover{background:rgba(0,112,150,.08)}.gore-tw{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:6px}.gore-tw table.dt{border-collapse:separate;border-spacing:0}.gore-tw table.dt th{position:sticky;top:0;background:#fff;z-index:2;padding:6px;border-bottom:1px solid var(--border)}.gore-flt{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:10px 0 6px}.gore-flt .filter-field select,.gore-flt .filter-field input[type=text]{min-width:190px}.gore-sel-row{cursor:pointer}.gore-sel-row:hover td{background:rgba(0,112,150,.06)}';
   document.head.appendChild(s);
 })();
 function goreMecColor(i){ const m = (typeof META !== 'undefined') ? META[GORE_MEC[i]] : null; return m ? cssvar(m.color) : '#8A8886'; }
@@ -5351,8 +5351,8 @@ function goreSheets(rows, label, rg){
   sheets.push({name: 'Productos', headers: ['Producto genérico', 'N° OC', 'Monto USD', 'N° proveedores'], rows: S.prd.map(o => [D.prd[o.k], o.n, goreR2(o.usd), o.provs.size])});
   sheets.push({name: 'Tratos directos - causales', headers: ['Causal (según OC / ficha)', 'N° OC', 'Monto USD', '% de los tratos directos', 'N° proveedores'], rows: S.cau.map(o => [o.k >= 0 ? D.cau[o.k] : 'Sin causal informada', o.n, goreR2(o.usd), S.tdUsd ? goreR2(100 * o.usd / S.tdUsd) : 0, o.provs.size])});
   sheets.push({name: 'Tratos directos - proveedores', headers: ['Proveedor', 'RUT proveedor (sucursal)', 'N° OC', 'Monto USD'], rows: S.tdProv.map(o => { const p = D.prov[o.k] || ['', '']; return [p[0], p[1], o.n, goreR2(o.usd)]; })});
-  sheets.push({name: 'Licitaciones', headers: ['ID licitación', 'Link Mercado Público', 'N° OC', 'N° proveedores adjudicados', 'Monto USD', 'Gobiernos Regionales', 'N° de ofertas', '¿3 o más ofertas?'],
-    rows: S.lic.map(o => { const id = D.lic[o.k], e = goreExtLic(o.k); return [id, goreLicLink(id), o.n, o.provs.size, goreR2(o.usd), [...o.gs].map(g => G[g].corto).join('; '), e && e.of != null ? e.of : '', e && e.of != null ? (e.of >= 3 ? 'Sí' : 'No') : '']; })});
+  sheets.push({name: 'Licitaciones', headers: ['ID licitación', 'Link Mercado Público', 'N° OC', 'N° proveedores adjudicados', 'Monto USD', 'Gobiernos Regionales', 'N° de ofertas', '¿3 o más ofertas?', 'Motivo si no hay dato de ofertas'],
+    rows: S.lic.map(o => { const id = D.lic[o.k], e = goreExtLic(o.k); return [id, goreLicLink(id), o.n, o.provs.size, goreR2(o.usd), [...o.gs].map(g => G[g].corto).join('; '), e && e.of != null ? e.of : '', e && e.of != null ? (e.of >= 3 ? 'Sí' : 'No') : '', e && e.of != null ? '' : goreLicMotivo(id)[0]]; })});
   sheets.push({name: 'Unidades de compra', headers: ['Unidad de compra', 'RUT unidad', 'N° OC', 'Monto USD'], rows: S.uni.map(o => { const u = D.uni[o.k] || ['', '']; return [u[0], u[1], o.n, goreR2(o.usd)]; })});
   sheets.push({name: 'Notas', headers: ['Notas'], rows: [
     'Gobiernos Regionales · ' + label + ' · período ' + rangeLabel(rg) + ' · generado ' + DATA.generado + '.',
@@ -5410,6 +5410,29 @@ function goreFind(q){
   const t = normTxt(q.trim()), r = goreRutKey(q);
   if(!t) return [];
   return GORE_LIST.map((g, i) => i).filter(i => { const g = GORE_LIST[i]; return (r.length >= 3 && goreRutKey(g.rut).indexOf(r) >= 0) || normTxt(g.region + ' ' + g.corto + ' ' + g.gob + ' gobierno regional').indexOf(t) >= 0; });
+}
+let GORE_LICF = {g: '', o: '', q: ''}, GORE_LICV = null;
+function goreLicMotivo(id){ const m = /-[A-Z0-9]{2,3}?(\d\d)$/.exec(id), y = m ? 2000 + Number(m[1]) : 0; return y && y <= 2024 ? ['Publicada en ' + y, 'Licitación publicada en ' + y + ': es anterior a la base de ofertas (parte en ene-2025). Para completar el dato hay que cargar el archivo de licitaciones de ese año.'] : ['No figura en la base', 'No aparece en las bases de licitaciones de Mercado Público de ene-2025 a sep-2026 (por ejemplo, si no recibió ofertas).']; }
+function goreLicPaint(){
+  const V = GORE_LICV, box = document.getElementById('goreLicTbl'); if(!V || !box) return;
+  const {S, G, D, L} = V, f = GORE_LICF, q = normTxt(f.q || '');
+  const rows = S.lic.filter(o => {
+    if(f.g !== '' && !o.gs.has(Number(f.g))) return false;
+    const e = goreExtLic(o.k), of = e && e.of != null ? e.of : null;
+    if(f.o === 'c3' && !(of != null && of >= 3)) return false;
+    if(f.o === 'c12' && !(of != null && of < 3)) return false;
+    if(f.o === 'sd' && of != null) return false;
+    if(q && normTxt(D.lic[o.k]).indexOf(q) < 0) return false;
+    return true;
+  });
+  const cell = o => { const e = goreExtLic(o.k); if(e && e.of != null) return `<td class="num">${fmt(e.of)}</td><td class="nw">${e.of >= 3 ? 'Sí' : 'No'}</td>`; const [t, tt] = goreLicMotivo(D.lic[o.k]); return `<td class="num" title="${esc(tt)}">—</td><td title="${esc(tt)}" style="color:var(--text-secondary)">${esc(t)}</td>`; };
+  const trs = rows.map(o => { const id = D.lic[o.k]; return `<tr><td class="nw"><a href="${goreLicLink(id)}" target="_blank" rel="noopener">${esc(id)}</a></td><td class="num">${L(o.n, {lic: o.k}, 'licitación ' + id)}</td><td class="num">${fmt(o.provs.size)}</td><td class="num">${fmtUsd(o.usd)}</td><td>${[...o.gs].map(g => esc(G[g].corto)).join(', ')}</td>${cell(o)}</tr>`; });
+  box.innerHTML = goreTable([['ID licitación'], ['N° OC', 1], ['Proveedores adjudicados', 1], ['Monto USD', 1], ['Gobierno Regional'], ['N° ofertas', 1], ['¿3 o más? / motivo']], trs, 'Ninguna licitación coincide con los filtros.').replace('class="gore-tw"', 'class="gore-tw" style="max-height:520px"');
+  const c3 = rows.filter(o => { const e = goreExtLic(o.k); return e && e.of != null && e.of >= 3; }).length, cd = rows.filter(o => { const e = goreExtLic(o.k); return e && e.of != null; }).length;
+  const msg = document.getElementById('goreLicMsg'); if(msg) msg.textContent = fmt(rows.length) + ' licitaciones' + (cd ? ' · ' + fmt(c3) + ' con 3 o más ofertas de ' + fmt(cd) + ' con dato (' + gorePct(c3, cd) + ')' : '') + (rows.length - cd ? ' · ' + fmt(rows.length - cd) + ' sin dato de ofertas (pasa el cursor sobre «—» para ver el motivo)' : '') + '.';
+  const hdr = ['ID licitación', 'Link Mercado Público', 'N° OC', 'N° proveedores adjudicados', 'Monto USD', 'Gobiernos Regionales', 'N° de ofertas', '¿3 o más ofertas?', 'Motivo si no hay dato de ofertas'];
+  setDl('goreLic', hdr, rows.map(o => { const id = D.lic[o.k], e = goreExtLic(o.k), has = e && e.of != null; return [id, goreLicLink(id), o.n, o.provs.size, goreR2(o.usd), [...o.gs].map(g => G[g].corto).join('; '), has ? e.of : '', has ? (e.of >= 3 ? 'Sí' : 'No') : '', has ? '' : goreLicMotivo(id)[0]]; }));
+  goreWireSort(box);
 }
 function renderGorePage(arg, uArg){
   const view = document.getElementById('goreView'), D = GORE_DATA, G = GORE_LIST;
@@ -5560,14 +5583,21 @@ function renderGorePage(arg, uArg){
         kExt += goreTable([['Gobierno Regional'], ['Licitaciones con dato de ofertas', 1], ['Con 3 o más ofertas', 1], ['%', 1]], per.map(p => `<tr><td>${esc(p.g.corto)}</td><td class="num">${fmt(p.tot)}</td><td class="num">${fmt(p.c3)}</td><td class="num">${gorePct(p.c3, p.tot)}</td></tr>`));
       }
     }
-    const trs = S.lic.slice(0, 2000).map(o => { const id = D.lic[o.k], e = goreExtLic(o.k);
-      return `<tr><td><a href="${goreLicLink(id)}" target="_blank" rel="noopener">${esc(id)}</a></td><td class="num">${L(o.n, {lic: o.k}, 'licitación ' + id)}</td><td class="num">${fmt(o.provs.size)}</td><td class="num">${fmtUsd(o.usd)}</td><td>${[...o.gs].map(g => esc(G[g].corto)).join(', ')}</td><td class="num">${e && e.of != null ? fmt(e.of) : '—'}</td></tr>`; });
+    GORE_LICV = {S, G, D, L, gAll};
+    if(!GORE_LICF.keepG || gAll === false) GORE_LICF.g = '';
+    const filt = Object.assign({}, GORE_LICF);
     html += `<section class="block"><h2>Licitaciones con tres o más ofertas</h2>
       <p class="block-note">Las OC informan la licitación de origen, pero no cuántas ofertas recibió. El N° de ofertas se toma de las bases de licitaciones de Mercado Público (publicadas entre ene-2025 y sep-2026) y se cruza por ID con las ${fmt(S.lic.length)} licitaciones de las que provienen las OC ${gAll ? 'de los GORE' : 'del GORE'}. Las licitaciones sin ofertas no figuran en esas bases, y las publicadas antes de 2025 quedan sin dato. Si tienes un archivo más reciente, puedes cargarlo abajo para reemplazar el dato.</p>
       <div class="gore-ext"><b>Reemplazar con otro archivo de licitaciones (CSV)</b><br><span>Columnas que busca: ID de la licitación (CodigoExterno / Código / ID) y N° de ofertas u oferentes (NumeroOferentes, CantidadOfertas…). Acepta archivos grandes: solo se leen las licitaciones de los GORE y el archivo no sale de tu equipo.</span><br>
         <input type="file" id="goreFileLic" accept=".csv,.txt"> <span id="goreFileLicMsg">${ext ? 'En uso: ' + fmt(ext.size) + ' licitaciones de GORE con dato, desde «' + esc(ext.nombre) + '».' : ''}</span></div>
       ${kExt}
-      ${goreTable([['ID licitación'], ['N° OC', 1], ['Proveedores adjudicados', 1], ['Monto USD', 1], ['Gobierno Regional'], ['N° ofertas', 1]], trs, 'No hay OC con licitación en el período.')}
+      <div class="gore-flt">
+        ${gAll ? `<div class="filter-field"><label for="goreLicG">Gobierno Regional</label><select id="goreLicG"><option value="">Todos los Gobiernos Regionales</option>${G.map((g, i) => `<option value="${i}"${String(i) === String(filt.g) ? ' selected' : ''}>${esc(g.corto)}</option>`).join('')}</select></div>` : ''}
+        <div class="filter-field"><label for="goreLicO">N° de ofertas</label><select id="goreLicO">${[['', 'Todas'], ['c3', '3 o más ofertas'], ['c12', '1 o 2 ofertas'], ['sd', 'Sin dato de ofertas']].map(([v, t]) => `<option value="${v}"${v === filt.o ? ' selected' : ''}>${t}</option>`).join('')}</select></div>
+        <div class="filter-field"><label for="goreLicQ">Buscar ID de licitación</label><input type="text" id="goreLicQ" placeholder="Ej.: 1782-9-LR25" autocomplete="off" value="${esc(filt.q)}"></div>
+      </div>
+      <p class="block-note" id="goreLicMsg" style="margin:2px 0 6px;"></p>
+      <div id="goreLicTbl"></div>
       ${dlBtn('goreLic', 'gore_licitaciones.csv', 'Descargar licitaciones (Excel)')}</section>`;
   }
 
@@ -5599,6 +5629,11 @@ function renderGorePage(arg, uArg){
   if(q.value) q.oninput();
   document.getElementById('goreDlAll').onclick = ev => goreDlAll(ev.currentTarget);
   const fl = document.getElementById('goreFileLic'); if(fl) fl.onchange = () => goreLoadLic(fl.files[0]);
+  { const fg = document.getElementById('goreLicG'), fo = document.getElementById('goreLicO'), fq = document.getElementById('goreLicQ'); let tq = null;
+    if(fg) fg.onchange = () => { GORE_LICF.g = fg.value; GORE_LICF.keepG = true; goreLicPaint(); };
+    if(fo) fo.onchange = () => { GORE_LICF.o = fo.value; goreLicPaint(); };
+    if(fq) fq.oninput = () => { clearTimeout(tq); tq = setTimeout(() => { GORE_LICF.q = fq.value; goreLicPaint(); }, 200); };
+    goreLicPaint(); }
   EXT.forEach(e => {
     const f = document.getElementById('goreFile_' + e[0]); if(f) f.onchange = () => goreLoadExt(e[0], f.files[0]);
     const t = document.getElementById('goreTpl_' + e[0]); if(t) t.onclick = ev => { ev.preventDefault(); const b = new Blob(['﻿' + e[3] + '\r\n'], {type: 'text/csv;charset=utf-8;'}); xlsxSave(b, 'plantilla_' + e[0] + '_gore.csv'); };
