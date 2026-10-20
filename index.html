@@ -1846,6 +1846,37 @@ function renderDetailPage(m){
       ${dlBtn('detailProcesos', 'procesos_'+fileSlug+'.csv', 'Descargar procesos y OC del filtro actual (Excel, con todos los campos de cada OC)')}
     </section>` : '';
 
+  const topSections = `
+    <section class="block">
+      <h2>Top proveedores</h2>
+      <p class="block-note">El nombre enlaza a la ficha del proveedor en Datos Abiertos ChileCompra. Haz clic en N° OC o Monto (USD) para ordenar.</p>
+      <div class="table-wrap">
+        <table class="dt"><thead><tr><th>Proveedor</th><th class="num" data-sort="n">N° OC</th><th class="num" data-sort="monto">Monto (USD)</th></tr></thead>
+        <tbody id="topProvTbody"></tbody></table>
+      </div>
+      ${dlBtn('detailProv', 'proveedores_'+fileSlug+'.csv', 'Descargar tabla (CSV)')}
+    </section>
+
+    <section class="block">
+      <h2>Top organismos compradores</h2>
+      <p class="block-note">El nombre enlaza a la ficha del organismo en Datos Abiertos ChileCompra. Haz clic en N° OC o Monto (USD) para ordenar.</p>
+      <div class="table-wrap">
+        <table class="dt"><thead><tr><th>Organismo</th><th class="num" data-sort="n">N° OC</th><th class="num" data-sort="monto">Monto (USD)</th></tr></thead>
+        <tbody id="topOrgTbody"></tbody></table>
+      </div>
+      ${dlBtn('detailOrg', 'organismos_'+fileSlug+'.csv', 'Descargar tabla (CSV)')}
+    </section>
+
+    <section class="block">
+      <h2>Distribución regional</h2>
+      <p class="block-note">Haz clic en N° OC para ordenar.</p>
+      <div class="table-wrap">
+        <table class="dt"><thead><tr><th>Región</th><th class="num" data-sort="n">N° OC</th></tr></thead>
+        <tbody id="regionTbody"></tbody></table>
+      </div>
+      ${dlBtn('detailRegion', 'regiones_'+fileSlug+'.csv', 'Descargar tabla (CSV)')}
+    </section>
+  `;
   document.getElementById('detailView').innerHTML = `
     <a class="back-link" href="${esc(location.pathname + location.search)}" onclick="goHome(event)">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
@@ -1918,38 +1949,11 @@ function renderDetailPage(m){
       ${dlBtn('detailLineMonto', 'evolucion_monto_'+fileSlug+'.csv', 'Descargar serie mensual (CSV)')}
     </section>
 
-    <section class="block">
-      <h2>Top proveedores</h2>
-      <p class="block-note">El nombre enlaza a la ficha del proveedor en Datos Abiertos ChileCompra. Haz clic en N° OC o Monto (USD) para ordenar.</p>
-      <div class="table-wrap">
-        <table class="dt"><thead><tr><th>Proveedor</th><th class="num" data-sort="n">N° OC</th><th class="num" data-sort="monto">Monto (USD)</th></tr></thead>
-        <tbody id="topProvTbody"></tbody></table>
-      </div>
-      ${dlBtn('detailProv', 'proveedores_'+fileSlug+'.csv', 'Descargar tabla (CSV)')}
-    </section>
-
-    <section class="block">
-      <h2>Top organismos compradores</h2>
-      <p class="block-note">El nombre enlaza a la ficha del organismo en Datos Abiertos ChileCompra. Haz clic en N° OC o Monto (USD) para ordenar.</p>
-      <div class="table-wrap">
-        <table class="dt"><thead><tr><th>Organismo</th><th class="num" data-sort="n">N° OC</th><th class="num" data-sort="monto">Monto (USD)</th></tr></thead>
-        <tbody id="topOrgTbody"></tbody></table>
-      </div>
-      ${dlBtn('detailOrg', 'organismos_'+fileSlug+'.csv', 'Descargar tabla (CSV)')}
-    </section>
-
-    <section class="block">
-      <h2>Distribución regional</h2>
-      <p class="block-note">Haz clic en N° OC para ordenar.</p>
-      <div class="table-wrap">
-        <table class="dt"><thead><tr><th>Región</th><th class="num" data-sort="n">N° OC</th></tr></thead>
-        <tbody id="regionTbody"></tbody></table>
-      </div>
-      ${dlBtn('detailRegion', 'regiones_'+fileSlug+'.csv', 'Descargar tabla (CSV)')}
-    </section>
+    ${m === 'Compra Coordinada' ? '' : topSections}
     ${causalesSection}
     ${tipoCoordinadaSection}
     ${procesosSection}
+    ${m === 'Compra Coordinada' ? topSections : ''}
   `;
 
   const detMecIdx = CP_MECS.indexOf(m);
@@ -5251,7 +5255,7 @@ let GORE_DLS = [];
     '.gore-card{background:var(--surface-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:0 0 1rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 22px;font-size:13px}.gore-card b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-secondary);font-weight:600}' +
     '.gore-ext{border:1px dashed var(--border);border-radius:10px;padding:12px 16px;margin:8px 0;background:rgba(0,112,150,.03);font-size:12.5px}.gore-ext input[type=file]{font-size:12px;margin:6px 0}' +
     '.gore-stk-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;margin:6px 0 10px}.gore-stk-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}' +
-    '#goreView .kpi .val{font-size:18px;word-break:break-word;}#goreView .kpi .sub{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}.gore-rev{font-size:11px;font-weight:600;color:var(--cc-blue);background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;cursor:pointer;margin:0 0 4px}.gore-rev:hover{background:rgba(0,112,150,.08)}.gore-tw{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:6px}.gore-sel-row{cursor:pointer}.gore-sel-row:hover td{background:rgba(0,112,150,.06)}';
+    '#goreView .kpi .val{font-size:18px;white-space:nowrap;}#goreView .kpi .kpi-body{min-width:0;flex:1 1 auto;}.nw{white-space:nowrap}#goreView .kpi .sub{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}.gore-rev{font-size:11px;font-weight:600;color:var(--cc-blue);background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;cursor:pointer;margin:0 0 4px}.gore-rev:hover{background:rgba(0,112,150,.08)}.gore-tw{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:6px}.gore-sel-row{cursor:pointer}.gore-sel-row:hover td{background:rgba(0,112,150,.06)}';
   document.head.appendChild(s);
 })();
 function goreMecColor(i){ const m = (typeof META !== 'undefined') ? META[GORE_MEC[i]] : null; return m ? cssvar(m.color) : '#8A8886'; }
@@ -5376,6 +5380,12 @@ function goreBars(items, color, fmtRight){
     <span class="bar-track"><span class="bar-fill" style="width:${Math.max(2, 100 * it.usd / mx)}%; background:${it.color || color};"></span></span>
     <span class="pct" style="flex-basis:210px;">${fmtRight(it)}</span></div>`).join(''));
 }
+// Ajusta el tamaño de la cifra de cada indicador para que quede completa en una sola línea.
+function kpiFit(view){
+  const run = () => { view.querySelectorAll('.kpi .val').forEach(v => { v.style.fontSize = ''; let fs = parseFloat(getComputedStyle(v).fontSize) || 18, g = 0; while(v.scrollWidth > v.clientWidth + 1 && fs > 11 && g++ < 30){ fs -= 0.5; v.style.fontSize = fs + 'px'; } }); };
+  run(); if(document.fonts && document.fonts.ready) document.fonts.ready.then(run);
+  if(!view._kpiFitWired){ view._kpiFitWired = true; let t = null; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(run, 150); }); }
+}
 function goreKpi(cls, lbl, val, sub, icon){
   return `<div class="kpi ${cls}"><div class="kpi-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg></div><div class="kpi-body"><div class="lbl">${lbl}</div><div class="val">${val}</div>${sub ? `<div class="sub">${sub}</div>` : ''}</div></div>`;
 }
@@ -5439,7 +5449,7 @@ function renderGorePage(arg, uArg){
     const hdr = ['Gobierno Regional', 'RUT', 'Región', 'Gobernador/a', 'Correo', 'N° OC', 'Monto USD', '% del monto total', 'N° proveedores', '% OC en trato directo', 'Participación mayor proveedor (monto)', 'Índice HHI'];
     const per = G.map((g, i) => { const rr = rows.filter(r => r[0] === i), s = goreStats(rr); return {i, g, s}; }).sort((a, b) => b.s.usd - a.s.usd);
     dlKey('goreComp', hdr, per.map(p => [p.g.corto, p.g.rut, p.g.region, p.g.gob, p.g.mail, p.s.n, goreR2(p.s.usd), S.usd ? goreR2(100 * p.s.usd / S.usd) : 0, p.s.nProv, p.s.n ? goreR2(100 * p.s.td.length / p.s.n) : 0, goreR2(100 * p.s.top1), Math.round(p.s.hhi)]));
-    const trs = per.map(p => `<tr class="gore-sel-row"><td><a href="#gore=${encodeURIComponent(p.g.rut)}" onclick="event.stopPropagation()"><b>${esc(p.g.corto)}</b></a></td><td>${esc(p.g.rut)}</td><td>${esc(p.g.gob)}</td><td>${p.g.mail ? `<a href="mailto:${esc(p.g.mail)}">${esc(p.g.mail)}</a>` : '—'}</td>
+    const trs = per.map(p => `<tr class="gore-sel-row"><td><a href="#gore=${encodeURIComponent(p.g.rut)}" onclick="event.stopPropagation()"><b>${esc(p.g.corto)}</b></a></td><td class="nw">${esc(p.g.rut)}</td><td>${esc(p.g.gob)}</td><td>${p.g.mail ? `<a href="mailto:${esc(p.g.mail)}">${esc(p.g.mail)}</a>` : '—'}</td>
       <td class="num">${goreLink(p.s.n, {g: [p.i]}, 'Gobierno Regional de ' + p.g.corto)}</td><td class="num">${fmtUsd(p.s.usd)}</td><td class="num">${gorePct(p.s.usd, S.usd)}</td><td class="num">${fmt(p.s.nProv)}</td>
       <td class="num">${p.s.td.length ? goreLink(p.s.td.length, {g: [p.i], mec: GORE_TD}, 'Gobierno Regional de ' + p.g.corto + ' · tratos directos') : '0'} (${gorePct(p.s.td.length, p.s.n)})</td><td class="num">${gorePct(p.s.top1 * 100, 100)}</td><td class="num">${fmt(Math.round(p.s.hhi))}</td></tr>`);
     html += `<section class="block"><h2>Los 16 Gobiernos Regionales</h2>
@@ -5465,7 +5475,7 @@ function renderGorePage(arg, uArg){
     const gl = 'Gobierno Regional de ' + G[sel].corto;
     html += `<section class="block"><h2>Unidades de compra de ${esc(G[sel].corto)}</h2>
       <p class="block-note">Cada unidad de compra del GORE con OC en el período. Haz clic en su nombre para ver todo el panel solo con esa unidad; el N° de OC descarga el Excel de la unidad.${uSel >= 0 ? ` Estás viendo solo <b>${esc(uNom)}</b>.` : ''}</p>
-      ${goreTable([['Unidad de compra'], ['RUT unidad'], ['N° OC', 1], ['Monto USD', 1], ['% monto GORE', 1], ['Proveedores', 1], ['OC en trato directo', 1]], us.map(x => `<tr${x.o.k === uSel ? ' style="background:rgba(0,112,150,.08)"' : ''}><td><a href="#gore=${encodeURIComponent(G[sel].rut)}&unidad=${x.o.k}"><b>${esc(x.u[0])}</b></a></td><td>${esc(x.u[1])}</td><td class="num">${goreLink(x.o.n, {g: [sel], uni: x.o.k}, gl + ' · ' + x.u[0])}</td><td class="num">${fmtUsd(x.o.usd)}</td><td class="num">${gorePct(x.o.usd, totG)}</td><td class="num">${fmt(x.o.provs.size)}</td><td class="num">${x.td ? goreLink(x.td, {g: [sel], uni: x.o.k, mec: GORE_TD}, gl + ' · ' + x.u[0] + ' · tratos directos') : '0'}</td></tr>`))}
+      ${goreTable([['Unidad de compra'], ['RUT unidad'], ['N° OC', 1], ['Monto USD', 1], ['% monto GORE', 1], ['Proveedores', 1], ['OC en trato directo', 1]], us.map(x => `<tr${x.o.k === uSel ? ' style="background:rgba(0,112,150,.08)"' : ''}><td><a href="#gore=${encodeURIComponent(G[sel].rut)}&unidad=${x.o.k}"><b>${esc(x.u[0])}</b></a></td><td class="nw">${esc(x.u[1])}</td><td class="num">${goreLink(x.o.n, {g: [sel], uni: x.o.k}, gl + ' · ' + x.u[0])}</td><td class="num">${fmtUsd(x.o.usd)}</td><td class="num">${gorePct(x.o.usd, totG)}</td><td class="num">${fmt(x.o.provs.size)}</td><td class="num">${x.td ? goreLink(x.td, {g: [sel], uni: x.o.k, mec: GORE_TD}, gl + ' · ' + x.u[0] + ' · tratos directos') : '0'}</td></tr>`))}
       ${dlBtn('goreUni', 'gore_unidades_de_compra.csv', 'Descargar unidades de compra (Excel)')}</section>`;
   }
 
@@ -5562,7 +5572,7 @@ function renderGorePage(arg, uArg){
       ${x ? (sh.length ? goreTable(x.hdr.map(h => [esc(h)]), sh.slice(0, 500).map(r => `<tr>${r.c.map(v => `<td>${esc(v)}</td>`).join('')}</tr>`)) + dlBtn('goreExt_' + e[0], 'gore_' + e[0] + '.csv', 'Descargar registros (Excel)') : '<p class="cp-placeholder">No hay registros del GORE seleccionado en el archivo cargado.</p>') : ''}</section>`;
   });
   html += `<p class="cp-cap-note" style="margin-top:1.5rem;">Fuente: Órdenes de Compra de Mercado Público (datos abiertos de ChileCompra), ene-2025 a sep-2026, estados Recepción Conforme y Aceptada. Montos en USD al dólar observado del día de envío de cada OC.</p>`;
-  view.innerHTML = html;
+  view.innerHTML = html; kpiFit(view);
   document.title = (gAll ? 'Gobiernos Regionales' : 'GORE ' + G[sel].corto) + ' · ChileCompra';
   (view._charts || []).forEach(c => makeLineChart(c)); view._charts = null;
   gorePaintCz(view);
@@ -5750,6 +5760,16 @@ function cfRutOk(s){
   for(let i = body.length - 1; i >= 0; i--){ sum += Number(body[i]) * m; m = m === 7 ? 2 : m + 1; }
   const r = 11 - (sum % 11), e = r === 11 ? '0' : (r === 10 ? 'K' : String(r)); return e === dv;
 }
+// Nombre del organismo según el RUT del comprador (cruce con el listado de organismos del panel).
+let CF_ORG_MAP = null;
+function cfOrg(rut){
+  if(!CF_ORG_MAP){
+    CF_ORG_MAP = {};
+    try { Object.keys(CP.organismoRuts || {}).forEach(c => { const o = CP.organismos && CP.organismos[c]; if(!o || !o.nombre) return; (CP.organismoRuts[c] || []).forEach(r => { const k = goreRutKey(r); if(k && !CF_ORG_MAP[k]) CF_ORG_MAP[k] = String(o.nombre).replace(/\s+/g, ' ').trim(); }); }); } catch(e){}
+    try { GORE_LIST.forEach(g => { const k = goreRutKey(g.rut); if(k && !CF_ORG_MAP[k]) CF_ORG_MAP[k] = 'Gobierno Regional de ' + g.corto; }); } catch(e){}
+  }
+  return CF_ORG_MAP[goreRutKey(rut)] || '';
+}
 function cfFmtRut(s){ const t = String(s || '').replace(/[.\-\s]/g, '').toUpperCase(); return /^\d{7,8}[\dK]$/.test(t) ? t.slice(0, -1).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + '-' + t.slice(-1) : String(s || ''); }
 function cfBase(obs){ for(const [re, b] of CFMP_BASE) if(re.test(obs || '')) return b; return ''; }
 function cfRate(iso, anio, mes){
@@ -5793,7 +5813,7 @@ function cfFilter(f, rg){
     if(f.tc && o.tc !== f.tc) return false; if(f.mot && o.obs !== f.mot) return false; if(f.act && o.acto !== f.act) return false; if(f.rut && o.rut !== f.rut) return false; if(f.mon && o.mon !== f.mon) return false;
     if(f.prov && o.provKey !== f.prov) return false; if(f.mesIdx != null && o.mesIdx !== f.mesIdx) return false; if(f.intl && o.tc !== 'Compra internacional') return false;
     if(f.regul && !o.regul) return false;
-    if(q && normTxt([o.unidad, o.rut, o.razon, o.obj, o.den, o.nAct, o.tc, o.obs].join(' ')).indexOf(q) < 0 && !(qr.length >= 4 && (goreRutKey(o.rut).indexOf(qr) >= 0 || goreRutKey(o.rutP).indexOf(qr) >= 0))) return false;
+    if(q && normTxt([cfOrg(o.rut), o.unidad, o.rut, o.razon, o.obj, o.den, o.nAct, o.tc, o.obs].join(' ')).indexOf(q) < 0 && !(qr.length >= 4 && (goreRutKey(o.rut).indexOf(qr) >= 0 || goreRutKey(o.rutP).indexOf(qr) >= 0))) return false;
     return true;
   });
 }
@@ -5816,9 +5836,9 @@ function cfStats(rows){
   S.nComp = S.byComp.length; S.nProv = S.byProv.length; S.nIntl = rows.filter(o => o.tc === 'Compra internacional').length; S.nRegul = rows.filter(o => o.regul).length;
   return S;
 }
-const CFMP_HDR = ['Año', 'Mes de registro', 'RUT comprador', 'Unidad de compra', 'Tipo de compra', 'Tipo de acto administrativo', 'Denominación del acto', 'Fecha del acto aprobatorio', 'N° del acto', 'Proveedor (razón social)', 'RUT proveedor (según archivo)',
+const CFMP_HDR = ['Año', 'Mes de registro', 'RUT comprador', 'Organismo', 'Unidad de compra', 'Tipo de compra', 'Tipo de acto administrativo', 'Denominación del acto', 'Fecha del acto aprobatorio', 'N° del acto', 'Proveedor (razón social)', 'RUT proveedor (según archivo)',
   'Nombre (según archivo)', 'Objeto de la contratación', 'Inicio del contrato', 'Término del contrato', 'Duración (días)', 'Monto (moneda original)', 'Moneda', 'Monto (USD)', 'Motivo (observaciones)', 'Base normativa del motivo', 'Documento', 'Link al documento', 'Alertas de calidad'];
-function cfRow(o){ return [o.anio, o.mesLbl, cfFmtRut(o.rut), o.unidad, o.tc, o.acto, o.den, o.fAct, o.nAct, o.razon, o.rutP, o.nombre, o.obj, o.ini, o.fin, o.dur, o.montoN, o.mon, o.usd == null ? '' : goreR2(o.usd), o.obs, cfBase(o.obs), o.doc, o.link, o.alertas.join('; ')]; }
+function cfRow(o){ return [o.anio, o.mesLbl, cfFmtRut(o.rut), cfOrg(o.rut), o.unidad, o.tc, o.acto, o.den, o.fAct, o.nAct, o.razon, o.rutP, o.nombre, o.obj, o.ini, o.fin, o.dur, o.montoN, o.mon, o.usd == null ? '' : goreR2(o.usd), o.obs, cfBase(o.obs), o.doc, o.link, o.alertas.join('; ')]; }
 function cfSheets(rows, label, rg){
   const S = cfStats(rows), tot = S.usd;
   const sheets = [{name: 'Listado', headers: CFMP_HDR, rows: rows.slice().sort((a, b) => (b.fAct || '').localeCompare(a.fAct || '') || a.i - b.i).map(cfRow)}];
@@ -5827,7 +5847,7 @@ function cfSheets(rows, label, rg){
   sheets[2].headers.push('Base normativa'); sheets[2].rows.forEach((r, i) => r.push(cfBase(S.byMot[i].k)));
   sheets.push({name: 'Por moneda', headers: ['Moneda', 'N° de registros', 'Monto en moneda original', 'Monto USD (CLP y USD)'], rows: S.byMon.map(a => [a.k, a.n, goreR2(a.orig), goreR2(a.usd)])});
   sheets.push({name: 'Por mes', headers: ['Mes de registro', 'N° de registros', 'Monto USD'].concat(S.byTc.map(a => 'N° ' + a.k)), rows: S.byMes.map(a => { const rr = rows.filter(o => o.mesIdx === a.k); return [CC_MES_ABR[((a.k % 12) + 12) % 12] + '-' + (2025 + Math.floor(a.k / 12)), a.n, goreR2(a.usd)].concat(S.byTc.map(t => rr.filter(o => (o.tc || 'Sin información') === t.k).length)); })});
-  sheets.push({name: 'Compradores', headers: ['RUT comprador', 'Unidades de compra', 'N° de registros', 'Monto USD', '% del monto USD', 'N° proveedores', 'N° compras internacionales'], rows: S.byComp.map(a => [cfFmtRut(a.k), [...new Set(rows.filter(o => o.rut === a.k).map(o => o.unidad))].join('; '), a.n, goreR2(a.usd), tot ? goreR2(100 * a.usd / tot) : 0, a.provs.size, a.intl])});
+  sheets.push({name: 'Compradores', headers: ['Organismo', 'RUT comprador', 'Unidades de compra', 'N° de registros', 'Monto USD', '% del monto USD', 'N° proveedores', 'N° compras internacionales'], rows: S.byComp.map(a => [cfOrg(a.k), cfFmtRut(a.k), [...new Set(rows.filter(o => o.rut === a.k).map(o => o.unidad))].join('; '), a.n, goreR2(a.usd), tot ? goreR2(100 * a.usd / tot) : 0, a.provs.size, a.intl])});
   sheets.push({name: 'Proveedores', headers: ['Proveedor (razón social)', 'RUT (según archivo)', 'N° de registros', 'Monto USD', '% del monto USD', 'N° compradores'], rows: S.byProv.map(a => { const o = rows.find(x => x.provKey === a.k); return [o.razon, o.rutP, a.n, goreR2(a.usd), tot ? goreR2(100 * a.usd / tot) : 0, a.comps.size]; })});
   sheets.push({name: 'Alertas de calidad', headers: ['Alerta', 'N° de registros'], rows: [['Duplicado (misma operación con otro documento)', 'dup'], ['Posible registro de prueba', 'prueba'], ['Monto atípico (≥ US$1 millón)', 'atip'], ['Contrato iniciado antes del acto aprobatorio', 'regul'], ['RUT del proveedor no informado o inválido', 'rutBad'], ['Sin documento adjunto', 'sinDoc'], ['Sin conversión a USD', 'sinUsd']].map(([t, k]) => [t, rows.filter(o => o[k]).length])});
   sheets.push({name: 'Notas', headers: ['Notas'], rows: [
@@ -5860,7 +5880,7 @@ function renderCfmpPage(){
   const rows = cfFilter(F, rg), S = cfStats(rows);
   const uniq = (fn) => [...new Set(base.map(fn).filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b), 'es'));
   const opt = (arr, cur, lab) => `<option value="">${lab}</option>` + arr.map(v => `<option value="${esc(v)}"${v === cur ? ' selected' : ''}>${esc(v)}</option>`).join('');
-  const compOpts = [...new Map(base.map(o => [o.rut, cfFmtRut(o.rut) + ' · ' + o.unidad])).entries()].sort((a, b) => a[1].localeCompare(b[1], 'es'));
+  const compOpts = [...new Map(base.map(o => [o.rut, cfFmtRut(o.rut) + ' · ' + (cfOrg(o.rut) ? cfOrg(o.rut) + ' · ' : '') + o.unidad])).entries()].sort((a, b) => a[1].localeCompare(b[1], 'es'));
   const ext = (extra, lbl) => cfLink(0, null) && ''; void ext;
   const L = (n, extra, lbl) => cfLink(n, extra, lbl);
   const tc = S.byTc.map((a, i) => Object.assign(a, {color: cfColor(i)}));
@@ -5918,9 +5938,12 @@ function renderCfmpPage(){
     } }
   // compradores y proveedores
   { const nm = rut => { const o = rows.find(x => x.rut === rut); return o ? o.unidad : ''; };
-    mkDl('cfComp', ['RUT comprador', 'Unidad de compra', 'N° de registros', 'Monto USD', '% del monto USD', 'N° proveedores', 'N° compras internacionales'], S.byComp.map(a => [cfFmtRut(a.k), [...new Set(rows.filter(o => o.rut === a.k).map(o => o.unidad))].join('; '), a.n, goreR2(a.usd), S.usd ? goreR2(100 * a.usd / S.usd) : 0, a.provs.size, a.intl]));
-    html += `<section class="block"><h2>Compradores que registran compras fuera de Mercado Público</h2><p class="block-note">Organismos (por RUT del comprador) con registros en el período. Haz clic en el nombre para filtrar todo el panel por ese comprador.</p>
-      ${goreTable([['Comprador (unidad de compra)'], ['RUT'], ['N° registros', 1], ['Monto USD', 1], ['% monto', 1], ['Proveedores', 1], ['Compras internacionales', 1]], S.byComp.map(a => `<tr><td><a href="#" class="cf-pick" data-rut="${esc(a.k)}">${esc([...new Set(rows.filter(o => o.rut === a.k).map(o => o.unidad))].join('; '))}</a></td><td>${esc(cfFmtRut(a.k))}</td><td class="num">${L(a.n, {rut: a.k}, 'comprador ' + cfFmtRut(a.k))}</td><td class="num">${fmtUsd(a.usd)}</td><td class="num">${gorePct(a.usd, S.usd)}</td><td class="num">${fmt(a.provs.size)}</td><td class="num">${fmt(a.intl)}</td></tr>`))}${dlBtn('cfComp', 'compras_fuera_compradores.csv', 'Descargar compradores (Excel)')}</section>`; void nm;
+    const unis = k => [...new Set(rows.filter(o => o.rut === k).map(o => o.unidad))];
+    mkDl('cfComp', ['Organismo', 'RUT comprador', 'Unidad(es) de compra', 'N° de registros', 'Monto USD', '% del monto USD', 'N° proveedores', 'N° compras internacionales'], S.byComp.map(a => [cfOrg(a.k), cfFmtRut(a.k), unis(a.k).join('; '), a.n, goreR2(a.usd), S.usd ? goreR2(100 * a.usd / S.usd) : 0, a.provs.size, a.intl]));
+    html += `<section class="block"><h2>Compradores que registran compras fuera de Mercado Público</h2><p class="block-note">Organismos (por RUT del comprador) con registros en el período, con el nombre del organismo y su(s) unidad(es) de compra. Haz clic en el nombre para filtrar todo el panel por ese comprador.</p>
+      <div class="filter-row" style="margin:0 0 8px;"><div class="filter-field" style="min-width:300px;"><label for="cfCompQ">Buscar comprador por nombre o RUT</label><input type="text" id="cfCompQ" placeholder="Ej.: Municipalidad de Molina, 69.110.100-2…" autocomplete="off"></div></div>
+      <p id="cfCompQmsg" class="def-text" style="margin:0 0 8px;"></p>
+      ${goreTable([['Organismo'], ['Unidad(es) de compra'], ['RUT'], ['N° registros', 1], ['Monto USD', 1], ['% monto', 1], ['Proveedores', 1], ['Compras internacionales', 1]], S.byComp.map(a => `<tr data-s="${esc(normTxt([cfOrg(a.k), unis(a.k).join(' '), a.k, cfFmtRut(a.k)].join(' ')) + ' ' + goreRutKey(a.k))}"><td><a href="#" class="cf-pick" data-rut="${esc(a.k)}"><b>${esc(cfOrg(a.k) || unis(a.k).join('; '))}</b></a></td><td>${esc(unis(a.k).join('; '))}</td><td class="nw">${esc(cfFmtRut(a.k))}</td><td class="num">${L(a.n, {rut: a.k}, 'comprador ' + cfFmtRut(a.k))}</td><td class="num">${fmtUsd(a.usd)}</td><td class="num">${gorePct(a.usd, S.usd)}</td><td class="num">${fmt(a.provs.size)}</td><td class="num">${fmt(a.intl)}</td></tr>`))}${dlBtn('cfComp', 'compras_fuera_compradores.csv', 'Descargar compradores (Excel)')}</section>`; void nm;
     mkDl('cfProv', ['Proveedor (razón social)', 'RUT (según archivo)', 'N° de registros', 'Monto USD', '% del monto USD', 'N° compradores'], S.byProv.map(a => { const o = rows.find(x => x.provKey === a.k); return [o.razon, o.rutP, a.n, goreR2(a.usd), S.usd ? goreR2(100 * a.usd / S.usd) : 0, a.comps.size]; }));
     const pv = S.byProv.slice(0, 15).map(a => { const o = rows.find(x => x.provKey === a.k); return {label: o.razon, usd: a.usd, n: a.n, k: a.k}; });
     html += `<section class="block"><h2>Proveedores</h2><p class="block-note">Proveedores (por razón social) con más monto en el período. Concentración: el mayor proveedor reúne ${gorePct(S.byProv.length ? S.byProv[0].usd : 0, S.usd)} del monto y los 5 mayores ${gorePct(S.byProv.slice(0, 5).reduce((x, a) => x + a.usd, 0), S.usd)}.</p>
@@ -5929,9 +5952,13 @@ function renderCfmpPage(){
   // listado
   { const lst = rows.slice().sort((a, b) => (b.fAct || '').localeCompare(a.fAct || '') || a.i - b.i);
     mkDl('cfLst', CFMP_HDR, lst.map(cfRow));
-    const tr = lst.slice(0, 1500).map(o => `<tr${o.dup || o.prueba ? ' style="opacity:.6"' : ''}><td>${esc(o.fAct)}</td><td>${esc(o.unidad)}<br><span class="cp-cap-note">${esc(cfFmtRut(o.rut))}</span></td><td>${esc(o.tc)}</td><td>${esc(o.acto)} ${esc(o.nAct)}</td><td>${esc(o.razon)}</td><td title="${esc(o.obj)}">${esc(o.obj.length > 120 ? o.obj.slice(0, 120) + '…' : o.obj)}</td><td class="num">${o.montoN == null ? '' : fmt(o.montoN) + ' ' + esc(o.mon)}</td><td class="num">${o.usd == null ? '—' : fmtUsd(o.usd)}</td><td>${esc(o.obs)}</td><td>${o.link ? `<a href="${esc(o.link)}" target="_blank" rel="noopener">Documento</a>` : '—'}</td><td style="font-size:11px;">${esc(o.alertas.join('; '))}</td></tr>`);
+    const lstKey = o => normTxt([cfOrg(o.rut), o.unidad, o.rut, o.razon, o.rutP].join(' ')) + ' ' + goreRutKey(o.rut) + ' ' + goreRutKey(o.rutP);
+    const trOf = o => `<tr${o.dup || o.prueba ? ' style="opacity:.6"' : ''}><td>${esc(o.fAct)}</td><td>${cfOrg(o.rut) ? `<b>${esc(cfOrg(o.rut))}</b><br>` : ''}${esc(o.unidad)}<br><span class="cp-cap-note">${esc(cfFmtRut(o.rut))}</span></td><td>${esc(o.tc)}</td><td>${esc(o.acto)} ${esc(o.nAct)}</td><td>${esc(o.razon)}</td><td title="${esc(o.obj)}">${esc(o.obj.length > 120 ? o.obj.slice(0, 120) + '…' : o.obj)}</td><td class="num">${o.montoN == null ? '' : fmt(o.montoN) + ' ' + esc(o.mon)}</td><td class="num">${o.usd == null ? '—' : fmtUsd(o.usd)}</td><td>${esc(o.obs)}</td><td>${o.link ? `<a href="${esc(o.link)}" target="_blank" rel="noopener">Documento</a>` : '—'}</td><td style="font-size:11px;">${esc(o.alertas.join('; '))}</td></tr>`;
     html += `<section class="block"><h2>Listado de registros</h2><p class="block-note">Un registro por fila, con enlace al documento del contrato. Las filas atenuadas son duplicados o posibles registros de prueba incluidos por tu selección.</p>
-      ${goreTable([['Fecha del acto'], ['Comprador'], ['Tipo de compra'], ['Acto'], ['Proveedor'], ['Objeto'], ['Monto', 1], ['Monto USD', 1], ['Motivo'], ['Documento'], ['Alertas']], tr)}${lst.length > 1500 ? '<p class="cp-cap-note">Se muestran 1.500; el Excel incluye todos.</p>' : ''}${dlBtn('cfLst', 'compras_fuera_listado.csv', 'Descargar listado completo (Excel)')}</section>`; }
+      <div class="filter-row" style="margin:0 0 8px;"><div class="filter-field" style="min-width:300px;"><label for="cfLstQ">Buscar en el listado por nombre o RUT (organismo, unidad o proveedor)</label><input type="text" id="cfLstQ" placeholder="Ej.: Molina, 69.110.100-2, nombre de un proveedor…" autocomplete="off"></div></div>
+      <p id="cfLstQmsg" class="def-text" style="margin:0 0 8px;"></p>
+      <div id="cfLstWrap">${goreTable([['Fecha del acto'], ['Comprador'], ['Tipo de compra'], ['Acto'], ['Proveedor'], ['Objeto'], ['Monto', 1], ['Monto USD', 1], ['Motivo'], ['Documento'], ['Alertas']], lst.slice(0, 1500).map(trOf))}</div><p class="cp-cap-note" id="cfLstCap">${lst.length > 1500 ? 'Se muestran 1.500; el Excel incluye todos.' : ''}</p>${dlBtn('cfLst', 'compras_fuera_listado.csv', 'Descargar listado (Excel)')}</section>`;
+    view._lst = {lst, trOf, lstKey}; }
   // calidad de datos
   { const univ = CFMP_LIST.filter(o => { const rg2 = rg; return isFullRange(rg2) || (o.mesIdx >= rg2[0] && o.mesIdx <= rg2[1]); });
     const al = [['dup', 'Duplicados: la misma operación aparece más de una vez (un registro por documento adjunto)'], ['prueba', 'Posibles registros de prueba (objeto «prueba» o unidad MpOperaciones)'], ['atip', 'Montos atípicos (USD 1 millón o más en un registro)'], ['regul', 'Contrato iniciado antes de la fecha del acto aprobatorio (regularización a posteriori)'], ['rutBad', 'RUT del proveedor no informado o inválido (esperable en proveedores extranjeros)'], ['sinDoc', 'Registros sin documento adjunto'], ['sinUsd', 'Registros sin conversión a USD (moneda distinta de CLP y USD)']];
@@ -5956,6 +5983,26 @@ function renderCfmpPage(){
   document.getElementById('cfDlAll').onclick = async ev => { const b = ev.currentTarget, old = b.innerHTML; b.disabled = true; b.textContent = 'Generando Excel…'; try { const k = CFMP_DLS.push({f: Object.assign({}, F), label: 'todos los registros', rg: currentRange().slice()}) - 1; await cfDl(k, {preventDefault(){}, currentTarget: null}); } finally { b.disabled = false; b.innerHTML = old; } };
   view.querySelectorAll('a.cf-pick').forEach(a => { a.onclick = ev => { ev.preventDefault(); F.rut = a.dataset.rut; rer(); window.scrollTo(0, 0); }; });
   const fi = document.getElementById('cfFile'); if(fi) fi.onchange = () => cfLoad(Array.from(fi.files));
+  // buscador de compradores (filtra las filas de la tabla)
+  const cq = document.getElementById('cfCompQ');
+  if(cq) cq.oninput = () => {
+    const t = normTxt(cq.value.trim()), r = goreRutKey(cq.value); let n = 0, tot = 0;
+    view.querySelectorAll('#cfCompQ').forEach(() => {});
+    const tb = cq.closest('section').querySelector('table.dt tbody');
+    if(tb) Array.from(tb.rows).forEach(tr => { tot++; const k = tr.dataset.s || '', ok = !t || k.indexOf(t) >= 0 || (r.length >= 3 && k.indexOf(r) >= 0); tr.style.display = ok ? '' : 'none'; if(ok) n++; });
+    const m = document.getElementById('cfCompQmsg'); if(m) m.textContent = t ? (n ? 'Mostrando ' + fmt(n) + ' de ' + fmt(tot) + ' compradores.' : 'Ningún comprador coincide con la búsqueda.') : '';
+  };
+  // buscador del listado de registros (busca en todos los registros, no solo en los 1.500 visibles)
+  const lq = document.getElementById('cfLstQ');
+  if(lq && view._lst) lq.oninput = () => {
+    const {lst, trOf, lstKey} = view._lst, t = normTxt(lq.value.trim()), r = goreRutKey(lq.value);
+    const f = t ? lst.filter(o => { const k = lstKey(o); return k.indexOf(t) >= 0 || (r.length >= 3 && k.indexOf(r) >= 0); }) : lst;
+    const wrap = document.getElementById('cfLstWrap');
+    if(wrap){ wrap.innerHTML = goreTable([['Fecha del acto'], ['Comprador'], ['Tipo de compra'], ['Acto'], ['Proveedor'], ['Objeto'], ['Monto', 1], ['Monto USD', 1], ['Motivo'], ['Documento'], ['Alertas']], f.slice(0, 1500).map(trOf), 'Ningún registro coincide con la búsqueda.'); goreWireSort(wrap); }
+    setDl('cfLst', CFMP_HDR, f.map(cfRow));
+    const m = document.getElementById('cfLstQmsg'); if(m) m.textContent = t ? 'Mostrando ' + fmt(Math.min(f.length, 1500)) + ' de ' + fmt(f.length) + ' registros que coinciden (el Excel descarga solo esos ' + fmt(f.length) + ').' : '';
+    const cap = document.getElementById('cfLstCap'); if(cap) cap.textContent = f.length > 1500 ? 'Se muestran 1.500; el Excel incluye todos los que coinciden.' : '';
+  };
 }
 async function cfLoad(files){
   const msg = document.getElementById('cfFileMsg');
