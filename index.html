@@ -494,6 +494,7 @@
 <script src="data/cp.js"></script>
 <script src="data/pac.js"></script>
 <script src="data/pac26.js"></script>
+<script src="data/lic.js"></script>
 <script src="data/cc_oc.js"></script>
 <script src="data/cp_orgs_1.js"></script>
 <script src="data/cp_orgs_2.js"></script>
@@ -1000,7 +1001,7 @@ function czScan(){
     if(svg.dataset.cz || svg.closest('.cz-body')) return;
     svg.dataset.cz = '1';
     const sec = svg.closest('section.block');
-    if(sec && sec.querySelectorAll('svg[viewBox="0 0 1160 340"]').length === 1)
+    if(sec && sec.id !== 'licBlock' && sec.querySelectorAll('svg[viewBox="0 0 1160 340"]').length === 1)
       czUnit(svg.id || 'sec', Array.from(sec.children).filter(ch => !ch.matches('h2,h3,p.block-note,.cz-bar,.cz-body')));
     else {
       const u = svg.closest('.big-chart-wrap'); if(!u) return;
@@ -1958,6 +1959,7 @@ function renderDetailPage(m){
       ${dlBtn('detailLineMonto', 'evolucion_monto_'+fileSlug+'.csv', 'Descargar serie mensual (CSV)')}
     </section>
 
+    ${m === 'Licitación Pública' || m === 'Licitación Privada' ? licSectionHtml(m) : ''}
     ${m === 'Compra Coordinada' ? '' : topSections}
     ${causalesSection}
     ${tipoCoordinadaSection}
@@ -1995,6 +1997,7 @@ function renderDetailPage(m){
       [[m, s.nOc, sharePct, s.montoUsd, md.nProveedores, nOrg, (meta&&meta.cita)||''].concat(montoPorMoneda(montosRango))]);
     setDl('detailLineOc', ['Mes','N° OC'], cats.map((mm,i)=>[mm, seriesForOc(m).slice(range[0],range[1]+1)[i]]));
     setDl('detailLineMonto', ['Mes','Monto (USD)'], cats.map((mm,i)=>[mm, seriesForMonto(m).slice(range[0],range[1]+1)[i]]));
+    if(document.getElementById('licBlock')) licPaint(m, range);
   }
   CURRENT_APPLY_RANGE = function(){ applyDetailRange(currentRange()); };
   if(m === 'Compra Coordinada' && typeof CC_OC !== 'undefined'){
@@ -5348,8 +5351,8 @@ function goreSheets(rows, label, rg){
   sheets.push({name: 'Productos', headers: ['Producto genérico', 'N° OC', 'Monto USD', 'N° proveedores'], rows: S.prd.map(o => [D.prd[o.k], o.n, goreR2(o.usd), o.provs.size])});
   sheets.push({name: 'Tratos directos - causales', headers: ['Causal (según OC / ficha)', 'N° OC', 'Monto USD', '% de los tratos directos', 'N° proveedores'], rows: S.cau.map(o => [o.k >= 0 ? D.cau[o.k] : 'Sin causal informada', o.n, goreR2(o.usd), S.tdUsd ? goreR2(100 * o.usd / S.tdUsd) : 0, o.provs.size])});
   sheets.push({name: 'Tratos directos - proveedores', headers: ['Proveedor', 'RUT proveedor (sucursal)', 'N° OC', 'Monto USD'], rows: S.tdProv.map(o => { const p = D.prov[o.k] || ['', '']; return [p[0], p[1], o.n, goreR2(o.usd)]; })});
-  sheets.push({name: 'Licitaciones', headers: ['ID licitación', 'Link Mercado Público', 'N° OC', 'N° proveedores adjudicados', 'Monto USD', 'Gobiernos Regionales', 'N° de ofertas (archivo cargado)', 'Cantidad de reclamos (archivo cargado)', '¿3 o más ofertas?'],
-    rows: S.lic.map(o => { const id = D.lic[o.k], e = goreExtLic(o.k); return [id, goreLicLink(id), o.n, o.provs.size, goreR2(o.usd), [...o.gs].map(g => G[g].corto).join('; '), e && e.of != null ? e.of : '', e && e.rc != null ? e.rc : '', e && e.of != null ? (e.of >= 3 ? 'Sí' : 'No') : '']; })});
+  sheets.push({name: 'Licitaciones', headers: ['ID licitación', 'Link Mercado Público', 'N° OC', 'N° proveedores adjudicados', 'Monto USD', 'Gobiernos Regionales', 'N° de ofertas', '¿3 o más ofertas?'],
+    rows: S.lic.map(o => { const id = D.lic[o.k], e = goreExtLic(o.k); return [id, goreLicLink(id), o.n, o.provs.size, goreR2(o.usd), [...o.gs].map(g => G[g].corto).join('; '), e && e.of != null ? e.of : '', e && e.of != null ? (e.of >= 3 ? 'Sí' : 'No') : '']; })});
   sheets.push({name: 'Unidades de compra', headers: ['Unidad de compra', 'RUT unidad', 'N° OC', 'Monto USD'], rows: S.uni.map(o => { const u = D.uni[o.k] || ['', '']; return [u[0], u[1], o.n, goreR2(o.usd)]; })});
   sheets.push({name: 'Notas', headers: ['Notas'], rows: [
     'Gobiernos Regionales · ' + label + ' · período ' + rangeLabel(rg) + ' · generado ' + DATA.generado + '.',
@@ -5359,7 +5362,7 @@ function goreSheets(rows, label, rg){
     'Rubro: rubro N1 de la línea de mayor monto de cada OC. Mecanismo: clasificación del panel (Convenio Marco, Licitación, Trato Directo, Compra Ágil, Compra Coordinada…).',
     'Concentración de proveedores: participación según monto USD. Índice HHI = suma de los cuadrados de las participaciones (0 a 10.000); a mayor valor, mayor concentración.',
     'Causal de trato directo: la que registra la OC o su ficha de trato directo (Art. 8 de la Ley N° 19.886 y Art. 10 de su Reglamento; la Ley N° 21.634 modificó el régimen: verificar el texto vigente en bcn.cl/leychile).',
-    'Licitaciones: el N° de ofertas y los reclamos no vienen en las OC; solo aparecen si se cargó en el panel un archivo con esos datos.'
+    'Licitaciones: el N° de ofertas no viene en las OC; se cruza por ID con las bases de licitaciones de Mercado Público (ene-2025 a sep-2026). Las licitaciones sin ofertas, las anteriores a 2025 y las que no figuran en esas bases quedan sin dato.'
   ].map(t => [t])});
   return sheets;
 }
@@ -5411,6 +5414,7 @@ function goreFind(q){
 function renderGorePage(arg, uArg){
   const view = document.getElementById('goreView'), D = GORE_DATA, G = GORE_LIST;
   CURRENT_APPLY_RANGE = () => renderGorePage(null);
+  licInitGore();
   if(arg !== null){
     const k = goreRutKey(arg || ''); const i = arg ? G.findIndex(g => goreRutKey(g.rut) === k) : -1;
     GORE_ST.sel = i; GORE_ST.uni = (i >= 0 && uArg != null && isFinite(uArg)) ? uArg : -1;
@@ -5544,26 +5548,26 @@ function renderGorePage(arg, uArg){
   }
 
   // ---- Licitaciones ----
-  { const ext = GORE_EXT.lic, hdr = ['ID licitación', 'Link Mercado Público', 'N° OC', 'N° proveedores adjudicados', 'Monto USD', 'Gobiernos Regionales', 'N° de ofertas', 'Reclamos', '¿3 o más ofertas?'];
-    const dat = S.lic.map(o => { const id = D.lic[o.k], e = goreExtLic(o.k); return [id, goreLicLink(id), o.n, o.provs.size, goreR2(o.usd), [...o.gs].map(g => G[g].corto).join('; '), e && e.of != null ? e.of : '', e && e.rc != null ? e.rc : '', e && e.of != null ? (e.of >= 3 ? 'Sí' : 'No') : '']; });
+  { const ext = GORE_EXT.lic, hdr = ['ID licitación', 'Link Mercado Público', 'N° OC', 'N° proveedores adjudicados', 'Monto USD', 'Gobiernos Regionales', 'N° de ofertas', '¿3 o más ofertas?'];
+    const dat = S.lic.map(o => { const id = D.lic[o.k], e = goreExtLic(o.k); return [id, goreLicLink(id), o.n, o.provs.size, goreR2(o.usd), [...o.gs].map(g => G[g].corto).join('; '), e && e.of != null ? e.of : '', e && e.of != null ? (e.of >= 3 ? 'Sí' : 'No') : '']; });
     dlKey('goreLic', hdr, dat);
     let kExt = '';
     if(ext){
       const cn = S.lic.filter(o => { const e = goreExtLic(o.k); return e && e.of != null; }), c3 = cn.filter(o => goreExtLic(o.k).of >= 3), sin = S.lic.length - cn.length;
-      kExt = `<div class="note-box" style="margin:8px 0;"><b>${fmt(c3.length)}</b> de ${fmt(cn.length)} licitaciones con dato de ofertas tienen <b>3 o más ofertas</b> (${gorePct(c3.length, cn.length)}).${sin ? ` ${fmt(sin)} licitaciones del período no aparecen en el archivo cargado.` : ''}</div>`;
+      kExt = `<div class="note-box" style="margin:8px 0;"><b>${fmt(c3.length)}</b> de ${fmt(cn.length)} licitaciones con dato de ofertas tienen <b>3 o más ofertas</b> (${gorePct(c3.length, cn.length)}).${sin ? ` ${fmt(sin)} licitaciones del período no figuran en la base (sin ofertas, anteriores a 2025 o sin adjudicar).` : ''}</div>`;
       if(gAll){
         const per = G.map((g, i) => { const ls = S.lic.filter(o => o.gs.has(i)).filter(o => { const e = goreExtLic(o.k); return e && e.of != null; }); const c = ls.filter(o => goreExtLic(o.k).of >= 3).length; return {g, tot: ls.length, c3: c}; }).filter(p => p.tot);
         kExt += goreTable([['Gobierno Regional'], ['Licitaciones con dato de ofertas', 1], ['Con 3 o más ofertas', 1], ['%', 1]], per.map(p => `<tr><td>${esc(p.g.corto)}</td><td class="num">${fmt(p.tot)}</td><td class="num">${fmt(p.c3)}</td><td class="num">${gorePct(p.c3, p.tot)}</td></tr>`));
       }
     }
     const trs = S.lic.slice(0, 2000).map(o => { const id = D.lic[o.k], e = goreExtLic(o.k);
-      return `<tr><td><a href="${goreLicLink(id)}" target="_blank" rel="noopener">${esc(id)}</a></td><td class="num">${L(o.n, {lic: o.k}, 'licitación ' + id)}</td><td class="num">${fmt(o.provs.size)}</td><td class="num">${fmtUsd(o.usd)}</td><td>${[...o.gs].map(g => esc(G[g].corto)).join(', ')}</td><td class="num">${e && e.of != null ? fmt(e.of) : '—'}</td><td class="num">${e && e.rc != null ? fmt(e.rc) : '—'}</td></tr>`; });
+      return `<tr><td><a href="${goreLicLink(id)}" target="_blank" rel="noopener">${esc(id)}</a></td><td class="num">${L(o.n, {lic: o.k}, 'licitación ' + id)}</td><td class="num">${fmt(o.provs.size)}</td><td class="num">${fmtUsd(o.usd)}</td><td>${[...o.gs].map(g => esc(G[g].corto)).join(', ')}</td><td class="num">${e && e.of != null ? fmt(e.of) : '—'}</td></tr>`; });
     html += `<section class="block"><h2>Licitaciones con tres o más ofertas</h2>
-      <p class="block-note">Las OC informan la licitación de origen, pero <b>no cuántas ofertas recibió</b>. Aquí se listan las ${fmt(S.lic.length)} licitaciones de las que provienen las OC ${gAll ? 'de los GORE' : 'del GORE'} y los proveedores adjudicados (que no es lo mismo que ofertas). Para calcular las licitaciones con 3 o más ofertas, carga abajo el archivo de licitaciones (datos abiertos de ChileCompra) y el panel cruza por ID.</p>
-      <div class="gore-ext"><b>Cargar archivo de licitaciones (CSV)</b><br><span>Columnas que busca: ID de la licitación (CodigoExterno / Código / ID), N° de ofertas u oferentes (NumeroOferentes, CantidadOfertas…) y, si existe, cantidad de reclamos. Acepta archivos grandes: solo se leen las licitaciones de los GORE y el archivo no sale de tu equipo.</span><br>
-        <input type="file" id="goreFileLic" accept=".csv,.txt"> <span id="goreFileLicMsg">${ext ? 'Cargado: ' + fmt(ext.size) + ' licitaciones de GORE encontradas en «' + esc(ext.nombre) + '».' : ''}</span></div>
+      <p class="block-note">Las OC informan la licitación de origen, pero no cuántas ofertas recibió. El N° de ofertas se toma de las bases de licitaciones de Mercado Público (publicadas entre ene-2025 y sep-2026) y se cruza por ID con las ${fmt(S.lic.length)} licitaciones de las que provienen las OC ${gAll ? 'de los GORE' : 'del GORE'}. Las licitaciones sin ofertas no figuran en esas bases, y las publicadas antes de 2025 quedan sin dato. Si tienes un archivo más reciente, puedes cargarlo abajo para reemplazar el dato.</p>
+      <div class="gore-ext"><b>Reemplazar con otro archivo de licitaciones (CSV)</b><br><span>Columnas que busca: ID de la licitación (CodigoExterno / Código / ID) y N° de ofertas u oferentes (NumeroOferentes, CantidadOfertas…). Acepta archivos grandes: solo se leen las licitaciones de los GORE y el archivo no sale de tu equipo.</span><br>
+        <input type="file" id="goreFileLic" accept=".csv,.txt"> <span id="goreFileLicMsg">${ext ? 'En uso: ' + fmt(ext.size) + ' licitaciones de GORE con dato, desde «' + esc(ext.nombre) + '».' : ''}</span></div>
       ${kExt}
-      ${goreTable([['ID licitación'], ['N° OC', 1], ['Proveedores adjudicados', 1], ['Monto USD', 1], ['Gobierno Regional'], ['N° ofertas', 1], ['Reclamos', 1]], trs, 'No hay OC con licitación en el período.')}
+      ${goreTable([['ID licitación'], ['N° OC', 1], ['Proveedores adjudicados', 1], ['Monto USD', 1], ['Gobierno Regional'], ['N° ofertas', 1]], trs, 'No hay OC con licitación en el período.')}
       ${dlBtn('goreLic', 'gore_licitaciones.csv', 'Descargar licitaciones (Excel)')}</section>`;
   }
 
@@ -6197,6 +6201,93 @@ function renderPresupuestoPage(){
   const q = document.getElementById('presQ'); let tq = null; q.oninput = () => { clearTimeout(tq); tq = setTimeout(() => { PRS.q = q.value; presPaintOrgs(); }, 250); };
   [['presP', 'p'], ['presLv', 'lv'], ['presSec', 'sec']].forEach(([id, k]) => { document.getElementById(id).onchange = e => { PRS[k] = e.target.value; presPaintOrgs(); }; });
   presPaintOrgs(); goreWireSort(view); kpiFit(view);
+}
+
+const LICA = {}; LIC.A.cols.forEach((c, i) => LICA[c] = i + 2);
+const LICB = {}; LIC.B.cols.forEach((c, i) => LICB[c] = i + 2);
+const LICS = {q: ''};
+const licPct = (a, b) => b > 0 ? (100 * a / b).toFixed(1).replace('.', ',') + '%' : '—';
+const licM = v => fmt(Math.round(v));
+function licInitGore(){
+  if(GORE_EXT.lic || typeof LIC_GORE === 'undefined') return;
+  const m = new Map(); LIC_GORE.forEach(([k, of]) => m.set(GORE_DATA.lic[k], {of, rc: null}));
+  m.nombre = 'base de licitaciones de Mercado Público (ene-2025 a sep-2026)'; GORE_EXT.lic = m;
+}
+function licSectionHtml(m){
+  const pub = m === 'Licitación Pública';
+  return `<section class="block" id="licBlock"><h2>Competencia y resultado de las licitaciones</h2>
+    <p class="block-note">Datos de las bases de licitaciones de Mercado Público (publicadas entre ene-2025 y sep-2026, según el mes de publicación y el filtro de meses de arriba). Aquí se cuentan <b>licitaciones</b>, no órdenes de compra. La base solo incluye licitaciones que recibieron al menos una oferta, así que los porcentajes se calculan sobre ellas. ${pub ? 'Incluye licitaciones públicas de todos los montos (L1, LE, LP, LQ, LR, LS y MOP).' : 'Incluye licitaciones privadas (CO, B2, E2, I2, H2 y MOP).'}</p>
+    <div class="kpis" id="licKpis" style="margin:1rem 0;"></div>
+    <h3 style="font-size:15px;margin:1.25rem 0 4px;">Ofertas por mes de publicación</h3>
+    <p class="cp-cap-note" id="licChartNote" style="margin:0 0 4px;"></p>
+    <div class="big-chart-wrap"><svg id="licChart" viewBox="0 0 1160 340"></svg><div class="tooltip" id="licTt"></div>
+    <p class="def-text" style="margin:4px 0 0;"><span style="display:inline-block;width:12px;height:3px;background:#007096;vertical-align:middle;"></span> % con 3 o más ofertas &nbsp; <span style="display:inline-block;width:12px;height:3px;background:#C0504D;vertical-align:middle;"></span> % con una sola oferta</p></div>
+    <h3 style="font-size:15px;margin:1.5rem 0 4px;">Por tipo de licitación</h3><div id="licTipo"></div>${dlBtn('licTipo', 'licitaciones_ofertas_por_tipo.csv', 'Descargar por tipo (Excel)')}
+    ${pub ? `<h3 style="font-size:15px;margin:1.5rem 0 4px;">Por sector y región</h3><div id="licSec"></div><div id="licReg" style="margin-top:10px;"></div>
+    <h3 style="font-size:15px;margin:1.5rem 0 4px;">Por organismo</h3>
+    <div class="filter-row"><div class="filter-field" style="min-width:260px;"><label for="licQ">Buscar organismo (nombre o código)</label><input type="text" id="licQ" placeholder="Ej.: Servicio de Salud, 7002…" autocomplete="off" value="${esc(LICS.q)}"></div></div>
+    <p id="licOrgMsg" class="def-text" style="margin:0 0 6px;"></p><div id="licOrg"></div>${dlBtn('licOrg', 'licitaciones_ofertas_por_organismo.csv', 'Descargar por organismo (Excel)')}
+    <h3 style="font-size:15px;margin:1.5rem 0 4px;">Cuadratura con las órdenes de compra</h3>
+    <p class="block-note">De las licitaciones <b>adjudicadas</b> (en pesos, con monto adjudicado), cuánto compraron los organismos con OC en Recepción Conforme o Aceptada que citan la licitación (monto neto, sin IVA, hasta sep-2026). «Cuadra» es una OC entre 95% y 105% de lo adjudicado. Un contrato de varios años con OC periódicas, o con OC todavía por emitir (sobre todo en las licitaciones de los últimos meses), puede quedar bajo o sobre el 100%: es una señal para revisar, no una irregularidad por sí sola.</p>
+    <div class="kpis" id="licCKpis" style="margin:1rem 0;"></div><div id="licCOrg"></div>${dlBtn('licCOrg', 'licitaciones_cuadratura_por_organismo.csv', 'Descargar cuadratura por organismo (Excel)')}` : ''}
+    <p class="cp-cap-note" style="margin-top:12px;">Fuente: bases de licitaciones y órdenes de compra de Mercado Público (datos abiertos, ChileCompra). Reporte completo con el detalle por licitación (Excel): carpeta Documents/OC-2026/reportes_licitaciones. Marco: Ley N° 19.886 (texto de la Ley N° 21.634) y D.S. N° 661 de 2024.</p></section>`;
+}
+function licPaint(m, range){
+  const body = document.getElementById('licBlock'); if(!body) return;
+  const pub = m === 'Licitación Pública', PT = new Set(LIC.pubTipos), r0 = range[0], r1 = range[1], cats = DATA.meses.slice(r0, r1 + 1);
+  const B = LIC.B.rows.filter(r => r[0] >= r0 && r[0] <= r1 && (PT.has(r[1]) === pub));
+  const sum = (rows, ix, k) => rows.reduce((a, r) => a + r[ix[k]], 0);
+  const T = {}; ['n', 'n1', 'n2', 'n3', 'nAdj', 'nDes', 'nRev', 'nCer'].forEach(k => T[k] = sum(B, LICB, k));
+  const ico = {doc: '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/>', usd: '<line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>', users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'};
+  const A = pub ? LIC.A.rows.filter(r => r[0] >= r0 && r[0] <= r1) : [];
+  const sof = pub ? sum(A, LICA, 'sof') : 0;
+  document.getElementById('licKpis').innerHTML =
+    goreKpi('k-org', 'Licitaciones', fmt(T.n), rangeLabel(range) + ' · con al menos una oferta', ico.doc) +
+    goreKpi('k-monto', 'Con 3 o más ofertas', licPct(T.n3, T.n), fmt(T.n3) + ' licitaciones', ico.users) +
+    goreKpi('k-prov', 'Con una sola oferta', licPct(T.n1, T.n), fmt(T.n1) + ' licitaciones' + (pub && T.n ? ' · promedio ' + (sof / T.n).toFixed(1).replace('.', ',') + ' ofertas' : ''), ico.users) +
+    goreKpi('k-org', 'Desiertas o revocadas', licPct(T.nDes + T.nRev, T.n), fmt(T.nDes) + ' desiertas · ' + fmt(T.nRev) + ' revocadas · ' + fmt(T.nAdj) + ' adjudicadas', ico.doc);
+  // serie mensual
+  const p3 = [], p1 = [];
+  for(let i = r0; i <= r1; i++){ const rs = B.filter(r => r[0] === i), n = sum(rs, LICB, 'n'); p3.push(n ? Math.round(1000 * sum(rs, LICB, 'n3') / n) / 10 : 0); p1.push(n ? Math.round(1000 * sum(rs, LICB, 'n1') / n) / 10 : 0); }
+  document.getElementById('licChartNote').textContent = (pub ? 'Licitaciones públicas' : 'Licitaciones privadas') + ' según el mes de publicación; porcentaje sobre las licitaciones con al menos una oferta.';
+  makeLineChart({svgId: 'licChart', legendId: null, ttId: 'licTt', categories: cats, series: [{key: '3+', label: '% con 3 o más ofertas', color: '#007096', values: p3}, {key: '1', label: '% con una oferta', color: '#C0504D', values: p1}], fmtAxis: v => Math.round(v) + '%', fmtTip: v => String(v).replace('.', ',') + '%', unitLabel: '', showPoints: true});
+  // por tipo
+  const tipos = [...new Set(B.map(r => r[1]))].sort((a, b) => sum(B.filter(r => r[1] === b), LICB, 'n') - sum(B.filter(r => r[1] === a), LICB, 'n'));
+  const trT = tipos.map(t => { const rs = B.filter(r => r[1] === t), s = k => sum(rs, LICB, k); return {t, n: s('n'), n1: s('n1'), n2: s('n2'), n3: s('n3'), adj: s('nAdj'), des: s('nDes'), rev: s('nRev'), cer: s('nCer')}; });
+  document.getElementById('licTipo').innerHTML = presTable([['Tipo'], ['Licitaciones', 1], ['1 oferta', 1], ['2 ofertas', 1], ['3 o más ofertas', 1], ['% 3 o más', 1], ['Adjudicadas', 1], ['Desiertas', 1], ['Revocadas', 1], ['Cerradas sin adjudicar', 1, 'Licitaciones cerradas que aún no se adjudican o se declaran desiertas. Son más frecuentes en los meses recientes.']],
+    trT.map(x => `<tr><td>${esc(LIC.tipos[x.t] || x.t)}</td><td class="num">${fmt(x.n)}</td><td class="num">${fmt(x.n1)}</td><td class="num">${fmt(x.n2)}</td><td class="num">${fmt(x.n3)}</td><td class="num">${licPct(x.n3, x.n)}</td><td class="num">${fmt(x.adj)}</td><td class="num">${fmt(x.des)}</td><td class="num">${fmt(x.rev)}</td><td class="num">${fmt(x.cer)}</td></tr>`), 380);
+  setDl('licTipo', ['Tipo', 'Descripción', 'Licitaciones', '1 oferta', '2 ofertas', '3 o más ofertas', '% 3 o más ofertas', 'Adjudicadas', 'Desiertas', 'Revocadas', 'Cerradas sin adjudicar'], trT.map(x => [x.t, LIC.tipos[x.t] || '', x.n, x.n1, x.n2, x.n3, x.n ? x.n3 / x.n : '', x.adj, x.des, x.rev, x.cer]));
+  goreWireSort(document.getElementById('licTipo'));
+  if(!pub) return;
+  // por organismo, sector y región
+  const O = new Map();
+  A.forEach(r => { const k = r[1]; let o = O.get(k); if(!o){ o = {k, n: 0, n1: 0, n2: 0, n3: 0, adj: 0, des: 0, rev: 0, bN: 0, bSin: 0, bCu: 0, bMe: 0, bMa: 0, bAdj: 0, bOC: 0, bOtro: 0, est: 0}; O.set(k, o); }
+    o.n += r[LICA.n]; o.n1 += r[LICA.n1]; o.n2 += r[LICA.n2]; o.n3 += r[LICA.n3]; o.adj += r[LICA.nAdj]; o.des += r[LICA.nDes]; o.rev += r[LICA.nRev]; o.est += r[LICA.est];
+    ['bN', 'bSin', 'bCu', 'bMe', 'bMa', 'bAdj', 'bOC', 'bOtro'].forEach(c => o[c] += r[LICA[c]]); });
+  const orgs = [...O.values()].map(o => Object.assign(o, {nm: (LIC.orgs[o.k] || [o.k, '', ''])[0], sec: (LIC.orgs[o.k] || ['', '', ''])[1], reg: (LIC.orgs[o.k] || ['', '', ''])[2]})).sort((a, b) => b.n - a.n);
+  const grp = f => { const g = new Map(); orgs.forEach(o => { const k = f(o) || 'Sin dato'; let x = g.get(k); if(!x){ x = {k, n: 0, n1: 0, n3: 0, des: 0, rev: 0, orgs: 0}; g.set(k, x); } x.n += o.n; x.n1 += o.n1; x.n3 += o.n3; x.des += o.des; x.rev += o.rev; x.orgs++; }); return [...g.values()].sort((a, b) => b.n - a.n); };
+  const gT = (id, ttl, g) => { document.getElementById(id).innerHTML = presTable([[ttl], ['Organismos', 1], ['Licitaciones', 1], ['Con 1 oferta', 1], ['Con 3 o más ofertas', 1], ['% 3 o más', 1], ['% desiertas o revocadas', 1]], g.map(x => `<tr><td>${esc(x.k)}</td><td class="num">${fmt(x.orgs)}</td><td class="num">${fmt(x.n)}</td><td class="num">${fmt(x.n1)}</td><td class="num">${fmt(x.n3)}</td><td class="num">${licPct(x.n3, x.n)}</td><td class="num">${licPct(x.des + x.rev, x.n)}</td></tr>`), 320); goreWireSort(document.getElementById(id)); };
+  gT('licSec', 'Sector', grp(o => o.sec)); gT('licReg', 'Región', grp(o => String(o.reg || '').trim()));
+  const paintOrg = () => {
+    const q = normTxt((LICS.q || '').trim()), L = orgs.filter(o => !q || normTxt(o.nm).indexOf(q) >= 0 || String(o.k).indexOf(q) >= 0);
+    document.getElementById('licOrgMsg').textContent = fmt(L.length) + ' organismos' + (L.length > 400 ? ' (se muestran los 400 con más licitaciones; el Excel trae todos)' : '') + '.';
+    document.getElementById('licOrg').innerHTML = presTable([['Organismo'], ['Sector'], ['Licitaciones', 1], ['Con 1 oferta', 1], ['Con 3 o más ofertas', 1], ['% 3 o más', 1], ['Adjudicadas', 1], ['% desiertas o revocadas', 1]], L.slice(0, 400).map(o => `<tr><td>${esc(o.nm)}<br><span class="cp-cap-note">cód. ${esc(o.k)}</span></td><td>${esc(o.sec)}</td><td class="num">${fmt(o.n)}</td><td class="num">${fmt(o.n1)}</td><td class="num">${fmt(o.n3)}</td><td class="num">${licPct(o.n3, o.n)}</td><td class="num">${fmt(o.adj)}</td><td class="num">${licPct(o.des + o.rev, o.n)}</td></tr>`), 520);
+    goreWireSort(document.getElementById('licOrg'));
+    setDl('licOrg', ['Organismo', 'Código', 'Sector', 'Región', 'Licitaciones', 'Con 1 oferta', 'Con 2 ofertas', 'Con 3 o más ofertas', '% 3 o más ofertas', 'Adjudicadas', 'Desiertas', 'Revocadas'], L.map(o => [o.nm, o.k, o.sec, String(o.reg || '').trim(), o.n, o.n1, o.n2, o.n3, o.n ? o.n3 / o.n : '', o.adj, o.des, o.rev]));
+  };
+  paintOrg(); const q = document.getElementById('licQ'); let tq = null; q.oninput = () => { clearTimeout(tq); tq = setTimeout(() => { LICS.q = q.value; paintOrg(); }, 250); };
+  // cuadratura
+  const C = orgs.reduce((a, o) => { ['bN', 'bSin', 'bCu', 'bMe', 'bMa', 'bAdj', 'bOC', 'bOtro'].forEach(c => a[c] += o[c]); return a; }, {bN: 0, bSin: 0, bCu: 0, bMe: 0, bMa: 0, bAdj: 0, bOC: 0, bOtro: 0});
+  document.getElementById('licCKpis').innerHTML =
+    goreKpi('k-org', 'Adjudicadas comparables', fmt(C.bN), 'en pesos, con monto adjudicado válido', ico.doc) +
+    goreKpi('k-monto', 'Cuadran con la OC (95%-105%)', licPct(C.bCu, C.bN), fmt(C.bCu) + ' licitaciones', ico.doc) +
+    goreKpi('k-prov', 'Adjudicadas sin OC', licPct(C.bSin, C.bN), fmt(C.bSin) + ' licitaciones', ico.users) +
+    goreKpi('k-org', 'OC menor / mayor al adjudicado', licPct(C.bMe, C.bN) + ' / ' + licPct(C.bMa, C.bN), 'adjudicado ' + licM(C.bAdj) + ' millones · OC neto ' + licM(C.bOC) + ' millones', ico.usd);
+  const CL = orgs.filter(o => o.bN > 0).sort((a, b) => b.bN - a.bN);
+  document.getElementById('licCOrg').innerHTML = presTable([['Organismo'], ['Adjudicadas comparables', 1], ['Sin OC', 1], ['% sin OC', 1], ['Cuadra', 1], ['% cuadra', 1], ['OC menor (<95%)', 1], ['OC mayor (>105%)', 1], ['Adjudicado (millones $)', 1], ['OC neto (millones $)', 1], ['OC / adjudicado', 1]],
+    CL.slice(0, 400).map(o => `<tr><td>${esc(o.nm)}<br><span class="cp-cap-note">cód. ${esc(o.k)}</span></td><td class="num">${fmt(o.bN)}</td><td class="num">${fmt(o.bSin)}</td><td class="num">${licPct(o.bSin, o.bN)}</td><td class="num">${fmt(o.bCu)}</td><td class="num">${licPct(o.bCu, o.bN)}</td><td class="num">${fmt(o.bMe)}</td><td class="num">${fmt(o.bMa)}</td><td class="num">${licM(o.bAdj)}</td><td class="num">${licM(o.bOC)}</td><td class="num">${o.bAdj ? licPct(o.bOC, o.bAdj) : '—'}</td></tr>`), 520);
+  goreWireSort(document.getElementById('licCOrg'));
+  setDl('licCOrg', ['Organismo', 'Código', 'Sector', 'Adjudicadas comparables', 'Sin OC', 'Cuadra (95%-105%)', 'OC menor (<95%)', 'OC mayor (>105%)', 'Adjudicado (millones $)', 'OC neto (millones $)', 'OC / adjudicado'], CL.map(o => [o.nm, o.k, o.sec, o.bN, o.bSin, o.bCu, o.bMe, o.bMa, Math.round(o.bAdj), Math.round(o.bOC), o.bAdj ? o.bOC / o.bAdj : '']));
 }
 
 function route(){
