@@ -43,6 +43,7 @@ async function ensureDic(){
     ST.N = {prd: D.prd.map(norm), rub: D.rub.map(norm), org: D.org.map(o => norm(o[1])),
       uni: D.uni.map(u => { const r = norm(u[3]); return norm(u[2]) + ' ' + r + ' ' + r.replace(/\./g, '') + ' ' + u[1]; }),
       prov: D.prov.map(p => { const r = norm(p[0]); return norm(p[1]) + ' ' + r + ' ' + r.replace(/\./g, ''); }),
+      sec: D.org.map(o => norm(o[2])),
       regc: D.reg.map(r => { const n = norm(r); for(let i = 0; i < REGS.length; i++) if(REGS[i][1].test(n)) return i; return -1; })};
   }
   return window.PROC_DIC;
@@ -103,6 +104,13 @@ function matchShard(job, sh, P){
     if(P.max != null && (isL ? (mo || sh.me[i]) : mo) > P.max) continue;
     const u = sh.u[i];
     if(P.reg >= 0 && N.regc[D.uni[u][4]] !== P.reg) continue;
+    if(P.est){ if(isL){ if(P.est.k !== 'l' || sh.es[i] !== P.est.v) continue; } else if(P.est.k !== 'o' || sh.e[i] !== P.est.v) continue; }
+    if(P.tipo){ if(!isL) continue; if(P.tipo === 'pub'){ if(sh.k[i]) continue; } else if(P.tipo === 'priv'){ if(!sh.k[i]) continue; } else if(sh.tp[i] !== P.tipo) continue; }
+    if(P.nmin != null || P.nmax != null){ if(!isL) continue; const no = sh.no[i] || 0; if(P.nmin != null && no < P.nmin) continue; if(P.nmax != null && no > P.nmax) continue; }
+    if(P.cau >= 0){ if(isL || !sh.k || sh.k[i] !== P.cau) continue; }
+    if(P.sec && N.sec[sh.o[i]] !== P.sec) continue;
+    if(P.rub.length){ const rb0 = sh.rb[i]; if(rb0 < 0) continue; const hr0 = N.rub[rb0]; let ok0 = true; for(let k = 0; k < P.rub.length; k++) if(hr0.indexOf(P.rub[k]) < 0){ ok0 = false; break; } if(!ok0) continue; }
+    if(P.ids.length){ let ih0 = sh.c[i].toLowerCase(); if(sh.x){ const x0 = sh.x[i]; if(x0) ih0 += ' ' + x0.toLowerCase(); } if(sh.l){ const l0 = sh.l[i]; if(l0) ih0 += ' ' + l0.toLowerCase(); } let ok1 = false; for(let k = 0; k < P.ids.length; k++) if(ih0.indexOf(P.ids[k]) >= 0){ ok1 = true; break; } if(!ok1) continue; }
     if(P.org.length){ const h = N.org[sh.o[i]] + ' ' + N.uni[u]; let ok = true; for(let k = 0; k < P.org.length; k++) if(h.indexOf(P.org[k]) < 0){ ok = false; break; } if(!ok) continue; }
     if(P.prov.length){
       const pv = provIdxs(mec, sh, i); let ok = false;
@@ -258,7 +266,7 @@ function renderResults(){
   const out = document.getElementById('procOut'); if(!out) return;
   const P = ST.params;
   if(!ST.total){
-    out.innerHTML = `<div class="cp-placeholder">No hay procesos que coincidan. Prueba con menos palabras, activa más mecanismos, amplía el período o quita filtros.</div>`;
+    out.innerHTML = `<div class="cp-placeholder">No hay procesos que coincidan. Prueba con menos palabras, activa más mecanismos, amplía el período o quita filtros.${ST.notice ? '<br><span class="pf-s">' + esc(ST.notice) + '</span>' : ''}</div>`;
     return;
   }
   const idx = sortedRes(), pages = Math.max(1, Math.ceil(idx.length / PAGE)); ST.page = Math.min(ST.page, pages - 1);
@@ -281,8 +289,9 @@ function renderResults(){
   const pg = pages > 1 ? `<div class="proc-pager"><button type="button" data-pg="-1" ${ST.page === 0 ? 'disabled' : ''}>← Anterior</button><span>Página ${ST.page + 1} de ${fmt(pages)}</span><button type="button" data-pg="1" ${ST.page >= pages - 1 ? 'disabled' : ''}>Siguiente →</button></div>` : '';
   const cap = ST.capped ? `<p class="cp-cap-note">Hay ${fmt(ST.total)} coincidencias. Se muestran y se descargan las ${fmt(CAP)} más recientes; el recuento y los montos del resumen incluyen todas. Acota la búsqueda para verlas completas.</p>` : '';
   const secs = ((Date.now() - ST.t0) / 1000).toFixed(1);
+  const nota = ST.notice ? `<p class="cp-cap-note">${esc(ST.notice)}</p>` : '';
   out.innerHTML = `<div class="proc-sum"><div class="proc-sum-n"><b>${fmt(ST.total)}</b> proceso${ST.total === 1 ? '' : 's'}${ST.sumAll ? ' · <b>$' + fmt(ST.sumAll) + '</b> en OC (CLP)' : ''}</div><div class="proc-chips">${chips}</div></div>
-    ${cap}
+    ${cap}${nota}
     <div class="proc-dl"><label class="pf-s" for="procSort">Ordenar por</label><select id="procSort"><option value="sc"${ST.sort.k === 'sc' ? ' selected' : ''}>Relevancia</option><option value="f"${ST.sort.k === 'f' ? ' selected' : ''}>Más recientes</option><option value="mo"${ST.sort.k === 'mo' ? ' selected' : ''}>Mayor monto</option></select>${typeof dlBtn === 'function' ? dlBtn('procBuscador', 'procesos_de_compra_busqueda.csv', 'Descargar resultados (Excel)') : ''}<span class="pf-s">Búsqueda hecha en ${secs} s · haz clic en una fila para ver todos los antecedentes</span></div>
     <div class="table-wrap proc-tw"><table class="dt proc-tbl"><thead><tr>${th('mec', 'Mecanismo')}${th('c', 'ID')}${th('f', 'Fecha')}${th('t', 'Título y qué se compró')}${th('org', 'Organismo · unidad')}<th>Proveedor</th>${th('mo', 'Monto (CLP)', 'num')}<th>Estado</th></tr></thead><tbody>${rows}</tbody></table></div>
     ${pg}`;
@@ -321,6 +330,10 @@ const CSS = `
 .proc-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin:0 0 6px;}
 .proc-filters .filter-field input[type=text],.proc-filters .filter-field select{min-width:170px;}
 .proc-filters .filter-field input[type=number]{min-width:130px;}
+.proc-clr{font:inherit;font-weight:700;font-size:14px;padding:12px 22px;border-radius:99px;border:1px solid var(--cc-navy);background:#fff;color:var(--cc-navy);cursor:pointer;}
+.proc-clr:hover{background:var(--cc-mist);}
+.proc-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);margin:14px 0 8px;}
+.proc-hint{font-size:12px;color:var(--cc-navy);margin:2px 0 6px;min-height:0;} .proc-hint:empty{display:none;}
 .proc-opt{font-size:12px;color:var(--text-secondary);display:flex;gap:6px;align-items:center;margin:2px 0 8px;}
 .proc-status{font-size:12.5px;color:var(--cc-navy);margin:10px 0;min-height:18px;}
 .proc-bar{height:6px;border-radius:99px;background:#EDF1F7;overflow:hidden;margin-top:6px;} .proc-bar i{display:block;height:100%;background:var(--cc-royal);width:0;transition:width .2s;}
@@ -356,7 +369,7 @@ function init(host){
   host.innerHTML = `<section class="block proc-box" id="procBox">
     <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Buscador de procesos de compra</h2>
     <p class="block-note" id="procNote">Busca licitaciones, tratos directos, compras ágiles y otros procesos por título, descripción, rubro, producto o ID. Cada resultado se abre con sus antecedentes: organismo, unidad, proveedores, fechas, montos y el enlace a Mercado Público.</p>
-    <div class="proc-row"><input type="search" id="procQ" placeholder="Ej.: mantención aire acondicionado" autocomplete="off" aria-label="Qué quieres buscar"><button type="button" class="proc-go" id="procGo">Buscar</button></div>
+    <div class="proc-row"><input type="search" id="procQ" placeholder="Ej.: mantención aire acondicionado" autocomplete="off" aria-label="Qué quieres buscar"><button type="button" class="proc-go" id="procGo">Buscar</button><button type="button" class="proc-clr" id="procClr" title="Borra el texto, los filtros y los resultados, y vuelve a la configuración inicial">Limpiar búsqueda</button></div>
     <div class="proc-ex" id="procEx"><span>Prueba con:</span>${['mantención aire acondicionado','servicio de aseo','arriendo de camionetas','"software de gestión"','capacitación -online'].map(x => `<button type="button" data-q="${esc(x)}">${esc(x)}</button>`).join('')}<span>· Usa comillas para una frase exacta y el signo menos para excluir una palabra.</span></div>
     <div class="proc-mecs" id="procMecs">${MECS.map(m => `<label class="proc-mec" style="--c:${m.c}"><input type="checkbox" value="${m.k}" ${m.k === 'l' || m.k === 'td' ? 'checked' : ''}><span><b>${esc(m.n)}</b><small id="pm_${m.k}">${esc(m.sub)}</small></span></label>`).join('')}</div>
     <div class="proc-filters">
@@ -368,6 +381,22 @@ function init(host){
       <div class="filter-field"><label for="procMin">Monto mínimo (CLP)</label><input type="number" id="procMin" min="0" step="1" placeholder="Sin mínimo"></div>
       <div class="filter-field"><label for="procMax">Monto máximo (CLP)</label><input type="number" id="procMax" min="0" step="1" placeholder="Sin máximo"></div>
     </div>
+    <div class="proc-sub">Filtrar por características del proceso</div>
+    <div class="proc-filters">
+      <div class="filter-field"><label for="procEst">Estado</label><select id="procEst"><option value="">Todos</option>
+        <optgroup label="Licitaciones"><option value="l:Adjudicada">Adjudicada</option><option value="l:Cerrada">Cerrada (sin adjudicar)</option><option value="l:Desierta">Desierta</option><option value="l:Revocada">Revocada</option><option value="l:Suspendida">Suspendida</option><option value="l:sin">Anterior a ene-2025 (sin ficha de bases)</option></optgroup>
+        <optgroup label="Órdenes de compra"><option value="o:0">Aceptada</option><option value="o:1">Recepción conforme</option></optgroup></select></div>
+      <div class="filter-field"><label for="procTipo">Tipo de licitación</label><select id="procTipo"><option value="">Todos</option><option value="pub">Todas las públicas</option><option value="priv">Todas las privadas</option>
+        <optgroup label="Públicas">${['LE','L1','LP','LQ','LR','LS'].map(t => `<option value="${t}">${t} · ${esc(TIPO_LIC[t].replace('Licitación Pública ', ''))}</option>`).join('')}</optgroup>
+        <optgroup label="Privadas">${['E2','CO','B2','H2','I2','O1','O2'].map(t => `<option value="${t}">${t} · ${esc(TIPO_LIC[t].replace('Licitación Privada ', '').replace('Licitación Privada', 'general'))}</option>`).join('')}</optgroup></select></div>
+      <div class="filter-field"><label for="procCau">Causal de trato directo o procedencia</label><select id="procCau"><option value="">Todas</option></select></div>
+      <div class="filter-field"><label for="procSec">Sector del comprador</label><select id="procSec"><option value="">Todos</option></select></div>
+      <div class="filter-field"><label for="procRub">Rubro, familia o clase</label><input type="text" id="procRub" placeholder="Ej.: servicios de construcción" autocomplete="off"></div>
+      <div class="filter-field"><label for="procId">ID del proceso u OC</label><input type="text" id="procId" placeholder="Ej.: 1113144-77-AG26" autocomplete="off"></div>
+      <div class="filter-field"><label for="procNmin">N° de ofertas, mínimo</label><input type="number" id="procNmin" min="0" step="1" placeholder="Sin mínimo"></div>
+      <div class="filter-field"><label for="procNmax">N° de ofertas, máximo</label><input type="number" id="procNmax" min="0" step="1" placeholder="Sin máximo"></div>
+    </div>
+    <p class="proc-hint" id="procHint"></p>
     <label class="proc-opt"><input type="checkbox" id="procSyn" checked> Incluir sinónimos (mantención y mantenimiento, arriendo y arrendamiento, aire acondicionado y climatización…)</label>
     <div class="proc-status" id="procStatus" aria-live="polite"></div>
     <div id="procOut"></div></section>`;
@@ -383,12 +412,50 @@ function init(host){
       const el = $('pm_' + m.k); if(el) el.textContent = m.sub + ' · ' + fmt(n) + ' · ~' + mb(b * 0.3); });
     $('procNote').innerHTML += ` Cubre ${ymLabel(yms[0])} a ${ymLabel(yms[yms.length - 1])}${M.nota ? '. ' + esc(M.nota) : ''}.`;
   }).catch(e => { $('procStatus').innerHTML = `<span class="proc-err">${esc(e.message)}</span>`; });
-  let warmed = false; const warm = () => { if(!warmed){ warmed = true; ensureDic().catch(() => {}); } };
+  const CAU_MECS = ['td', 'cc', 'ot'];
+  function fillDicSelects(){
+    const D = window.PROC_DIC; if(!D) return;
+    const cs = $('procCau'), ss = $('procSec'); if(!cs || cs.dataset.f) return; cs.dataset.f = '1';
+    cs.innerHTML = '<option value="">Todas</option>' + D.cau.map((c, i) => c ? `<option value="${i}">${esc(c.length > 90 ? c.slice(0, 88) + '…' : c)}</option>` : '').join('');
+    ss.innerHTML = '<option value="">Todos</option>' + [...new Set(D.org.map(o => o[2]))].filter(x => x && x !== 'SINDATO').sort().map(x => `<option value="${esc(x)}">${esc(x)}</option>`).join('');
+  }
+  $('procCau').innerHTML = '<option value="">Cargando…</option>'; $('procSec').innerHTML = '<option value="">Cargando…</option>';
+  let warmed = false; const warm = () => { if(!warmed){ warmed = true; ensureDic().then(fillDicSelects).catch(() => { warmed = false; }); } };
+  (window.requestIdleCallback || (f => setTimeout(f, 1500)))(() => { if(document.body.contains(host)) warm(); });
   host.addEventListener('focusin', warm); host.addEventListener('pointerenter', warm, {once: true});
   host.querySelectorAll('#procEx button').forEach(b => b.addEventListener('click', () => { $('procQ').value = b.dataset.q; run(); }));
   $('procGo').addEventListener('click', () => run());
+  // Mecanismos a los que aplica cada filtro (null = todos)
+  function aplicables(){
+    let a = null; const cut = l => { a = a ? a.filter(x => l.includes(x)) : l.slice(); };
+    const est = $('procEst').value;
+    if(est.startsWith('l:') || $('procTipo').value || $('procNmin').value !== '' || $('procNmax').value !== '') cut(['l']);
+    else if(est.startsWith('o:')) cut(['td', 'ca', 'cm', 'cc', 'ot']);
+    if($('procCau').value !== '') cut(CAU_MECS);
+    return a;
+  }
+  function updateHint(){
+    const a = aplicables(), h = $('procHint'); if(!a){ h.textContent = ''; return; }
+    h.textContent = 'Con los filtros elegidos solo se buscan ' + a.map(k => MEC[k].n).join(', ') + '; los demás mecanismos no tienen ese dato.';
+  }
+  ['procEst', 'procTipo', 'procCau', 'procNmin', 'procNmax'].forEach(id => $(id).addEventListener('change', () => {
+    const a = aplicables();
+    if(a && !a.some(k => host.querySelector('#procMecs input[value=' + k + ']').checked)){ const i = host.querySelector('#procMecs input[value=' + a[0] + ']'); i.checked = true; }
+    updateHint();
+  }));
+  host.querySelectorAll('#procMecs input').forEach(i => i.addEventListener('change', updateHint));
+  $('procClr').addEventListener('click', () => {
+    ST.token++; ST.busy = false; ST.res = []; ST.cnt = {}; ST.sum = {}; ST.total = 0; ST.sumAll = 0; ST.capped = false; ST.page = 0; ST.open = new Set(); ST._sorted = null; ST.params = null;
+    ST.sort = {k: 'sc', dir: -1};
+    ['procQ', 'procOrg', 'procProv', 'procMin', 'procMax', 'procRub', 'procId', 'procNmin', 'procNmax'].forEach(id => { $(id).value = ''; });
+    ['procReg', 'procEst', 'procTipo', 'procCau', 'procSec'].forEach(id => { $(id).selectedIndex = 0; });
+    host.querySelectorAll('#procMecs input').forEach(i => { i.checked = (i.value === 'l' || i.value === 'td'); });
+    if(man){ const yms = [...new Set(Object.values(man.m).flatMap(o => Object.keys(o)))].sort(); $('procFrom').value = yms[0]; $('procTo').value = yms[yms.length - 1]; }
+    $('procSyn').checked = true; $('procOut').innerHTML = ''; $('procStatus').innerHTML = ''; $('procHint').textContent = ''; $('procGo').disabled = false;
+    $('procQ').focus();
+  });
   $('procQ').addEventListener('keydown', e => { if(e.key === 'Enter') run(); });
-  ['procOrg', 'procProv', 'procMin', 'procMax'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key === 'Enter') run(); }));
+  ['procOrg', 'procProv', 'procMin', 'procMax', 'procRub', 'procId', 'procNmin', 'procNmax'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key === 'Enter') run(); }));
   $('procOut').addEventListener('change', e => { if(e.target.id === 'procSort'){ ST.sort = {k: e.target.value, dir: -1}; ST.page = 0; renderResults(); } });
   $('procOut').addEventListener('click', e => {
     if(e.target.id === 'procSort') return;
@@ -407,10 +474,24 @@ function init(host){
       const useSyn = $('procSyn').checked;
       const q = parseQuery($('procQ').value, useSyn);
       const P = {q, org: tokens($('procOrg').value), prov: tokens($('procProv').value), reg: $('procReg').value === '' ? -1 : +$('procReg').value,
-        min: $('procMin').value === '' ? null : +$('procMin').value, max: $('procMax').value === '' ? null : +$('procMax').value};
-      const mecs = [...host.querySelectorAll('#procMecs input:checked')].map(i => i.value);
+        min: $('procMin').value === '' ? null : +$('procMin').value, max: $('procMax').value === '' ? null : +$('procMax').value,
+        est: null, tipo: $('procTipo').value || null, nmin: $('procNmin').value === '' ? null : +$('procNmin').value, nmax: $('procNmax').value === '' ? null : +$('procNmax').value,
+        cau: $('procCau').value === '' || isNaN(+$('procCau').value) ? -1 : +$('procCau').value, sec: $('procSec').value ? norm($('procSec').value) : '', rub: tokens($('procRub').value),
+        ids: norm($('procId').value).split(/[\s,;]+/).filter(x => x.length >= 2)};
+      const ev = $('procEst').value;
+      if(ev.startsWith('o:')) P.est = {k: 'o', v: +ev.slice(2)};
+      else if(ev.startsWith('l:')){
+        await ensureDic(); fillDicSelects();
+        const lab = ev.slice(2), idx = lab === 'sin' ? -1 : window.PROC_DIC.est.findIndex(e => e.indexOf(lab) === 0);
+        P.est = {k: 'l', v: idx};
+      }
+      let mecs = [...host.querySelectorAll('#procMecs input:checked')].map(i => i.value);
       if(!mecs.length){ status.innerHTML = '<span class="proc-err">Elige al menos un mecanismo.</span>'; return; }
-      if(q.empty && !P.org.length && !P.prov.length && P.reg < 0 && P.min == null && P.max == null){ status.innerHTML = '<span class="proc-err">Escribe qué buscas o aplica algún filtro.</span>'; return; }
+      const apl = aplicables(); let omit = [];
+      if(apl){ omit = mecs.filter(k => !apl.includes(k)); mecs = mecs.filter(k => apl.includes(k)); }
+      if(!mecs.length){ status.innerHTML = '<span class="proc-err">Los filtros elegidos no aplican a los mecanismos marcados. Marca ' + apl.map(k => MEC[k].n).join(', ') + ' o cambia los filtros.</span>'; return; }
+      ST.notice = omit.length ? 'No se buscó en ' + omit.map(k => MEC[k].n).join(', ') + ' porque los filtros de estado, tipo, N° de ofertas o causal no existen en esos mecanismos.' : '';
+      if(q.empty && !P.org.length && !P.prov.length && P.reg < 0 && P.min == null && P.max == null && !P.est && !P.tipo && P.nmin == null && P.nmax == null && P.cau < 0 && !P.sec && !P.rub.length && !P.ids.length){ status.innerHTML = '<span class="proc-err">Escribe qué buscas o aplica algún filtro.</span>'; return; }
       const from = $('procFrom').value, to = $('procTo').value;
       const jobs = [];
       mecs.forEach(k => { const o = man.m[k] || {}; Object.keys(o).forEach(ym => { if(ym >= from && ym <= to) jobs.push({mec: k, ym, h: o[ym][2], bytes: o[ym][1]}); }); });
