@@ -9,7 +9,7 @@
     --cc-dark: #00233B; --cc-blue: #0B78CC; --cc-lightblue: #6FD3E0; --cc-navy: #0032A2;
     --cc-red: #E5383B; --cc-pink: #E94860; --cc-wine: #3D5466; --cc-purple: #8A4FBF;
     --cc-green: #4C9A2A; --cc-amber: #B5750B; --cc-rose: #FAD8E1;
-    --cc-lime: #D0FF66; --cc-ice: #AED7FF; --cc-mist: #DFE8FF; --cc-royal: #005AF8; --cc-violet: #4A2E8F; --cc-plum: #613B75;
+    --cc-lime: #D0FF66; --cc-ice: #AED7FF; --cc-mist: #DFE8FF; --cc-royal: #005AF8; --cc-violet: #4A2E8F; --cc-plum: #613B75; --cc-teal: #007096;
     --surface-page: #F3F6FB; --surface-card: #FFFFFF; --text-secondary: #3D5466; --border: #DDE3EA;
     --pbi-yellow: #D0FF66; --pbi-shadow: 0 8px 24px rgba(0,35,59,.08); --pbi-radius: 18px;
     --font: Verdana, "DejaVu Sans", Geneva, sans-serif;
@@ -1840,7 +1840,7 @@ function renderDetailPage(m){
   const CC_TIPOS = [
     {key:'Mandatada', slug:'mandatada', titulo:'Compras Mandatadas (ChileCompra, unidad Compras Coordinadas)', color:'--cc-blue',
      nota:'Procesos que crea y dirige ChileCompra desde la unidad Compras Coordinadas: licitaciones cuyo ID comienza con <b>1122317</b> y grandes compras cuyo comprador verificado es la Dirección de Compras y Contratación Pública.'},
-    {key:'Conjunta', slug:'conjunta', titulo:'Compras Conjuntas (entre otros organismos, p. ej. servicios de salud)', color:'--cc-green',
+    {key:'Conjunta', slug:'conjunta', titulo:'Compras Conjuntas (entre otros organismos, p. ej. servicios de salud)', color:'--cc-teal',
      nota:'Procesos que crea un organismo distinto de ChileCompra, como un servicio de salud, y en los que compran uno o más organismos: el resto de las licitaciones (ID sin el prefijo 1122317) y las grandes compras creadas por otro organismo.'}
   ];
   const ccInfoId = p => { const m = /-([A-Z]{1,2}\d?)(\d{2})$/i.exec(String(p.codigo||'')); return m ? {suf:m[1].toUpperCase(), anio:String(2000+Number(m[2]))} : {suf:(p.via==='Gran Compra'?'Gran Compra':'Otro formato'), anio:(p.via==='Gran Compra'?'Gran Compra':'Sin año en el ID')}; };
@@ -2279,7 +2279,7 @@ function renderDetailPage(m){
       const prodItems = topGroupsByKey(all, o=>o[7], true).slice(0,50)
         .map(g=>({label:g.label, value:g.nOc, montoUsd:g.montoUsd}));
       renderBarList(document.getElementById('orgOcChartProducto'), prodItems,
-        it=>`${fmt(it.value)} OC · ${fmtUsd(it.montoUsd)}`, cssvar('--cc-green'), null, null,
+        it=>`${fmt(it.value)} OC · ${fmtUsd(it.montoUsd)}`, cssvar('--cc-teal'), null, null,
         it=>downloadOcGroupDetail(all, o=>(o[7]||'').split(';').map(s=>s.trim()).includes(it.label), ['producto', it.label]));
 
       setDl('orgOcChartsTodas', ocDetalleHeaders(), all.map(ocDetalleToRow));
@@ -2336,9 +2336,9 @@ function renderDetailPage(m){
     const cmpSlug = {'Mandatada':'mandatada','Conjunta':'conjunta','No determinado':'nodet'};
     const cmpItems = f => cmpTipos.map(k=>({label:k, value:f(ccData[cmpSlug[k]]), st:ccData[cmpSlug[k]]}));
     renderBarList(document.getElementById('ccCmpOc'), cmpItems(x=>x.nOc), it=>`${ccOcLink('tipo:'+it.label, it.value, 'Todas las OC de las compras '+it.label.toLowerCase()+'s', it.st.arr)} OC · ${ccPct(it.value, md.nOc)} %`, cssvar('--cc-blue'), null, null);
-    renderBarList(document.getElementById('ccCmpMonto'), cmpItems(x=>x.monto), it=>`${fmtUsd(it.value)} · ${ccPct(it.value, md.montoUsd)} %`, cssvar('--cc-green'), null, null);
+    renderBarList(document.getElementById('ccCmpMonto'), cmpItems(x=>x.monto), it=>`${fmtUsd(it.value)} · ${ccPct(it.value, md.montoUsd)} %`, cssvar('--cc-teal'), null, null);
     renderBarList(document.getElementById('ccCmpProc'), cmpItems(x=>x.n), it=>`${fmt(it.value)} procesos`, cssvar('--cc-navy'), null, null);
-    renderBarList(document.getElementById('ccCmpTicket'), cmpItems(x=>x.nOc>0 ? x.monto/x.nOc : 0), it=>`${fmtUsd(it.value)} por OC`, cssvar('--cc-purple'), null, null);
+    renderBarList(document.getElementById('ccCmpTicket'), cmpItems(x=>x.nOc>0 ? x.monto/x.nOc : 0), it=>`${fmtUsd(it.value)} por OC`, cssvar('--cc-violet'), null, null);
   }
   // ---- Reporte por proceso: organismos participantes (RUT) y OC emitidas por cada uno -------------------
   function ccRepWire(t, arr){
@@ -3147,7 +3147,7 @@ function updateCompradorResults(){
     series:[{key:'oc', label:org.nombre, color:cssvar('--cc-navy'), values:series.oc.slice(cpChartRange[0], cpChartRange[1]+1)}],
     fmtAxis:v=>fmt(Math.round(v)), fmtTip:v=>fmt(v), unitLabel:'OC', showPoints:true});
   makeLineChart({svgId:'cpChartMonto', legendId:null, ttId:'cpTtMonto', categories: cpChartCats,
-    series:[{key:'monto', label:org.nombre, color:cssvar('--cc-green'), values:series.monto.slice(cpChartRange[0], cpChartRange[1]+1)}],
+    series:[{key:'monto', label:org.nombre, color:cssvar('--cc-teal'), values:series.monto.slice(cpChartRange[0], cpChartRange[1]+1)}],
     fmtAxis:fmtUsdShort, fmtTip:fmtUsd, unitLabel:'', showPoints:true});
 
   const mecItems = CP_MECS.map((name,i)=>({label:name, value:mecBreak[i].nOc, color:cssvar(META[name] ? META[name].color : '--cc-navy')}))
@@ -3156,11 +3156,11 @@ function updateCompradorResults(){
 
   renderBarList(document.getElementById('cpRubros'), rubroTop, it=>`${fmt(it.nOc)} OC · ${fmtUsd(it.value)}`, cssvar('--cc-blue'),
     null, it => rubroIdx!=null && it.rIdx===rubroIdx);
-  renderBarList(document.getElementById('cpClases'), claseItemsAll.slice(0,10), it=>`${fmt(it.nOc)} OC · ${fmtUsd(it.value)}`, cssvar('--cc-green'));
-  renderBarList(document.getElementById('cpProductos'), prodItemsAll.slice(0,10), it=>`${fmt(it.nOc)} OC · ${fmtUsd(it.value)}`, cssvar('--cc-amber'));
+  renderBarList(document.getElementById('cpClases'), claseItemsAll.slice(0,10), it=>`${fmt(it.nOc)} OC · ${fmtUsd(it.value)}`, cssvar('--cc-teal'));
+  renderBarList(document.getElementById('cpProductos'), prodItemsAll.slice(0,10), it=>`${fmt(it.nOc)} OC · ${fmtUsd(it.value)}`, cssvar('--cc-violet'));
 
   renderBarList(document.getElementById('cpProveedores'), provItems,
-    it=>`${fmt(it.nOc)} OC · ${fmtUsd(it.value)} <span class="recur-badge">· ${it.nMeses}/${CP.meses.length} meses</span>`, cssvar('--cc-purple'),
+    it=>`${fmt(it.nOc)} OC · ${fmtUsd(it.value)} <span class="recur-badge">· ${it.nMeses}/${CP.meses.length} meses</span>`, cssvar('--cc-violet'),
     it => it.rut ? `https://datos-abiertos.chilecompra.cl/organismos-proveedores/${encodeURIComponent(it.rut)}` : null,
     it => provIdx!=null && it.pIdx===provIdx);
 }
@@ -4277,7 +4277,7 @@ function renderEconomiaCircularPage(){
   const view = document.getElementById('economiaCircularView');
   CURRENT_APPLY_RANGE = null;
   const E = ECO;
-  const green = cssvar('--cc-green'), blue = cssvar('--cc-blue'), navy = cssvar('--cc-navy');
+  const green = cssvar('--cc-teal'), blue = cssvar('--cc-blue'), navy = cssvar('--cc-navy');
   const totalRes = E.reservas;
   const kp = [
     ['Publicaciones', fmt(E.publicaciones), 'ofertas de productos', ECO_ICON_DOC, 'k-org'],
@@ -4420,7 +4420,7 @@ function renderEconomiaCircularPage(){
   renderBarList(document.getElementById('ecoMesRes'), mi.map(m=>({label:m.m, value:m.res})), it=>fmt(it.value), green);
   renderBarList(document.getElementById('ecoMesMonto'), mi.map(m=>({label:m.m, value:m.monto||0})), it=>it.value ? fmt(it.value) : 'sin monto', blue);
   renderBarList(document.getElementById('ecoMesComp'), mi.map(m=>({label:m.m, value:m.comp})), it=>fmt(it.value), navy);
-  renderBarList(document.getElementById('ecoMesVend'), mi.map(m=>({label:m.m, value:m.vend})), it=>fmt(it.value), cssvar('--cc-amber'));
+  renderBarList(document.getElementById('ecoMesVend'), mi.map(m=>({label:m.m, value:m.vend})), it=>fmt(it.value), cssvar('--cc-violet'));
   document.getElementById('ecoMesBody').innerHTML = mi.map(m=>`<tr><td>${esc(m.m)}</td><td class="num">${fmt(m.res)}</td><td class="num">${m.monto==null?'–':fmt(m.monto)}</td><td class="num">${fmt(m.comp)}</td><td class="num">${fmt(m.vend)}</td></tr>`).join('');
   setDl('ecoMeses', ['Mes','Reservas','Monto (millones CLP, redondeado por el reporte)','Organismos compradores','Organismos vendedores'], mi.map(m=>[m.m, m.res, m.monto==null?'':m.monto, m.comp, m.vend]));
 
@@ -4436,9 +4436,9 @@ function renderEconomiaCircularPage(){
 
   // --- vendedores: top y sectores
   const hrefV = it => it.cod ? '#comprador=' + encodeURIComponent(it.cod) : null;
-  renderBarList(document.getElementById('ecoVenTop'), top(E.ven, r=>r[4], 10).map(r=>({label:r[2], value:r[4], cod:r[3]})), it=>fmt(it.value)+' publicaciones', cssvar('--cc-amber'), hrefV);
+  renderBarList(document.getElementById('ecoVenTop'), top(E.ven, r=>r[4], 10).map(r=>({label:r[2], value:r[4], cod:r[3]})), it=>fmt(it.value)+' publicaciones', cssvar('--cc-violet'), hrefV);
   const sv = ecoSectorTable(E.ven, E.sectV, 0, {a:r=>r[4]});
-  renderBarList(document.getElementById('ecoVenSect'), sv.map(o=>({label:o.sector, value:o.a, n:o.n})), it=>`${fmt(it.value)} (${fmt(it.n)} organismos)`, cssvar('--cc-amber'));
+  renderBarList(document.getElementById('ecoVenSect'), sv.map(o=>({label:o.sector, value:o.a, n:o.n})), it=>`${fmt(it.value)} (${fmt(it.n)} organismos)`, cssvar('--cc-violet'));
 
   // --- tablas filtrables y ordenables
   const LIMIT = 50;
@@ -4569,7 +4569,7 @@ function ecoDetInit(){
 // ================= Plan Anual de Compras (PAC) 2025-2026 =================
 const PAC_SH = {2025: {}, 2026: {}};
 function PAC_SHARD(o){ PAC_SH[o.y][o.s] = o; }
-const PAC_A = '#B5750B', PAC_B = '#0B78CC';           // 2025, 2026
+const PAC_A = '#4A2E8F', PAC_B = '#0B78CC';           // 2025, 2026
 const PAC_FL = {1: 'extrema', 2: 'a revisar', 4: 'duplicada', 8: 'inconsistente', 16: 'monto cero', 32: 'reconstruida'};
 const PAC_BINS = ['Menos de $10 mil', '$10 mil a $100 mil', '$100 mil a $1 millón', '$1 a $10 millones', '$10 a $100 millones', '$100 a $1.000 millones', '$1.000 a $10.000 millones', '$10.000 a $100.000 millones', '$100.000 millones a $1 billón', '$1 billón o más'];
 const PAC_HEAD = ['Año PAC', 'Código organismo', 'Organismo', 'Sector', 'Región', 'Unidad de compra', 'Código del proceso', 'Proyecto', 'Descripción del proyecto', 'Mecanismo (según PAC)', 'Clasificación presupuestaria', 'Ítem', 'Cantidad estimada', 'Monto unitario estimado (CLP)', 'Monto total estimado (CLP)', 'Banderas de calidad'];
@@ -5633,7 +5633,7 @@ function renderGorePage(arg, uArg){
     const top = S.prov.slice(0, 15).map(o => ({label: D.prov[o.k][0], title: D.prov[o.k][0] + ' · ' + D.prov[o.k][1], usd: o.usd, n: o.n, k: o.k}));
     html += `<section class="block"><h2>Concentración de proveedores</h2>
       <p class="block-note">Qué parte del monto se concentra en pocos proveedores. Mayor proveedor: <b>${gorePct(S.top1 * 100, 100)}</b> · 5 mayores: <b>${gorePct(S.top5 * 100, 100)}</b> · 10 mayores: <b>${gorePct(S.top10 * 100, 100)}</b> · ${fmt(S.nProv)} proveedores distintos · Índice HHI <b>${fmt(hh)}</b> (concentración ${lvl} según los tramos usuales de 1.500 y 2.500 puntos; es una referencia de libre competencia, no un umbral de la Ley N° 19.886).</p>
-      ${goreBars(top, '#613B75', it => `${fmtUsd(it.usd)} (${gorePct(it.usd, S.usd)}) · ${goreLink(it.n, Object.assign({}, scope, {prov: it.k}), nm + ' · ' + it.label)} OC`)}
+      ${goreBars(top, '#4A2E8F', it => `${fmtUsd(it.usd)} (${gorePct(it.usd, S.usd)}) · ${goreLink(it.n, Object.assign({}, scope, {prov: it.k}), nm + ' · ' + it.label)} OC`)}
       <p class="cp-cap-note" style="margin:8px 0 0;">Se muestran los 15 mayores; el Excel incluye el ranking completo de ${fmt(S.nProv)} proveedores con participación acumulada.</p>
       ${dlBtn('goreProv', 'gore_concentracion_proveedores.csv', 'Descargar ranking completo de proveedores (Excel)')}</section>`;
   }
@@ -5645,7 +5645,7 @@ function renderGorePage(arg, uArg){
     const rb = S.rub.slice(0, 15).map(o => ({label: D.rub[o.k] || 'Sin categorizar', usd: o.usd, n: o.n, k: o.k}));
     const pb = S.prd.slice(0, 15).map(o => ({label: D.prd[o.k], usd: o.usd, n: o.n, k: o.k}));
     html += `<section class="block"><h2>Rubros más transados</h2><p class="block-note">Rubro N1 de cada OC (el de su línea de mayor monto), ordenado por monto.</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:18px;"><div><p class="cp-cap-note" style="font-weight:600;">Top 15 rubros</p>${goreBars(rb, '#1F7A4D', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {rub: it.k}), nm + ' · ' + it.label)} OC`)}${dlBtn('goreRub', 'gore_rubros.csv', 'Descargar todos los rubros (Excel)')}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:18px;"><div><p class="cp-cap-note" style="font-weight:600;">Top 15 rubros</p>${goreBars(rb, '#007096', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {rub: it.k}), nm + ' · ' + it.label)} OC`)}${dlBtn('goreRub', 'gore_rubros.csv', 'Descargar todos los rubros (Excel)')}</div>
       <div><p class="cp-cap-note" style="font-weight:600;">Top 15 productos genéricos</p>${goreBars(pb, '#0B78CC', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {prd: it.k}), nm + ' · ' + it.label)} OC`)}${dlBtn('gorePrd', 'gore_productos.csv', 'Descargar todos los productos (Excel)')}</div></div></section>`;
   }
 
@@ -5658,7 +5658,7 @@ function renderGorePage(arg, uArg){
     html += `<section class="block"><h2>Tratos directos más utilizados</h2>
       <p class="block-note">${fmt(S.td.length)} OC por Trato o Contratación Directa (${gorePct(S.td.length, S.n)} de las OC; ${gorePct(S.tdUsd, S.usd)} del monto). Causales: Art. 8 de la Ley N° 19.886 y Art. 10 de su Reglamento (DS 250); la Ley N° 21.634 modificó este régimen, por lo que conviene verificar el texto vigente en bcn.cl/leychile.</p>
       ${goreTable([['Causal'], ['N° OC', 1], ['Monto USD', 1], ['% de los TD', 1], ['Proveedores', 1]], trs, 'No hay tratos directos en el período.')}${S.cau.length ? dlBtn('goreCau', 'gore_tratos_directos_causales.csv', 'Descargar causales (Excel)') : ''}
-      ${tp.length ? `<p class="cp-cap-note" style="margin:14px 0 0;font-weight:600;">Proveedores con más monto en trato directo (top 10)</p>${goreBars(tp, '#B8860B', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {mec: GORE_TD, prov: it.k}), nm + ' · trato directo · ' + it.label)} OC`)}${dlBtn('goreTdP', 'gore_tratos_directos_proveedores.csv', 'Descargar proveedores en trato directo (Excel)')}` : ''}</section>`;
+      ${tp.length ? `<p class="cp-cap-note" style="margin:14px 0 0;font-weight:600;">Proveedores con más monto en trato directo (top 10)</p>${goreBars(tp, '#4A2E8F', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {mec: GORE_TD, prov: it.k}), nm + ' · trato directo · ' + it.label)} OC`)}${dlBtn('goreTdP', 'gore_tratos_directos_proveedores.csv', 'Descargar proveedores en trato directo (Excel)')}` : ''}</section>`;
   }
 
   // ---- Licitaciones ----
@@ -6009,7 +6009,7 @@ async function cfDl(k, ev){
   catch(e){ console.error(e); alert('No se pudo generar el archivo Excel: ' + e.message); }
   finally { if(el){ el.textContent = old; el.style.pointerEvents = ''; } }
 }
-function cfColor(i){ return [cssvar('--cc-navy'), cssvar('--cc-blue'), cssvar('--cc-green'), cssvar('--cc-purple'), '#B8860B', '#C0392B', '#8A8886'][i % 7]; }
+function cfColor(i){ return ['#0B78CC', '#4A2E8F', '#007096', '#E94860', '#6FD3E0', '#0032A2', '#8A8886'][i % 7]; }
 function cfMesLbl(i){ return CC_MES_ABR[((i % 12) + 12) % 12] + '-' + (2025 + Math.floor(i / 12)); }
 function renderCfmpPage(){
   const view = document.getElementById('cfmpView'); if(!CFMP_LIST.length && CFMP_RAW.rows.length) cfInit();
@@ -6086,7 +6086,7 @@ function renderCfmpPage(){
     mkDl('cfProv', ['Proveedor (razón social)', 'RUT (según archivo)', 'N° de registros', 'Monto USD', '% del monto USD', 'N° compradores'], S.byProv.map(a => { const o = rows.find(x => x.provKey === a.k); return [o.razon, o.rutP, a.n, goreR2(a.usd), S.usd ? goreR2(100 * a.usd / S.usd) : 0, a.comps.size]; }));
     const pv = S.byProv.slice(0, 15).map(a => { const o = rows.find(x => x.provKey === a.k); return {label: o.razon, usd: a.usd, n: a.n, k: a.k}; });
     html += `<section class="block"><h2>Proveedores</h2><p class="block-note">Proveedores (por razón social) con más monto en el período. Concentración: el mayor proveedor reúne ${gorePct(S.byProv.length ? S.byProv[0].usd : 0, S.usd)} del monto y los 5 mayores ${gorePct(S.byProv.slice(0, 5).reduce((x, a) => x + a.usd, 0), S.usd)}.</p>
-      ${goreBars(pv, '#613B75', it => `${fmtUsd(it.usd)} (${gorePct(it.usd, S.usd)}) · ${L(it.n, {prov: it.k}, 'proveedor ' + it.label)} reg.`)}
+      ${goreBars(pv, '#4A2E8F', it => `${fmtUsd(it.usd)} (${gorePct(it.usd, S.usd)}) · ${L(it.n, {prov: it.k}, 'proveedor ' + it.label)} reg.`)}
       <p class="cp-cap-note" style="margin:8px 0 0;">Se muestran los 15 mayores; el Excel incluye todos los proveedores.</p>${dlBtn('cfProv', 'compras_fuera_proveedores.csv', 'Descargar proveedores (Excel)')}</section>`; }
   // listado
   { const lst = rows.slice().sort((a, b) => (b.fAct || '').localeCompare(a.fAct || '') || a.i - b.i);
@@ -6347,7 +6347,7 @@ function licSectionHtml(m){
     <h3 style="font-size:15px;margin:1.25rem 0 4px;">Ofertas por mes de publicación</h3>
     <p class="cp-cap-note" id="licChartNote" style="margin:0 0 4px;"></p>
     <div class="big-chart-wrap"><svg id="licChart" viewBox="0 0 1160 340"></svg><div class="tooltip" id="licTt"></div>
-    <p class="def-text" style="margin:4px 0 0;"><span style="display:inline-block;width:12px;height:3px;background:#007096;vertical-align:middle;"></span> % con 3 o más ofertas &nbsp; <span style="display:inline-block;width:12px;height:3px;background:#C0504D;vertical-align:middle;"></span> % con una sola oferta</p></div>
+    <p class="def-text" style="margin:4px 0 0;"><span style="display:inline-block;width:12px;height:3px;background:#007096;vertical-align:middle;"></span> % con 3 o más ofertas &nbsp; <span style="display:inline-block;width:12px;height:3px;background:#E94860;vertical-align:middle;"></span> % con una sola oferta</p></div>
     <h3 style="font-size:15px;margin:1.5rem 0 4px;">Por tipo de licitación</h3><div id="licTipo"></div>${dlBtn('licTipo', 'licitaciones_ofertas_por_tipo.csv', 'Descargar por tipo (Excel)')}
     ${pub ? `<h3 style="font-size:15px;margin:1.5rem 0 4px;">Por sector y región</h3><div id="licSec"></div><div id="licReg" style="margin-top:10px;"></div>
     <h3 style="font-size:15px;margin:1.5rem 0 4px;">Por organismo</h3>
@@ -6376,7 +6376,7 @@ function licPaint(m, range){
   const p3 = [], p1 = [];
   for(let i = r0; i <= r1; i++){ const rs = B.filter(r => r[0] === i), n = sum(rs, LICB, 'n'); p3.push(n ? Math.round(1000 * sum(rs, LICB, 'n3') / n) / 10 : 0); p1.push(n ? Math.round(1000 * sum(rs, LICB, 'n1') / n) / 10 : 0); }
   document.getElementById('licChartNote').textContent = (pub ? 'Licitaciones públicas' : 'Licitaciones privadas') + ' según el mes de publicación; porcentaje sobre las licitaciones con al menos una oferta.' + (range[1] > LIC.meses.length - 1 ? ' La base de licitaciones llega hasta ' + DATA.meses[LIC.meses.length - 1] + ': el período elegido incluye meses posteriores y se muestra solo hasta ese mes.' : '');
-  makeLineChart({svgId: 'licChart', legendId: null, ttId: 'licTt', categories: cats, series: [{key: '3+', label: '% con 3 o más ofertas', color: '#0B78CC', values: p3}, {key: '1', label: '% con una oferta', color: '#C0504D', values: p1}], fmtAxis: v => Math.round(v) + '%', fmtTip: v => String(v).replace('.', ',') + '%', unitLabel: '', showPoints: true});
+  makeLineChart({svgId: 'licChart', legendId: null, ttId: 'licTt', categories: cats, series: [{key: '3+', label: '% con 3 o más ofertas', color: '#0B78CC', values: p3}, {key: '1', label: '% con una oferta', color: '#E94860', values: p1}], fmtAxis: v => Math.round(v) + '%', fmtTip: v => String(v).replace('.', ',') + '%', unitLabel: '', showPoints: true});
   // por tipo
   const tipos = [...new Set(B.map(r => r[1]))].sort((a, b) => sum(B.filter(r => r[1] === b), LICB, 'n') - sum(B.filter(r => r[1] === a), LICB, 'n'));
   const trT = tipos.map(t => { const rs = B.filter(r => r[1] === t), s = k => sum(rs, LICB, k); return {t, n: s('n'), n1: s('n1'), n2: s('n2'), n3: s('n3'), adj: s('nAdj'), des: s('nDes'), rev: s('nRev'), cer: s('nCer')}; });
