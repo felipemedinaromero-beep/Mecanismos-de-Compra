@@ -455,7 +455,7 @@
         <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.82 0l4.6-4.6a2 2 0 0 0 0-2.82z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div>
         <div class="explore-card-text">
           <p class="explore-card-title">Explorar por rubro de compra</p>
-          <p class="explore-card-sub">Navega rubro, familia, clase y producto, busca por palabra o por unidad de compra, y ve quién compró</p>
+          <p class="explore-card-sub">Busca licitaciones, tratos directos, compras ágiles y otros procesos por palabra (ej.: mantención de aire acondicionado) con todos sus antecedentes; navega rubro, familia, clase y producto y ve quién compró</p>
         </div>
         <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
       </a>
@@ -3370,6 +3370,8 @@ function renderRubroPage(initialKey){
     <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Explorador de transacciones por rubro de compra</h1>
     <p style="margin:0 0 6px;"><a href="#comprador" style="font-size:13px; font-weight:600;">¿Prefieres partir de un organismo comprador? Ver por comprador →</a></p>
     <p class="def-text" style="margin:0 0 1rem;">Dos paneles: un ranking de rubros de compra (con N° OC y monto) y, al elegir uno —desde el selector o haciendo clic en el ranking—, el detalle de los organismos compradores que han transado en él, independiente del mecanismo, ordenados por monto. Puedes explorar en cuatro niveles de la clasificación de productos y servicios (UNSPSC): rubro, familia, clase y producto, y buscar por palabra (por ejemplo «neumáticos» o «lubricantes») dentro del nivel elegido. Acota además por mecanismo de compra, período, región o sector del comprador; el rango de monto acota el panel de organismos. Los totales son exactos sin período elegido (con o sin mecanismo); al agregar además el período se estiman sobre una muestra de transacciones (se indica cuando ocurre). La búsqueda por unidad de compra restringe el ranking a esas unidades y hace que la tabla liste unidades en lugar de organismos. Los filtros de región, sector y el rango de monto solo acotan qué se lista, sin afectar esa exactitud.</p>
+    <div id="procSearchHost"></div>
+    <h2 class="proc-h2">Explorar por rubro de compra y organismo</h2>
     <div class="filter-row">
       <div class="filter-field">
         <label for="selNivelRubro">Nivel</label>
@@ -3454,6 +3456,17 @@ function renderRubroPage(initialKey){
   } else rebuildRubroSelectOptions(false);
   CURRENT_APPLY_RANGE = updateRubroResults;
   updateRubroResults();
+  procInit();
+}
+// Buscador de procesos de compra (licitaciones, tratos directos, Compra Ágil…): el código y el índice viven en data/proc/ y se cargan al abrir esta página.
+function procInit(){
+  const h = document.getElementById('procSearchHost'); if(!h) return;
+  const go = () => window.ProcBuscador && window.ProcBuscador.init(h);
+  if(window.ProcBuscador) return go();
+  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '');
+  sc.onload = go;
+  sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el buscador de procesos. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
+  document.head.appendChild(sc);
 }
 
 let _rubroOrgSort = {key:'monto', dir:'desc'};
