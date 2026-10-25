@@ -5485,7 +5485,7 @@ function goreFind(q){
   return GORE_LIST.map((g, i) => i).filter(i => { const g = GORE_LIST[i]; return (r.length >= 3 && goreRutKey(g.rut).indexOf(r) >= 0) || normTxt(g.region + ' ' + g.corto + ' ' + g.gob + ' gobierno regional').indexOf(t) >= 0; });
 }
 let GORE_LICF = {g: '', o: '', q: ''}, GORE_LICV = null;
-function goreLicMotivo(id){ const m = /-[A-Z0-9]{2,3}?(\d\d)$/.exec(id), y = m ? 2000 + Number(m[1]) : 0; return y && y <= 2024 ? ['Publicada en ' + y, 'Licitación publicada en ' + y + ': es anterior a la base de ofertas (parte en ene-2025). Para completar el dato hay que cargar el archivo de licitaciones de ese año.'] : ['No figura en la base', 'No aparece en las bases de licitaciones de Mercado Público de ene-2025 a sep-2026 (por ejemplo, si no recibió ofertas).']; }
+function goreLicMotivo(id){ const m = /-[A-Z0-9]{2,3}?(\d\d)$/.exec(id), y = m ? 2000 + Number(m[1]) : 0; return y && y <= 2024 ? ['Publicada en ' + y, 'Licitación publicada en ' + y + ': es anterior a la base de ofertas (parte en ene-2025). Para completar el dato hay que cargar el archivo de licitaciones de ese año.'] : ['No figura en la base', 'No aparece en las bases de licitaciones de Mercado Público de ene-2025 a sep-2026 (por ejemplo, si no recibió ofertas o si se publicó en octubre de 2026, mes cuya base aún no está cargada).']; }
 function goreLicPaint(){
   const V = GORE_LICV, box = document.getElementById('goreLicTbl'); if(!V || !box) return;
   const {S, G, D, L} = V, f = GORE_LICF, q = normTxt(f.q || '');
@@ -6336,13 +6336,13 @@ function licSectionHtml(m){
     <div class="filter-row"><div class="filter-field" style="min-width:260px;"><label for="licQ">Buscar organismo (nombre o código)</label><input type="text" id="licQ" placeholder="Ej.: Servicio de Salud, 7002…" autocomplete="off" value="${esc(LICS.q)}"></div></div>
     <p id="licOrgMsg" class="def-text" style="margin:0 0 6px;"></p><div id="licOrg"></div>${dlBtn('licOrg', 'licitaciones_ofertas_por_organismo.csv', 'Descargar por organismo (Excel)')}
     <h3 style="font-size:15px;margin:1.5rem 0 4px;">Cuadratura con las órdenes de compra</h3>
-    <p class="block-note">De las licitaciones <b>adjudicadas</b> (en pesos, con monto adjudicado), cuánto compraron los organismos con OC en Recepción Conforme o Aceptada que citan la licitación (monto neto, sin IVA, hasta sep-2026). «Cuadra» es una OC entre 95% y 105% de lo adjudicado. Un contrato de varios años con OC periódicas, o con OC todavía por emitir (sobre todo en las licitaciones de los últimos meses), puede quedar bajo o sobre el 100%: es una señal para revisar, no una irregularidad por sí sola.</p>
+    <p class="block-note">De las licitaciones <b>adjudicadas</b> (en pesos, con monto adjudicado), cuánto compraron los organismos con OC en Recepción Conforme o Aceptada que citan la licitación (monto neto, sin IVA, hasta oct-2026, con octubre parcial). «Cuadra» es una OC entre 95% y 105% de lo adjudicado. Un contrato de varios años con OC periódicas, o con OC todavía por emitir (sobre todo en las licitaciones de los últimos meses), puede quedar bajo o sobre el 100%: es una señal para revisar, no una irregularidad por sí sola.</p>
     <div class="kpis" id="licCKpis" style="margin:1rem 0;"></div><div id="licCOrg"></div>${dlBtn('licCOrg', 'licitaciones_cuadratura_por_organismo.csv', 'Descargar cuadratura por organismo (Excel)')}` : ''}
     <p class="cp-cap-note" style="margin-top:12px;">Fuente: bases de licitaciones y órdenes de compra de Mercado Público (datos abiertos, ChileCompra). Reporte completo con el detalle por licitación (Excel): carpeta Documents/OC-2026/reportes_licitaciones. Marco: Ley N° 19.886 (texto de la Ley N° 21.634) y D.S. N° 661 de 2024.</p></section>`;
 }
 function licPaint(m, range){
   const body = document.getElementById('licBlock'); if(!body) return;
-  const pub = m === 'Licitación Pública', PT = new Set(LIC.pubTipos), r0 = range[0], r1 = range[1], cats = DATA.meses.slice(r0, r1 + 1);
+  const pub = m === 'Licitación Pública', PT = new Set(LIC.pubTipos), r1 = Math.min(range[1], LIC.meses.length - 1), r0 = Math.min(range[0], r1), cats = DATA.meses.slice(r0, r1 + 1);
   const B = LIC.B.rows.filter(r => r[0] >= r0 && r[0] <= r1 && (PT.has(r[1]) === pub));
   const sum = (rows, ix, k) => rows.reduce((a, r) => a + r[ix[k]], 0);
   const T = {}; ['n', 'n1', 'n2', 'n3', 'nAdj', 'nDes', 'nRev', 'nCer'].forEach(k => T[k] = sum(B, LICB, k));
@@ -6350,14 +6350,14 @@ function licPaint(m, range){
   const A = pub ? LIC.A.rows.filter(r => r[0] >= r0 && r[0] <= r1) : [];
   const sof = pub ? sum(A, LICA, 'sof') : 0;
   document.getElementById('licKpis').innerHTML =
-    goreKpi('k-org', 'Licitaciones', fmt(T.n), rangeLabel(range) + ' · con al menos una oferta', ico.doc) +
+    goreKpi('k-org', 'Licitaciones', fmt(T.n), (r0 === r1 ? DATA.meses[r0] : DATA.meses[r0] + ' a ' + DATA.meses[r1]) + ' · con al menos una oferta', ico.doc) +
     goreKpi('k-monto', 'Con 3 o más ofertas', licPct(T.n3, T.n), fmt(T.n3) + ' licitaciones', ico.users) +
     goreKpi('k-prov', 'Con una sola oferta', licPct(T.n1, T.n), fmt(T.n1) + ' licitaciones' + (pub && T.n ? ' · promedio ' + (sof / T.n).toFixed(1).replace('.', ',') + ' ofertas' : ''), ico.users) +
     goreKpi('k-org', 'Desiertas o revocadas', licPct(T.nDes + T.nRev, T.n), fmt(T.nDes) + ' desiertas · ' + fmt(T.nRev) + ' revocadas · ' + fmt(T.nAdj) + ' adjudicadas', ico.doc);
   // serie mensual
   const p3 = [], p1 = [];
   for(let i = r0; i <= r1; i++){ const rs = B.filter(r => r[0] === i), n = sum(rs, LICB, 'n'); p3.push(n ? Math.round(1000 * sum(rs, LICB, 'n3') / n) / 10 : 0); p1.push(n ? Math.round(1000 * sum(rs, LICB, 'n1') / n) / 10 : 0); }
-  document.getElementById('licChartNote').textContent = (pub ? 'Licitaciones públicas' : 'Licitaciones privadas') + ' según el mes de publicación; porcentaje sobre las licitaciones con al menos una oferta.';
+  document.getElementById('licChartNote').textContent = (pub ? 'Licitaciones públicas' : 'Licitaciones privadas') + ' según el mes de publicación; porcentaje sobre las licitaciones con al menos una oferta.' + (range[1] > LIC.meses.length - 1 ? ' La base de licitaciones llega hasta ' + DATA.meses[LIC.meses.length - 1] + ': el período elegido incluye meses posteriores y se muestra solo hasta ese mes.' : '');
   makeLineChart({svgId: 'licChart', legendId: null, ttId: 'licTt', categories: cats, series: [{key: '3+', label: '% con 3 o más ofertas', color: '#0B78CC', values: p3}, {key: '1', label: '% con una oferta', color: '#C0504D', values: p1}], fmtAxis: v => Math.round(v) + '%', fmtTip: v => String(v).replace('.', ',') + '%', unitLabel: '', showPoints: true});
   // por tipo
   const tipos = [...new Set(B.map(r => r[1]))].sort((a, b) => sum(B.filter(r => r[1] === b), LICB, 'n') - sum(B.filter(r => r[1] === a), LICB, 'n'));
