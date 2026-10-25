@@ -6,17 +6,19 @@
 <title>Mecanismos de Compra</title>
 <style>
   :root {
-    --cc-dark: #07272C; --cc-blue: #007096; --cc-lightblue: #6BCCD6; --cc-navy: #004677;
-    --cc-red: #E73438; --cc-pink: #E94860; --cc-wine: #51283C; --cc-purple: #613B75;
-    --cc-green: #1F7A4D; --cc-amber: #B5750B; --cc-rose: #FAD8E1;
-    --surface-page: #F3F2F1; --surface-card: #FFFFFF; --text-secondary: #605E5C; --border: #E1E1E1;
-    --pbi-yellow: #F2C811; --pbi-shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.04); --pbi-radius: 12px;
+    --cc-dark: #00233B; --cc-blue: #0B78CC; --cc-lightblue: #6FD3E0; --cc-navy: #0032A2;
+    --cc-red: #E5383B; --cc-pink: #E94860; --cc-wine: #3D5466; --cc-purple: #8A4FBF;
+    --cc-green: #4C9A2A; --cc-amber: #B5750B; --cc-rose: #FAD8E1;
+    --cc-lime: #D0FF66; --cc-ice: #AED7FF; --cc-mist: #DFE8FF; --cc-royal: #005AF8; --cc-violet: #4A2E8F; --cc-plum: #613B75;
+    --surface-page: #F3F6FB; --surface-card: #FFFFFF; --text-secondary: #3D5466; --border: #DDE3EA;
+    --pbi-yellow: #D0FF66; --pbi-shadow: 0 8px 24px rgba(0,35,59,.08); --pbi-radius: 18px;
+    --font: Verdana, "DejaVu Sans", Geneva, sans-serif;
   }
   * { box-sizing: border-box; }
-  body { margin:0; padding:0 0 3rem; background:var(--surface-page); color:var(--cc-dark); font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+  body { margin:0; padding:0 0 3rem; background:var(--surface-page); color:var(--cc-dark); font-family:var(--font); }
   .icon { width:1em; height:1em; display:inline-block; vertical-align:-0.15em; flex-shrink:0; }
   header.cc-header { position:relative; background:linear-gradient(135deg,#003457 0%,var(--cc-navy) 46%,#00618a 100%); color:#fff; padding:2rem 1.5rem 4.75rem; border-bottom:3px solid var(--pbi-yellow); overflow:hidden; }
-  header.cc-header::before { content:""; position:absolute; top:-90px; right:-70px; width:340px; height:340px; border-radius:50%; background:radial-gradient(circle,rgba(107,204,214,.16) 0%,rgba(107,204,214,0) 70%); pointer-events:none; }
+  header.cc-header::before { content:""; position:absolute; top:-90px; right:-70px; width:340px; height:340px; border-radius:50%; background:radial-gradient(circle,rgba(111,211,224,.16) 0%,rgba(111,211,224,0) 70%); pointer-events:none; }
   header.cc-header::after { content:""; position:absolute; bottom:-140px; left:8%; width:260px; height:260px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.05) 0%,rgba(255,255,255,0) 70%); pointer-events:none; }
   header.cc-header .header-row { position:relative; display:flex; align-items:flex-start; justify-content:space-between; gap:16px; max-width:1280px; margin:0 auto; }
   header.cc-header .header-text { flex:1 1 auto; min-width:0; }
@@ -34,22 +36,22 @@
   .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin:-2.75rem 0 1.5rem; position:relative; z-index:2; }
   .kpi { background:var(--surface-card); border-radius:var(--pbi-radius); box-shadow:0 8px 20px rgba(4,40,58,.10), 0 1px 3px rgba(0,0,0,.05); padding:16px 18px; display:flex; align-items:flex-start; gap:13px; transition:transform .15s ease, box-shadow .15s ease; }
   .kpi:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(4,40,58,.14), 0 2px 4px rgba(0,0,0,.06); }
-  .kpi .kpi-icon { flex:0 0 auto; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(0,112,150,.10); color:var(--cc-blue); }
+  .kpi .kpi-icon { flex:0 0 auto; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(11,120,204,.10); color:var(--cc-blue); }
   .kpi .kpi-icon .icon { font-size:19px; }
-  .kpi.k-monto .kpi-icon { background:rgba(31,122,77,.10); color:var(--cc-green); }
-  .kpi.k-prov .kpi-icon { background:rgba(97,59,117,.10); color:var(--cc-purple); }
-  .kpi.k-org .kpi-icon { background:rgba(0,70,119,.10); color:var(--cc-navy); }
+  .kpi.k-monto .kpi-icon { background:rgba(76,154,42,.10); color:var(--cc-green); }
+  .kpi.k-prov .kpi-icon { background:rgba(138,79,191,.10); color:var(--cc-purple); }
+  .kpi.k-org .kpi-icon { background:rgba(0,50,162,.10); color:var(--cc-navy); }
   .kpi .kpi-body { min-width:0; }
   .kpi .lbl { font-size:10.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-secondary); margin-bottom:5px; font-weight:600; }
   .kpi .val { font-size:21px; font-weight:800; color:var(--cc-dark); line-height:1.15; }
   .kpi .sub { font-size:11px; color:var(--text-secondary); margin-top:4px; }
   section.block { background:var(--surface-card); border-radius:var(--pbi-radius); box-shadow:var(--pbi-shadow); padding:1.25rem 1.4rem; margin-bottom:1.25rem; }
   section.block h2 { display:flex; align-items:center; gap:9px; font-size:14px; text-transform:uppercase; letter-spacing:.03em; color:var(--cc-navy); margin:0 0 4px; }
-  section.block h2 .sec-icon { flex:0 0 auto; width:26px; height:26px; border-radius:7px; background:rgba(0,70,119,.09); color:var(--cc-navy); display:flex; align-items:center; justify-content:center; }
+  section.block h2 .sec-icon { flex:0 0 auto; width:26px; height:26px; border-radius:7px; background:rgba(0,50,162,.09); color:var(--cc-navy); display:flex; align-items:center; justify-content:center; }
   section.block h2 .sec-icon .icon { font-size:14px; }
   section.block .block-note { font-size:11.5px; color:var(--text-secondary); margin:0 0 14px; }
   .share-row { display:flex; align-items:center; gap:10px; margin:8px 0; cursor:pointer; }
-  .share-row.bar-clickable:hover, .share-row.bar-clickable:focus-visible { background:rgba(0,112,150,0.07); border-radius:6px; outline:none; }
+  .share-row.bar-clickable:hover, .share-row.bar-clickable:focus-visible { background:rgba(11,120,204,0.07); border-radius:6px; outline:none; }
   .share-row .name { flex:0 0 190px; font-size:12.5px; font-weight:600; color:var(--cc-dark); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .share-row .bar-track { flex:1 1 auto; height:16px; background:var(--surface-page); border:1px solid var(--border); border-radius:8px; overflow:hidden; position:relative; }
   .share-row .bar-fill { display:block; height:100%; border-radius:8px; min-width:3px; transition:width .25s ease; box-shadow:inset 0 0 0 1px rgba(0,0,0,.04); }
@@ -89,7 +91,7 @@
   .mini-kpi { background:var(--surface-page); border-radius:8px; padding:8px 10px; }
   .mini-kpi .l { font-size:9.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-secondary); }
   .mini-kpi .v { font-size:15px; font-weight:bold; color:var(--cc-dark); }
-  .estado-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--cc-green); background:rgba(31,122,77,.08); border-radius:6px; padding:4px 9px; align-self:flex-start; }
+  .estado-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--cc-green); background:rgba(76,154,42,.08); border-radius:6px; padding:4px 9px; align-self:flex-start; }
   .estado-badge .icon { font-size:12px; }
   .full-toggle { margin-top:2px; padding-top:8px; border-top:1px solid var(--border); font-size:12px; font-weight:bold; color:var(--cc-navy); display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none; }
   .full-toggle:focus-visible, .share-row:focus-visible, .legend .li:focus-visible { outline:2px solid var(--cc-blue); outline-offset:2px; border-radius:4px; }
@@ -136,8 +138,8 @@
   .detail-hero h1 { font-size:24px; margin:0 0 6px; color:var(--cc-dark); }
   /* Gráficos de evolución: minimizados por defecto */
   .cz-bar { display:flex; align-items:center; margin:2px 0 10px; }
-  .cz-btn { display:inline-flex; align-items:center; gap:6px; font:inherit; font-size:12px; font-weight:600; color:var(--cc-green); background:rgba(31,122,77,.08); border:1px solid rgba(31,122,77,.28); border-radius:8px; padding:6px 12px; cursor:pointer; }
-  .cz-btn:hover { background:rgba(31,122,77,.16); }
+  .cz-btn { display:inline-flex; align-items:center; gap:6px; font:inherit; font-size:12px; font-weight:600; color:var(--cc-green); background:rgba(76,154,42,.08); border:1px solid rgba(76,154,42,.28); border-radius:8px; padding:6px 12px; cursor:pointer; }
+  .cz-btn:hover { background:rgba(76,154,42,.16); }
   .cz-btn:focus-visible { outline:2px solid var(--cc-green); outline-offset:2px; }
   .cz-ic { display:inline-block; font-size:10px; transition:transform .15s; }
   .cz-btn[aria-expanded="true"] .cz-ic { transform:rotate(90deg); }
@@ -147,7 +149,7 @@
 
   .explore-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; margin-top:4px; }
   .explore-card { display:flex; align-items:center; gap:14px; background:var(--surface-page); border:1px solid var(--border); border-radius:10px; padding:14px 16px; text-decoration:none !important; transition:border-color .15s ease, box-shadow .15s ease, transform .1s ease; }
-  .explore-card:hover { border-color:var(--cc-blue); box-shadow:0 6px 16px rgba(0,70,119,.10); transform:translateY(-1px); }
+  .explore-card:hover { border-color:var(--cc-blue); box-shadow:0 6px 16px rgba(0,50,162,.10); transform:translateY(-1px); }
   .explore-card:active { transform:translateY(0); }
   .explore-card-icon { flex:0 0 auto; width:42px; height:42px; border-radius:10px; background:var(--cc-navy); color:#fff; display:flex; align-items:center; justify-content:center; }
   .explore-card-icon .icon { font-size:22px; }
@@ -167,7 +169,7 @@
   .eco-box { margin-top:18px; background:var(--surface-card); border:1px solid var(--border); border-left:4px solid var(--cc-green); border-radius:10px; padding:14px 16px; box-shadow:var(--pbi-shadow); }
   .eco-head { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
   .eco-title { font-size:15px; font-weight:800; color:var(--cc-dark); }
-  .eco-badge { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--cc-green); background:rgba(31,122,77,.10); border-radius:5px; padding:2px 7px; }
+  .eco-badge { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--cc-green); background:rgba(76,154,42,.10); border-radius:5px; padding:2px 7px; }
   .eco-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:10px 0 14px; }
   .eco-kpi { background:var(--surface-page); border-radius:8px; padding:9px 11px; }
   .eco-kpi .lbl { font-size:9.5px; text-transform:uppercase; letter-spacing:.03em; color:var(--text-secondary); font-weight:600; margin-bottom:3px; }
@@ -184,7 +186,7 @@
   a.pend-card-link { display:block; text-decoration:none; color:inherit; border:1px solid var(--cc-green); border-left-width:4px; background:var(--surface-card); transition:box-shadow .15s, transform .15s; }
   a.pend-card-link:hover { box-shadow:0 3px 12px rgba(0,0,0,.10); transform:translateY(-1px); }
   a.pend-card-link:focus-visible { outline:2px solid var(--cc-blue); outline-offset:2px; }
-  .pend-badge.ok { color:var(--cc-green); background:rgba(31,122,77,.10); }
+  .pend-badge.ok { color:var(--cc-green); background:rgba(76,154,42,.10); }
   .pend-card-cta { display:inline-block; margin-top:8px; font-size:11.5px; font-weight:700; color:var(--cc-navy); }
   .eco-ctl { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:6px 0 8px; }
   .eco-ctl select, .eco-ctl input { font:inherit; font-size:12px; padding:5px 8px; border:1px solid var(--border); border-radius:6px; background:var(--surface-card); color:var(--cc-dark); }
@@ -196,8 +198,8 @@
   .eco-live iframe { width:100%; height:620px; border:1px solid var(--border); border-radius:10px; background:#fff; }
   .cc-h3 { font-size:12.5px; font-weight:700; color:var(--cc-dark); margin:0 0 8px; }
 .cc-rep table.dt td { white-space:nowrap; vertical-align:top; }
-.cc-rep tr.cc-rep-org:hover td { background:rgba(45,105,150,.08); }
-.cc-rep tr.cc-rep-org.sel td { background:rgba(45,105,150,.16); font-weight:600; }
+.cc-rep tr.cc-rep-org:hover td { background:rgba(0,50,162,.08); }
+.cc-rep tr.cc-rep-org.sel td { background:rgba(0,50,162,.16); font-weight:600; }
 .cc-rep a { color:var(--cc-blue); text-decoration:none; }
 .cc-rep a:hover { text-decoration:underline; }
   .cc-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,540px),1fr)); gap:22px 28px; margin-top:6px; }
@@ -210,8 +212,8 @@
   .eco-scroll table.dt th { position:sticky; top:0; background:var(--surface-card); }
   @media (max-width:900px) { .eco-cols { grid-template-columns:1fr; } }
   .dl-row { display:flex; justify-content:flex-end; margin:-4px 0 10px; }
-  .dl-btn { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--cc-green); background:rgba(31,122,77,.08); border:1px solid rgba(31,122,77,.25); border-radius:6px; padding:5px 10px; cursor:pointer; font-family:inherit; transition:background .15s ease; }
-  .dl-btn:hover { background:rgba(31,122,77,.16); }
+  .dl-btn { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--cc-green); background:rgba(76,154,42,.08); border:1px solid rgba(76,154,42,.25); border-radius:6px; padding:5px 10px; cursor:pointer; font-family:inherit; transition:background .15s ease; }
+  .dl-btn:hover { background:rgba(76,154,42,.16); }
   .p6-dl { font-size:11.5px; font-weight:600; color:var(--cc-green); text-decoration:none; }
   .p6-dl:hover { text-decoration:underline; }
   .nw-n { color:var(--cc-green); font-weight:600; text-decoration:underline dotted; cursor:pointer; }
@@ -248,9 +250,9 @@
   @media (max-width:1000px){ .cp-three-col{grid-template-columns:1fr 1fr;} }
   @media (max-width:640px){ .cp-three-col{grid-template-columns:1fr;} }
   .risk-badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; border-radius:6px; padding:5px 10px; }
-  .risk-ok { background:rgba(31,122,77,.10); color:var(--cc-green); }
+  .risk-ok { background:rgba(76,154,42,.10); color:var(--cc-green); }
   .risk-warn { background:rgba(181,117,11,.12); color:var(--cc-amber); }
-  .risk-high { background:rgba(231,52,56,.10); color:var(--cc-red); }
+  .risk-high { background:rgba(229,56,59,.10); color:var(--cc-red); }
   .conc-row { display:flex; gap:20px; flex-wrap:wrap; margin:8px 0 2px; }
   .conc-item { font-size:12px; color:var(--text-secondary); }
   .conc-item b { font-size:16px; color:var(--cc-dark); display:block; }
@@ -279,18 +281,98 @@
   .pac-tw { max-height:420px; }
   .pac-tw table.dt th { position:sticky; top:0; background:var(--surface-card); z-index:1; }
   .pac-tw table.dt td { vertical-align:top; }
-  table.dt tr.pac-sel td { background:rgba(0,112,150,.10); }
+  table.dt tr.pac-sel td { background:rgba(11,120,204,.10); }
   .pac-links { margin:6px 0 0; padding-left:18px; font-size:12.5px; line-height:1.6; color:var(--cc-dark); }
   .pac-links a { color:var(--cc-navy); }
   @media (max-width:760px){ .pac-two { grid-template-columns:1fr; } .pac-gl { flex-basis:120px; } }
+
+  /* ===== Refresh de diseño 2026 (estilo Eficiencia) ===== */
+  .cc-topbar { background:var(--cc-dark); color:var(--cc-lime); text-align:center; font-size:11.5px; font-weight:700; letter-spacing:.01em; padding:8px 16px; }
+  .cc-topbar:empty { display:none; }
+  header.cc-header { background:linear-gradient(150deg,#005AF8 0%,#0032A2 40%,#4A2E8F 78%,#613B75 100%); border-bottom:0; padding:2.6rem 1.5rem 5.6rem; }
+  header.cc-header::before { top:-120px; right:-90px; width:420px; height:420px; background:radial-gradient(circle,rgba(208,255,102,.16) 0%,rgba(208,255,102,0) 68%); }
+  header.cc-header::after { background:radial-gradient(circle,rgba(174,215,255,.14) 0%,rgba(174,215,255,0) 70%); }
+  header.cc-header .eyebrow { background:var(--cc-lime); color:var(--cc-dark); border:0; border-radius:99px; padding:5px 14px; font-size:11.5px; letter-spacing:.04em; margin-bottom:18px; }
+  header.cc-header .eyebrow .dot { background:var(--cc-dark); }
+  header.cc-header h1 { font-size:clamp(26px,3.6vw,40px); font-weight:400; letter-spacing:-.01em; line-height:1.15; margin:0 0 14px; }
+  header.cc-header h1 b { font-weight:700; }
+  header.cc-header .subtitle { color:rgba(255,255,255,.9); font-size:13.5px; line-height:1.95; }
+  header.cc-header .hdr-mes-select { background-color:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.5); border-radius:99px; padding:3px 24px 3px 12px; }
+  header.cc-header .hdr-mes-select:hover, header.cc-header .hdr-mes-select:focus-visible { border-color:var(--cc-lime); outline:none; }
+  header.cc-header .hdr-reset-link { color:var(--cc-lime); }
+  header.cc-header .hdr-range-note { color:rgba(255,255,255,.8); }
+
+  .kpi { border:1px solid var(--border); box-shadow:var(--pbi-shadow); padding:18px 20px; }
+  .kpi:hover { box-shadow:0 12px 30px rgba(0,35,59,.14); }
+  .kpi .kpi-icon { width:42px; height:42px; border-radius:50%; background:var(--cc-mist); color:var(--cc-navy); }
+  .kpi.k-monto .kpi-icon { background:var(--cc-lime); color:var(--cc-dark); }
+  .kpi.k-prov .kpi-icon { background:var(--cc-ice); color:var(--cc-navy); }
+  .kpi.k-org .kpi-icon { background:var(--cc-mist); color:var(--cc-violet); }
+  .kpi .lbl { font-size:10.5px; letter-spacing:.05em; color:var(--cc-navy); font-weight:700; }
+  .kpi .val { font-size:clamp(15px,1.3vw,18px); font-weight:700; letter-spacing:-.02em; white-space:nowrap; }
+  .kpi { gap:11px; padding:18px 16px; }
+  .kpi .kpi-icon { width:38px; height:38px; }
+
+  section.block { border:1px solid var(--border); padding:1.5rem 1.7rem; }
+  section.block h2 { font-size:17px; text-transform:none; letter-spacing:0; font-weight:700; color:var(--cc-dark); margin:0 0 6px; gap:11px; }
+  section.block h2 .sec-icon { width:30px; height:30px; border-radius:50%; background:var(--cc-lime); color:var(--cc-dark); }
+  section.block .block-note { font-size:12px; }
+  .pie-col h3, .pac-h3 { color:var(--cc-navy); font-weight:700; }
+
+  .card { border-radius:var(--pbi-radius); }
+  .card:hover { box-shadow:0 12px 30px rgba(0,35,59,.14); }
+  .tile-icon { border-radius:50%; }
+  .badge-share { border-radius:99px; padding:3px 11px; }
+  .mini-kpi, .eco-kpi { border-radius:12px; background:var(--surface-page); }
+  .estado-badge { border-radius:99px; }
+  .detail-btn { border-radius:99px; padding:10px 20px; box-shadow:0 4px 12px rgba(0,35,59,.18); }
+  .detail-hero .tile-icon { border-radius:50%; }
+  .detail-hero h1, .card-title { color:var(--cc-dark); }
+  .back-link { font-weight:700; color:var(--cc-navy); background:var(--cc-mist); border-radius:99px; padding:6px 14px; margin:1.25rem 0 .75rem; }
+  .back-link:hover { text-decoration:none; background:var(--cc-ice); }
+
+  .note-box { border-left:6px solid var(--cc-lime); border-radius:14px; color:var(--cc-dark); padding:12px 16px; }
+  .pend-card, .explore-card { border-radius:16px; }
+  .explore-card { background:var(--surface-card); }
+  .explore-card:hover { border-color:var(--cc-navy); box-shadow:0 10px 26px rgba(0,35,59,.12); }
+  .explore-card-icon { background:var(--cc-lime); color:var(--cc-dark); border-radius:50%; }
+  .explore-card-arrow { width:30px; height:30px; padding:7px; border-radius:50%; background:var(--cc-lime); color:var(--cc-dark); }
+  .eco-box { border-radius:16px; }
+  .pend-badge, .eco-badge, .risk-badge { border-radius:99px; }
+
+  .dl-btn, .cz-btn { border-radius:99px; color:var(--cc-navy); background:#fff; border:1px solid rgba(0,50,162,.35); }
+  .dl-btn:hover, .cz-btn:hover { background:var(--cc-lime); border-color:var(--cc-lime); color:var(--cc-dark); }
+  .p6-dl, .nw-n { color:var(--cc-navy); }
+  .full-toggle { color:var(--cc-navy); }
+  .pac-toggle button { border-radius:99px; padding:6px 14px; }
+  .pac-toggle button.on { background:var(--cc-navy); border-color:var(--cc-navy); }
+  .filter-field select, .filter-field input[type="text"], .pac-filters input[type=search], .pac-filters input[type=number], .pac-filters select, .eco-ctl select, .eco-ctl input { border-radius:12px; }
+  .filter-field label { color:var(--cc-navy); }
+
+  .filter-field input[type="number"] { font-size:13px; padding:9px 10px; border:1px solid var(--border); border-radius:12px; background:#fff; font-family:inherit; color:var(--cc-dark); min-width:150px; box-sizing:border-box; }
+  .filter-field input[type="number"]:focus-visible { outline:2px solid var(--cc-royal); outline-offset:1px; }
+  select, input, button, textarea { font-family:inherit; }
+  table.dt th { color:var(--cc-navy); font-weight:700; background:#F7F9FD; }
+  table.dt td { border-bottom:1px solid #EEF2F7; }
+  table.dt tbody tr:hover td { background:#F3F7FF; }
+  table.dt th.sortable:hover { color:var(--cc-royal); }
+  .table-wrap, .eco-tbl, .eco-scroll { border-radius:14px; }
+  .share-row .bar-track { border-radius:99px; background:#EDF1F7; border:0; }
+  .share-row .bar-fill { border-radius:99px; }
+  .tooltip { border-radius:10px; background:var(--cc-dark); }
+  .full-toggle:focus-visible, .share-row:focus-visible, .legend .li:focus-visible { outline-color:var(--cc-royal); }
+  footer.cc-footer { border-top:1px solid var(--border); }
+  @media (max-width:520px){ .pie-col-inner { flex-direction:column; align-items:stretch; } .pie-legend .pl-row { flex-wrap:wrap; } .pie-col svg { align-self:center; } }
+  @media (max-width:640px){ header.cc-header { padding:2rem 1rem 5rem; } section.block { padding:1.2rem 1.1rem; } }
 </style>
 </head>
 <body>
+<div class="cc-topbar" id="ccTopbar" role="note"></div>
 <header class="cc-header">
   <div class="header-row">
     <div class="header-text">
       <p class="eyebrow"><span class="dot"></span>ChileCompra · Datos Abiertos · Mercado Público</p>
-      <h1>Todos los mecanismos de compra</h1>
+      <h1>Todos los <b>mecanismos de compra</b></h1>
       <p class="subtitle">Órdenes de compra en estado Recepción Conforme o Aceptada de todos los organismos del Estado, <span class="hdr-range-picker"><select id="globalMesDesde" class="hdr-mes-select" aria-label="Desde"></select> a <select id="globalMesHasta" class="hdr-mes-select" aria-label="Hasta"></select></span>, clasificadas por mecanismo de contratación (Convenio Marco, Licitación Pública/Privada, Trato Directo, Compra Ágil, Compra Coordinada y Contratación por Cotización) según la Ley N° 19.886 y su Reglamento. <button type="button" id="btnGlobalRangeReset" class="hdr-reset-link">Ver todo el período</button></p>
       <p class="hdr-range-note" id="globalRangeNote"></p>
     </div>
@@ -500,7 +582,7 @@
 <script src="data/cp_orgs_2.js"></script>
 <script>
 (function(){ const t=DATA.mecanismos['Trato o Contratación Directa']; const oc=t.ocDetalle; if(oc && !Array.isArray(oc) && oc.d){ const D=oc.d; t.ocDetalle = oc.r.map(r=>[r[0],r[1],D[1][r[2]],D[0][r[3]],D[2][r[4]],D[3][r[5]],r[6],D[4][r[7]],r[8]]); } })();
-const META = {"Convenio Marco": {"color": "--cc-navy", "tint": "rgba(0,70,119,0.08)", "icon": "<path d=\"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z\"/><path d=\"M3 6h18\"/><path d=\"M16 10a4 4 0 0 1-8 0\"/>", "def": "Contrato de suministro celebrado entre la Dirección de Compras y uno o más proveedores, que da origen al Catálogo publicado en el Sistema de Información. Su consulta es obligatoria antes de licitar, salvo en Compra Ágil.", "cita": "Art. 29-30 Ley 19.886 · Arts. 88-94 Reglamento (DS 661/2024)"}, "Licitación Pública": {"color": "--cc-blue", "tint": "rgba(0,112,150,0.08)", "icon": "<path d=\"M3 11 18 5v14L3 13\"/><path d=\"M3 11v2a2 2 0 0 0 2 2h1v4\"/><line x1=\"18\" y1=\"5\" x2=\"22\" y2=\"3\"/><line x1=\"18\" y1=\"19\" x2=\"22\" y2=\"21\"/>", "def": "Procedimiento concursal en que la entidad hace un llamado abierto a todos los proveedores interesados para que, sujetos a las bases, formulen propuestas de entre las cuales se selecciona la más conveniente. Es la regla general para adquisiciones sobre 100 UTM.", "cita": "Art. 5 y 8 Ley 19.886 · Arts. 40 y ss. Reglamento (DS 661/2024)"}, "Licitación Privada": {"color": "--cc-purple", "tint": "rgba(97,59,117,0.08)", "icon": "<rect x=\"4\" y=\"10\" width=\"16\" height=\"10\" rx=\"2\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3\"/>", "def": "Procede, con carácter excepcional, cuando en la licitación pública respectiva no se presentaron interesados o las ofertas fueron declaradas inadmisibles. Se invita a proveedores determinados, no a un llamado abierto.", "cita": "Art. 8 Ley 19.886 · Arts. 65-70 Reglamento (DS 661/2024)"}, "Trato o Contratación Directa": {"color": "--cc-red", "tint": "rgba(231,52,56,0.08)", "icon": "<path d=\"M8 12h8\"/><path d=\"M12 8v8\"/><circle cx=\"12\" cy=\"12\" r=\"9\"/>", "def": "Procedimiento en que, por causales fundadas (proveedor único, emergencia o imprevisto, montos menores, seguridad de autoridades, etc.), el organismo contrata directamente con un proveedor, sin concurrencia de otros, sujeto a normas de publicidad.", "cita": "Art. 8 bis Ley 19.886 (según Ley 21.634) · Arts. 71-77 Reglamento (DS 661/2024)"}, "Compra Ágil": {"color": "--cc-green", "tint": "rgba(31,122,77,0.08)", "icon": "<polygon points=\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\"/>", "def": "Procedimiento simple, dinámico y competitivo para adquirir bienes o servicios por montos iguales o inferiores a 100 UTM, previa solicitud de al menos 3 cotizaciones a través del Sistema, priorizando empresas de menor tamaño y proveedores locales.", "cita": "Art. 7 bis letra d) N°1 Ley 19.886 (según Ley 21.634) · Arts. 97-98 Reglamento (DS 661/2024)"}, "Compra Coordinada": {"color": "--cc-lightblue", "tint": "rgba(107,204,214,0.14)", "icon": "<circle cx=\"9\" cy=\"7\" r=\"3\"/><circle cx=\"17\" cy=\"7\" r=\"3\"/><path d=\"M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2\"/><path d=\"M17 11a5 5 0 0 1 5 5v2\"/>", "def": "Modalidad mediante la cual dos o más entidades, por sí o representadas por la Dirección de Compras, agregan demanda a través de un procedimiento competitivo, para lograr ahorros y reducir costos de transacción.", "cita": "Art. 29 inciso final Ley 19.886 · Art. 3 N°7 Reglamento (DS 661/2024)"}, "Contratación por Cotización": {"color": "--cc-amber", "tint": "rgba(181,117,11,0.10)", "icon": "<path d=\"M4 19h16\"/><path d=\"M4 15l4-4 4 3 6-7\"/>", "def": "Procedimiento para abrir un espacio de negociación con proveedores, con un mínimo de 3 cotizaciones previas, sin los requisitos de licitación o trato directo. Aplica, por ejemplo, a remanentes de contratos resueltos (≤1.000 UTM) o a convenios con personas jurídicas extranjeras a ejecutar fuera de Chile.", "cita": "Art. 7 bis letra d) N°2 Ley 19.886 (según Ley 21.634) · Arts. 99-100 Reglamento (DS 661/2024)"}, "Otro / Sin clasificar": {"color": "--text-secondary", "tint": "rgba(96,94,92,0.08)", "icon": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2 2-2 3.5\"/><line x1=\"12\" y1=\"17\" x2=\"12.01\" y2=\"17\"/>", "def": "Órdenes de compra registradas por el organismo como “Orden de Compra para informar” u otros casos residuales que la fuente de datos no asocia directamente a uno de los procedimientos anteriores. No constituyen un mecanismo de compra distinto bajo la Ley 19.886.", "cita": "Clasificación propia a partir de la columna DescripcionTipoOC / ProcedenciaOC, Datos Abiertos ChileCompra"}};
+const META = {"Convenio Marco": {"color": "--cc-navy", "tint": "rgba(0,50,162,0.08)", "icon": "<path d=\"M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z\"/><path d=\"M3 6h18\"/><path d=\"M16 10a4 4 0 0 1-8 0\"/>", "def": "Contrato de suministro celebrado entre la Dirección de Compras y uno o más proveedores, que da origen al Catálogo publicado en el Sistema de Información. Su consulta es obligatoria antes de licitar, salvo en Compra Ágil.", "cita": "Art. 29-30 Ley 19.886 · Arts. 88-94 Reglamento (DS 661/2024)"}, "Licitación Pública": {"color": "--cc-blue", "tint": "rgba(11,120,204,0.08)", "icon": "<path d=\"M3 11 18 5v14L3 13\"/><path d=\"M3 11v2a2 2 0 0 0 2 2h1v4\"/><line x1=\"18\" y1=\"5\" x2=\"22\" y2=\"3\"/><line x1=\"18\" y1=\"19\" x2=\"22\" y2=\"21\"/>", "def": "Procedimiento concursal en que la entidad hace un llamado abierto a todos los proveedores interesados para que, sujetos a las bases, formulen propuestas de entre las cuales se selecciona la más conveniente. Es la regla general para adquisiciones sobre 100 UTM.", "cita": "Art. 5 y 8 Ley 19.886 · Arts. 40 y ss. Reglamento (DS 661/2024)"}, "Licitación Privada": {"color": "--cc-purple", "tint": "rgba(138,79,191,0.08)", "icon": "<rect x=\"4\" y=\"10\" width=\"16\" height=\"10\" rx=\"2\"/><path d=\"M8 10V7a4 4 0 0 1 8 0v3\"/>", "def": "Procede, con carácter excepcional, cuando en la licitación pública respectiva no se presentaron interesados o las ofertas fueron declaradas inadmisibles. Se invita a proveedores determinados, no a un llamado abierto.", "cita": "Art. 8 Ley 19.886 · Arts. 65-70 Reglamento (DS 661/2024)"}, "Trato o Contratación Directa": {"color": "--cc-red", "tint": "rgba(229,56,59,0.08)", "icon": "<path d=\"M8 12h8\"/><path d=\"M12 8v8\"/><circle cx=\"12\" cy=\"12\" r=\"9\"/>", "def": "Procedimiento en que, por causales fundadas (proveedor único, emergencia o imprevisto, montos menores, seguridad de autoridades, etc.), el organismo contrata directamente con un proveedor, sin concurrencia de otros, sujeto a normas de publicidad.", "cita": "Art. 8 bis Ley 19.886 (según Ley 21.634) · Arts. 71-77 Reglamento (DS 661/2024)"}, "Compra Ágil": {"color": "--cc-green", "tint": "rgba(76,154,42,0.08)", "icon": "<polygon points=\"13 2 3 14 12 14 11 22 21 10 12 10 13 2\"/>", "def": "Procedimiento simple, dinámico y competitivo para adquirir bienes o servicios por montos iguales o inferiores a 100 UTM, previa solicitud de al menos 3 cotizaciones a través del Sistema, priorizando empresas de menor tamaño y proveedores locales.", "cita": "Art. 7 bis letra d) N°1 Ley 19.886 (según Ley 21.634) · Arts. 97-98 Reglamento (DS 661/2024)"}, "Compra Coordinada": {"color": "--cc-lightblue", "tint": "rgba(111,211,224,0.14)", "icon": "<circle cx=\"9\" cy=\"7\" r=\"3\"/><circle cx=\"17\" cy=\"7\" r=\"3\"/><path d=\"M2 21v-2a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v2\"/><path d=\"M17 11a5 5 0 0 1 5 5v2\"/>", "def": "Modalidad mediante la cual dos o más entidades, por sí o representadas por la Dirección de Compras, agregan demanda a través de un procedimiento competitivo, para lograr ahorros y reducir costos de transacción.", "cita": "Art. 29 inciso final Ley 19.886 · Art. 3 N°7 Reglamento (DS 661/2024)"}, "Contratación por Cotización": {"color": "--cc-amber", "tint": "rgba(181,117,11,0.10)", "icon": "<path d=\"M4 19h16\"/><path d=\"M4 15l4-4 4 3 6-7\"/>", "def": "Procedimiento para abrir un espacio de negociación con proveedores, con un mínimo de 3 cotizaciones previas, sin los requisitos de licitación o trato directo. Aplica, por ejemplo, a remanentes de contratos resueltos (≤1.000 UTM) o a convenios con personas jurídicas extranjeras a ejecutar fuera de Chile.", "cita": "Art. 7 bis letra d) N°2 Ley 19.886 (según Ley 21.634) · Arts. 99-100 Reglamento (DS 661/2024)"}, "Otro / Sin clasificar": {"color": "--text-secondary", "tint": "rgba(61,84,102,0.08)", "icon": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2 2-2 3.5\"/><line x1=\"12\" y1=\"17\" x2=\"12.01\" y2=\"17\"/>", "def": "Órdenes de compra registradas por el organismo como “Orden de Compra para informar” u otros casos residuales que la fuente de datos no asocia directamente a uno de los procedimientos anteriores. No constituyen un mecanismo de compra distinto bajo la Ley 19.886.", "cita": "Clasificación propia a partir de la columna DescripcionTipoOC / ProcedenciaOC, Datos Abiertos ChileCompra"}};
 const ORDER = ["Convenio Marco", "Licitación Pública", "Licitación Privada", "Trato o Contratación Directa", "Compra Ágil", "Compra Coordinada", "Otro / Sin clasificar"];
 const G = DATA.global;
 
@@ -1282,7 +1364,7 @@ function makeLineChart({svgId, legendId, ttId, series, fmtAxis, fmtTip, unitLabe
     });
     series.forEach(s=>{
       if(hidden.has(s.key)) return;
-      const color = s.color || '#007096';
+      const color = s.color || '#0B78CC';
       const pts = s.values.map((v,i)=>`${xFor(i)},${yFor(v,mx)}`).join(' ');
       svgHtml += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
       s.values.forEach((v,i)=>{
@@ -2572,7 +2654,7 @@ function renderBarList(container, items, fmtVal, color, hrefFn, isActiveFn, onCl
       ? `<a href="${href}" target="_blank" rel="noopener">${esc(it.label)}</a>`
       : esc(it.label);
     const active = isActiveFn && isActiveFn(it);
-    const rowStyle = active ? 'cursor:default; background:rgba(0,112,150,0.08); border-radius:6px;' : (clickable ? 'cursor:pointer;' : 'cursor:default;');
+    const rowStyle = active ? 'cursor:default; background:rgba(11,120,204,0.08); border-radius:6px;' : (clickable ? 'cursor:pointer;' : 'cursor:default;');
     return `<div class="share-row${clickable?' bar-clickable':''}" data-idx="${i}" style="${rowStyle}"${clickable?' tabindex="0" role="button" title="Haz clic para descargar el detalle de estas OC"':''}>
       <span class="name" title="${esc(it.title||it.label)}">${active ? '<b>'+nameHtml+'</b>' : nameHtml}</span>
       <span class="bar-track"><span class="bar-fill" style="width:${pct}%; background:${color};"></span></span>
@@ -3411,7 +3493,7 @@ function updateRubroResults(){
     const pct = rankTotMonto>0 ? (100*r.montoUsd/rankTotMonto).toFixed(1) : '0';
     const isSel = rubroSel===r.key;
     const ctx = r.ctx ? `<div style="font-size:11px; color:var(--text-secondary);">${esc(r.ctx)}</div>` : '';
-    return `<tr${isSel?' style="background:rgba(0,112,150,.08);"':''}><td><a href="javascript:void(0)" onclick="selectRubroFromRanking('${r.key}')">${esc(r.name)}</a>${ctx}</td><td class="num">${fmt(r.nOc)}</td><td class="num">${fmtUsd(r.montoUsd)}</td><td class="num">${pct}%</td></tr>`;
+    return `<tr${isSel?' style="background:rgba(11,120,204,.08);"':''}><td><a href="javascript:void(0)" onclick="selectRubroFromRanking('${r.key}')">${esc(r.name)}</a>${ctx}</td><td class="num">${fmt(r.nOc)}</td><td class="num">${fmtUsd(r.montoUsd)}</td><td class="num">${pct}%</td></tr>`;
   }).join('');
   setDl('rubroRanking', [NIVEL_LBL[lvl],'Contexto (rubro › familia › clase)','N° OC','Monto (USD)','% del monto filtrado'],
     ranking.map(r=>[r.name, r.ctx, r.nOc, r.montoUsd, rankTotMonto>0 ? Math.round(1000*r.montoUsd/rankTotMonto)/10 : 0]));
@@ -3683,7 +3765,7 @@ function nwMonHtml(){
   // matriz mensual
   const mxAll = Math.max(...out.map(r=>Math.max(...r.m)), 1);
   const matrix = `<div class="table-wrap pac-tw" style="max-height:none;overflow-x:auto;"><table class="dt" style="font-size:11px;"><thead><tr><th style="position:sticky;left:0;background:var(--surface,#fff);z-index:1;">Organismo</th>${DATA.meses.map((x,i)=>`<th class="num" style="${i===last?'color:var(--cc-green);':''}">${esc(x.replace('-20','-'))}</th>`).join('')}<th class="num">Total</th></tr></thead><tbody>
-    ${out.map(r=>`<tr><td style="position:sticky;left:0;background:var(--surface,#fff);z-index:1;white-space:nowrap;">${esc(r.razon.length>34 ? r.razon.slice(0,33)+'…' : r.razon)}</td>${r.m.map((x,i)=>{ const a = x>0 ? (0.12 + 0.7*Math.sqrt(x/Math.max(...r.m,1))) : 0; return `<td class="num" title="${esc(r.razon)} · ${esc(mlab(i))}: ${fmt(r.oc[i])} OC, ${fmtUsd(x)}" style="${x>0?`background:rgba(0,112,150,${a.toFixed(2)});color:${a>0.5?'#fff':'inherit'};`:'color:var(--text-secondary);'}">${x>0 ? fmtUsdShort(x).replace('US$','') : ''}</td>`; }).join('')}<td class="num"><b>${r.totM ? fmtUsdShort(r.totM).replace('US$','') : '—'}</b></td></tr>`).join('')}
+    ${out.map(r=>`<tr><td style="position:sticky;left:0;background:var(--surface,#fff);z-index:1;white-space:nowrap;">${esc(r.razon.length>34 ? r.razon.slice(0,33)+'…' : r.razon)}</td>${r.m.map((x,i)=>{ const a = x>0 ? (0.12 + 0.7*Math.sqrt(x/Math.max(...r.m,1))) : 0; return `<td class="num" title="${esc(r.razon)} · ${esc(mlab(i))}: ${fmt(r.oc[i])} OC, ${fmtUsd(x)}" style="${x>0?`background:rgba(11,120,204,${a.toFixed(2)});color:${a>0.5?'#fff':'inherit'};`:'color:var(--text-secondary);'}">${x>0 ? fmtUsdShort(x).replace('US$','') : ''}</td>`; }).join('')}<td class="num"><b>${r.totM ? fmtUsdShort(r.totM).replace('US$','') : '—'}</b></td></tr>`).join('')}
     </tbody></table></div>`;
   // datos de descarga
   const aHead = ['Gravedad','Organismo','RUT','Condición final','Indicador','Mes','Monto (USD)','Detalle','N° OC'];
@@ -3810,7 +3892,7 @@ function nuevosWebHtml(mesRange, nRange){
       <td>${esc(r.cond)}</td><td>${esc(r.causal)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.art)}</span></td><td>${esc(r.conf)}</td>
       <td class="num">${fmt(r.nUsuarios||0)}</td><td class="num">${r.nOc ? fmt(r.nOc) : '—'}</td><td class="num">${r.nOc ? fmtUsd(r.montoUsd) : '—'}</td><td>${nwPac(r)}</td>
       <td style="max-width:260px;">${r.mot ? esc(r.mot) : '<span style="color:var(--text-secondary);">Sin observaciones</span>'}</td></tr>
-    <tr id="nwd${i}" class="nw-detail" data-code="${esc(r.codigo||'')}" hidden><td colspan="9" style="background:rgba(0,112,150,.05);font-size:12px;line-height:1.5;">
+    <tr id="nwd${i}" class="nw-detail" data-code="${esc(r.codigo||'')}" hidden><td colspan="9" style="background:rgba(11,120,204,.05);font-size:12px;line-height:1.5;">
       <b>Causal legal:</b> ${esc(r.causal)}${r.art ? ' ('+esc(r.art)+')' : ''}<br><b>Detalle de la causal:</b> ${esc(r.causalFull)}<br><b>¿Cumple los requisitos de su condición?</b> ${esc(r.cumple||'')} · <b>Revisión independiente:</b> ${esc(r.rev||'')}
       ${r.det ? `<br><b>Fundamento:</b> ${esc(r.det.fund)}<br><b>Evidencia y fuentes:</b> ${esc(r.det.evid)}` : '<br><span style="color:var(--text-secondary);">El fundamento y la evidencia de cada caso están en la versión local del panel y en el archivo de clasificación.</span>'}
       ${r.codigo ? `<div class="nw-embed" style="margin-top:12px;background:var(--surface,#fff);padding:4px 0;"></div>` : '<div style="margin-top:8px;"><b>Compras:</b> sin órdenes de compra en el período con el RUT de este organismo, por lo que no hay detalle de transacciones.</div>'}</td></tr>`).join('');
@@ -4469,7 +4551,7 @@ function ecoDetInit(){
 // ================= Plan Anual de Compras (PAC) 2025-2026 =================
 const PAC_SH = {2025: {}, 2026: {}};
 function PAC_SHARD(o){ PAC_SH[o.y][o.s] = o; }
-const PAC_A = '#B5750B', PAC_B = '#007096';           // 2025, 2026
+const PAC_A = '#B5750B', PAC_B = '#0B78CC';           // 2025, 2026
 const PAC_FL = {1: 'extrema', 2: 'a revisar', 4: 'duplicada', 8: 'inconsistente', 16: 'monto cero', 32: 'reconstruida'};
 const PAC_BINS = ['Menos de $10 mil', '$10 mil a $100 mil', '$100 mil a $1 millón', '$1 a $10 millones', '$10 a $100 millones', '$100 a $1.000 millones', '$1.000 a $10.000 millones', '$10.000 a $100.000 millones', '$100.000 millones a $1 billón', '$1 billón o más'];
 const PAC_HEAD = ['Año PAC', 'Código organismo', 'Organismo', 'Sector', 'Región', 'Unidad de compra', 'Código del proceso', 'Proyecto', 'Descripción del proyecto', 'Mecanismo (según PAC)', 'Clasificación presupuestaria', 'Ítem', 'Cantidad estimada', 'Monto unitario estimado (CLP)', 'Monto total estimado (CLP)', 'Banderas de calidad'];
@@ -5254,11 +5336,11 @@ let GORE_DLS = [];
 (function(){
   const s = document.createElement('style');
   s.textContent = '.gore-stack{display:flex;height:16px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--surface-page);flex:1 1 auto}.gore-stack span{display:block;height:100%;border-right:1px solid #fff}' +
-    '.gore-tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:9px;background:rgba(0,112,150,.10);color:var(--cc-blue);font-weight:600;margin-left:6px}' +
+    '.gore-tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:9px;background:rgba(11,120,204,.10);color:var(--cc-blue);font-weight:600;margin-left:6px}' +
     '.gore-card{background:var(--surface-card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin:0 0 1rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 22px;font-size:13px}.gore-card b{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-secondary);font-weight:600}' +
-    '.gore-ext{border:1px dashed var(--border);border-radius:10px;padding:12px 16px;margin:8px 0;background:rgba(0,112,150,.03);font-size:12.5px}.gore-ext input[type=file]{font-size:12px;margin:6px 0}' +
+    '.gore-ext{border:1px dashed var(--border);border-radius:10px;padding:12px 16px;margin:8px 0;background:rgba(11,120,204,.03);font-size:12.5px}.gore-ext input[type=file]{font-size:12px;margin:6px 0}' +
     '.gore-stk-leg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;margin:6px 0 10px}.gore-stk-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}' +
-    '#goreView .kpi .val{font-size:18px;white-space:nowrap;}#goreView .kpi .kpi-body{min-width:0;flex:1 1 auto;}.nw{white-space:nowrap}#goreView .kpi .sub{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}.gore-rev{font-size:11px;font-weight:600;color:var(--cc-blue);background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;cursor:pointer;margin:0 0 4px}.gore-rev:hover{background:rgba(0,112,150,.08)}.gore-tw{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:6px}.gore-tw table.dt{border-collapse:separate;border-spacing:0}.gore-tw table.dt th{position:sticky;top:0;background:#fff;z-index:2;padding:6px;border-bottom:1px solid var(--border)}.gore-flt{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:10px 0 6px}.gore-flt .filter-field select,.gore-flt .filter-field input[type=text]{min-width:190px}.gore-sel-row{cursor:pointer}.gore-sel-row:hover td{background:rgba(0,112,150,.06)}';
+    '#goreView .kpi .val{font-size:18px;white-space:nowrap;}#goreView .kpi .kpi-body{min-width:0;flex:1 1 auto;}.nw{white-space:nowrap}#goreView .kpi .sub{font-size:11.5px;color:var(--text-secondary);margin-top:3px;}.gore-rev{font-size:11px;font-weight:600;color:var(--cc-blue);background:none;border:1px solid var(--border);border-radius:12px;padding:2px 10px;cursor:pointer;margin:0 0 4px}.gore-rev:hover{background:rgba(11,120,204,.08)}.gore-tw{max-height:430px;overflow:auto;border:1px solid var(--border);border-radius:6px}.gore-tw table.dt{border-collapse:separate;border-spacing:0}.gore-tw table.dt th{position:sticky;top:0;background:#fff;z-index:2;padding:6px;border-bottom:1px solid var(--border)}.gore-flt{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:10px 0 6px}.gore-flt .filter-field select,.gore-flt .filter-field input[type=text]{min-width:190px}.gore-sel-row{cursor:pointer}.gore-sel-row:hover td{background:rgba(11,120,204,.06)}';
   document.head.appendChild(s);
 })();
 function goreMecColor(i){ const m = (typeof META !== 'undefined') ? META[GORE_MEC[i]] : null; return m ? cssvar(m.color) : '#8A8886'; }
@@ -5502,7 +5584,7 @@ function renderGorePage(arg, uArg){
     const gl = 'Gobierno Regional de ' + G[sel].corto;
     html += `<section class="block"><h2>Unidades de compra de ${esc(G[sel].corto)}</h2>
       <p class="block-note">Cada unidad de compra del GORE con OC en el período. Haz clic en su nombre para ver todo el panel solo con esa unidad; el N° de OC descarga el Excel de la unidad.${uSel >= 0 ? ` Estás viendo solo <b>${esc(uNom)}</b>.` : ''}</p>
-      ${goreTable([['Unidad de compra'], ['RUT unidad'], ['N° OC', 1], ['Monto USD', 1], ['% monto GORE', 1], ['Proveedores', 1], ['OC en trato directo', 1]], us.map(x => `<tr${x.o.k === uSel ? ' style="background:rgba(0,112,150,.08)"' : ''}><td><a href="#gore=${encodeURIComponent(G[sel].rut)}&unidad=${x.o.k}"><b>${esc(x.u[0])}</b></a></td><td class="nw">${esc(x.u[1])}</td><td class="num">${goreLink(x.o.n, {g: [sel], uni: x.o.k}, gl + ' · ' + x.u[0])}</td><td class="num">${fmtUsd(x.o.usd)}</td><td class="num">${gorePct(x.o.usd, totG)}</td><td class="num">${fmt(x.o.provs.size)}</td><td class="num">${x.td ? goreLink(x.td, {g: [sel], uni: x.o.k, mec: GORE_TD}, gl + ' · ' + x.u[0] + ' · tratos directos') : '0'}</td></tr>`))}
+      ${goreTable([['Unidad de compra'], ['RUT unidad'], ['N° OC', 1], ['Monto USD', 1], ['% monto GORE', 1], ['Proveedores', 1], ['OC en trato directo', 1]], us.map(x => `<tr${x.o.k === uSel ? ' style="background:rgba(11,120,204,.08)"' : ''}><td><a href="#gore=${encodeURIComponent(G[sel].rut)}&unidad=${x.o.k}"><b>${esc(x.u[0])}</b></a></td><td class="nw">${esc(x.u[1])}</td><td class="num">${goreLink(x.o.n, {g: [sel], uni: x.o.k}, gl + ' · ' + x.u[0])}</td><td class="num">${fmtUsd(x.o.usd)}</td><td class="num">${gorePct(x.o.usd, totG)}</td><td class="num">${fmt(x.o.provs.size)}</td><td class="num">${x.td ? goreLink(x.td, {g: [sel], uni: x.o.k, mec: GORE_TD}, gl + ' · ' + x.u[0] + ' · tratos directos') : '0'}</td></tr>`))}
       ${dlBtn('goreUni', 'gore_unidades_de_compra.csv', 'Descargar unidades de compra (Excel)')}</section>`;
   }
 
@@ -5513,7 +5595,7 @@ function renderGorePage(arg, uArg){
     html += `<section class="block"><h2>Procedimientos de compra realizados · montos y OC</h2>
       <p class="block-note">Mecanismos con que ${gAll ? 'los GORE' : 'el GORE'} compraron en el período. El N° de OC descarga las OC de ese mecanismo.</p>
       <div class="cp-two-col" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:18px;"><div>${goreTable([['Mecanismo'], ['N° OC', 1], ['Monto USD', 1], ['% monto', 1], ['Prom. por OC', 1], ['Proveedores', 1]], trs)}${dlBtn('goreMec', 'gore_por_mecanismo.csv', 'Descargar por mecanismo (Excel)')}</div>
-      <div>${goreBars(S.byMec.map(o => ({label: GORE_MEC[o.k], usd: o.usd, n: o.n, k: o.k, color: goreMecColor(o.k)})), '#007096', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {mec: it.k}), nm + ' · ' + it.label)} OC`)}</div></div></section>`;
+      <div>${goreBars(S.byMec.map(o => ({label: GORE_MEC[o.k], usd: o.usd, n: o.n, k: o.k, color: goreMecColor(o.k)})), '#0B78CC', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {mec: it.k}), nm + ' · ' + it.label)} OC`)}</div></div></section>`;
     const act = S.byMec.map(o => o.k), cats = DATA.meses.slice(rg[0], rg[1] + 1);
     const serie = (f) => act.map(i => ({key: GORE_MEC[i], label: GORE_MEC[i], color: goreMecColor(i), values: cats.map((_, j) => f(rows.filter(r => r[2] === rg[0] + j && r[4] === i)))}));
     dlKey('goreMes', ['Mes', 'N° OC', 'Monto USD'].concat(act.map(i => 'N° OC ' + GORE_MEC[i])), cats.map((c, j) => { const rr = rows.filter(r => r[2] === rg[0] + j); return [c, rr.length, goreR2(rr.reduce((a, r) => a + (r[14] || 0), 0))].concat(act.map(i => rr.filter(r => r[4] === i).length)); }));
@@ -5546,7 +5628,7 @@ function renderGorePage(arg, uArg){
     const pb = S.prd.slice(0, 15).map(o => ({label: D.prd[o.k], usd: o.usd, n: o.n, k: o.k}));
     html += `<section class="block"><h2>Rubros más transados</h2><p class="block-note">Rubro N1 de cada OC (el de su línea de mayor monto), ordenado por monto.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:18px;"><div><p class="cp-cap-note" style="font-weight:600;">Top 15 rubros</p>${goreBars(rb, '#1F7A4D', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {rub: it.k}), nm + ' · ' + it.label)} OC`)}${dlBtn('goreRub', 'gore_rubros.csv', 'Descargar todos los rubros (Excel)')}</div>
-      <div><p class="cp-cap-note" style="font-weight:600;">Top 15 productos genéricos</p>${goreBars(pb, '#007096', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {prd: it.k}), nm + ' · ' + it.label)} OC`)}${dlBtn('gorePrd', 'gore_productos.csv', 'Descargar todos los productos (Excel)')}</div></div></section>`;
+      <div><p class="cp-cap-note" style="font-weight:600;">Top 15 productos genéricos</p>${goreBars(pb, '#0B78CC', it => `${fmtUsd(it.usd)} · ${goreLink(it.n, Object.assign({}, scope, {prd: it.k}), nm + ' · ' + it.label)} OC`)}${dlBtn('gorePrd', 'gore_productos.csv', 'Descargar todos los productos (Excel)')}</div></div></section>`;
   }
 
   // ---- Tratos directos ----
@@ -5949,7 +6031,7 @@ function renderCfmpPage(){
   </div>`;
   if(!S.n) html += '<p class="cp-placeholder">No hay registros con estos filtros en el período elegido.</p>';
   const mkDl = (key, hdr, data) => setDl(key, hdr, data);
-  const bars = (by, colorFn, ex) => goreBars(by.slice(0, 15).map((a, i) => ({label: String(a.k), usd: a.usd, n: a.n, k: a.k, color: colorFn ? colorFn(a, i) : null})), '#007096', it => `${fmtUsd(it.usd)} · ${L(it.n, ex(it), String(it.label))} reg.`);
+  const bars = (by, colorFn, ex) => goreBars(by.slice(0, 15).map((a, i) => ({label: String(a.k), usd: a.usd, n: a.n, k: a.k, color: colorFn ? colorFn(a, i) : null})), '#0B78CC', it => `${fmtUsd(it.usd)} · ${L(it.n, ex(it), String(it.label))} reg.`);
   const sect = (key, titulo, nota, by, kh, exFn, nombreFn, baseFn) => {
     mkDl(key, [kh, 'N° de registros', 'Monto USD', '% del monto USD', 'N° compradores', 'N° proveedores'].concat(baseFn ? ['Base normativa'] : []), by.map(a => [a.k, a.n, goreR2(a.usd), S.usd ? goreR2(100 * a.usd / S.usd) : 0, a.comps.size, a.provs.size].concat(baseFn ? [baseFn(a.k)] : [])));
     const trs = by.map(a => `<tr><td>${esc(nombreFn ? nombreFn(a) : String(a.k))}</td><td class="num">${L(a.n, exFn(a), titulo + ' · ' + a.k)}</td><td class="num">${fmtUsd(a.usd)}</td><td class="num">${gorePct(a.usd, S.usd)}</td><td class="num">${fmt(a.comps.size)}</td><td class="num">${fmt(a.provs.size)}</td>${baseFn ? `<td style="font-size:11px;">${esc(baseFn(a.k))}</td>` : ''}</tr>`);
@@ -6276,7 +6358,7 @@ function licPaint(m, range){
   const p3 = [], p1 = [];
   for(let i = r0; i <= r1; i++){ const rs = B.filter(r => r[0] === i), n = sum(rs, LICB, 'n'); p3.push(n ? Math.round(1000 * sum(rs, LICB, 'n3') / n) / 10 : 0); p1.push(n ? Math.round(1000 * sum(rs, LICB, 'n1') / n) / 10 : 0); }
   document.getElementById('licChartNote').textContent = (pub ? 'Licitaciones públicas' : 'Licitaciones privadas') + ' según el mes de publicación; porcentaje sobre las licitaciones con al menos una oferta.';
-  makeLineChart({svgId: 'licChart', legendId: null, ttId: 'licTt', categories: cats, series: [{key: '3+', label: '% con 3 o más ofertas', color: '#007096', values: p3}, {key: '1', label: '% con una oferta', color: '#C0504D', values: p1}], fmtAxis: v => Math.round(v) + '%', fmtTip: v => String(v).replace('.', ',') + '%', unitLabel: '', showPoints: true});
+  makeLineChart({svgId: 'licChart', legendId: null, ttId: 'licTt', categories: cats, series: [{key: '3+', label: '% con 3 o más ofertas', color: '#0B78CC', values: p3}, {key: '1', label: '% con una oferta', color: '#C0504D', values: p1}], fmtAxis: v => Math.round(v) + '%', fmtTip: v => String(v).replace('.', ',') + '%', unitLabel: '', showPoints: true});
   // por tipo
   const tipos = [...new Set(B.map(r => r[1]))].sort((a, b) => sum(B.filter(r => r[1] === b), LICB, 'n') - sum(B.filter(r => r[1] === a), LICB, 'n'));
   const trT = tipos.map(t => { const rs = B.filter(r => r[1] === t), s = k => sum(rs, LICB, k); return {t, n: s('n'), n1: s('n1'), n2: s('n2'), n3: s('n3'), adj: s('nAdj'), des: s('nDes'), rev: s('nRev'), cer: s('nCer')}; });
@@ -6389,6 +6471,13 @@ function route(){
 }
 window.addEventListener('hashchange', route);
 route();
+
+(function(){ try {
+  var tb = document.getElementById('ccTopbar'); if(!tb || typeof DATA === 'undefined') return;
+  var p = DATA.parcial || {}, ks = Object.keys(p);
+  var f = function(d){ return d.split('-').reverse().join('-'); };
+  tb.textContent = 'Órdenes de compra de ' + DATA.periodo + (ks.length ? ' · ' + ks.map(function(k){ return k + ' es parcial (datos hasta el ' + f(p[k]) + ')'; }).join(' · ') : '') + ' · actualizado el ' + f(DATA.generado);
+} catch(e) {} })();
 </script>
 </body>
 </html>
