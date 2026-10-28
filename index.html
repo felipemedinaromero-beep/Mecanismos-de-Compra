@@ -449,6 +449,14 @@
     <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Explorador de transacciones</h2>
     <p class="block-note">Revisa todas las Órdenes de Compra (Recepción Conforme o Aceptada), ya sea partiendo de un organismo comprador específico o partiendo de un rubro de compra para ver qué organismos han transado en él. En ambos casos puedes acotar por período, mecanismo, región, proveedor y monto.</p>
     <div class="explore-grid">
+      <a class="explore-card" href="#asesor" target="_blank" rel="noopener">
+        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></div>
+        <div class="explore-card-text">
+          <p class="explore-card-title">Asesor estratégico de compras</p>
+          <p class="explore-card-sub">Indica organismo, producto y monto: te recomienda el procedimiento según la Ley 19.886 y el Reglamento, y revisa fragmentación, Convenio Marco, trato directo, precios y proveedores de la región</p>
+        </div>
+        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </a>
       <a class="explore-card" href="#comprador" target="_blank" rel="noopener">
         <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 3 9 21 9"/><line x1="9" y1="21" x2="9" y2="10"/><line x1="15" y1="21" x2="15" y2="10"/></svg></div>
         <div class="explore-card-text">
@@ -585,6 +593,7 @@
 <div id="pacView" class="wrap" style="display:none;"></div>
 <div id="pac26View" class="wrap" style="display:none;"></div>
 <div id="proveedoresView" class="wrap" style="display:none;"></div>
+<div id="asesorView" class="wrap" style="display:none;"></div>
 <div id="presView" class="wrap" style="display:none;"></div>
 
 <script src="data/data.js"></script>
@@ -3473,6 +3482,27 @@ function renderRubroPage(initialKey){
   procInit();
 }
 // Proveedores: búsqueda por nombre o RUT y ficha. El código vive en data/prov/proveedores.js y se carga al abrir la página.
+function renderAsesorPage(payload){
+  const view = document.getElementById('asesorView');
+  if(!view.dataset.ready){
+    view.innerHTML = `
+    <a class="back-link" href="${esc(location.pathname + location.search)}" onclick="goHome(event)">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Volver al panel de mecanismos
+    </a>
+    <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Asesor estratégico de compras</h1>
+    <p class="block-note">Herramienta de apoyo para compradores: según el monto, el producto y la situación de tu compra, indica el procedimiento que corresponde (Ley 19.886, Ley 21.634 y Reglamento DS 661/2024) y cruza tus compras anteriores, los Convenios Marco, los precios de referencia y los proveedores de tu región. Es una orientación; la decisión y su fundamento son del organismo.</p>
+    <div id="asesorHost"></div>`;
+    view.dataset.ready = '1';
+  }
+  const h = document.getElementById('asesorHost');
+  const go = () => window.AsesorCompras && window.AsesorCompras.init(h, payload || '');
+  if(window.AsesorCompras) return go();
+  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r1';
+  sc.onload = go;
+  sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el asesor. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
+  document.head.appendChild(sc);
+}
 function renderProveedoresPage(key){
   const view = document.getElementById('proveedoresView');
   if(!view.dataset.ready){
@@ -6454,6 +6484,7 @@ function route(){
   const compradorMatch = raw.match(/^#comprador(?:=(.+))?$/);
   const rubroMatch = raw.match(/^#rubro(?:=([^&]+))?(?:&prov=(.+))?$/);
   const provMatch = raw.match(/^#proveedores(?:=(.+))?$/);
+  const asesorMatch = raw.match(/^#asesor(?:=(.+))?$/);
 
   document.getElementById('mainView').style.display = 'none';
   document.getElementById('detailView').style.display = 'none';
@@ -6468,6 +6499,7 @@ function route(){
   document.getElementById('pacView').style.display = 'none';
   document.getElementById('pac26View').style.display = 'none';
   document.getElementById('proveedoresView').style.display = 'none';
+  document.getElementById('asesorView').style.display = 'none';
   document.getElementById('presView').style.display = 'none';
   const goreRt = raw.match(/^#gore(?:=(.+))?$/);
   const pac26Match = raw.match(/^#pac26(?:=(.+))?$/);
@@ -6484,6 +6516,10 @@ function route(){
     document.getElementById('rubroView').style.display = 'block';
     window.PROC_PRESET = rubroMatch[2] ? {prov: decodeURIComponent(rubroMatch[2])} : null;
     renderRubroPage(rubroMatch[1]!=null ? decodeURIComponent(rubroMatch[1]) : null);
+  } else if(asesorMatch){
+    document.getElementById('asesorView').style.display = 'block';
+    renderAsesorPage(asesorMatch[1] ? decodeURIComponent(asesorMatch[1]) : '');
+    document.title = 'Asesor estratégico de compras · ChileCompra';
   } else if(provMatch){
     document.getElementById('proveedoresView').style.display = 'block';
     renderProveedoresPage(provMatch[1] ? decodeURIComponent(provMatch[1]) : '');
