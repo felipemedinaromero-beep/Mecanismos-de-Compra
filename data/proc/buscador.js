@@ -23,7 +23,7 @@ const SYN = [['mantencion','mantenimiento','mantenci'],['reparacion','reparar'],
   ['limpieza','aseo'],['asesoria','consultoria'],['capacitacion','capacitar'],['climatizacion','climatizador']];
 const SYN2 = [['aire acondicionado','aires acondicionados','climatizacion','climatizador','aire acond']];
 const STOP = new Set(['de','del','la','el','los','las','y','e','en','para','por','a','al','con','un','una','o','u','se','su']);
-const ST = {token:0, N:null, res:[], cnt:{}, sum:{}, total:0, sumAll:0, capped:false, page:0, sort:{k:'sc', dir:-1}, open:new Set(), params:null, busy:false, q:'', t0:0};
+const ST = {token:0, N:null, res:[], cnt:{}, sum:{}, total:0, sumAll:0, capped:false, page:0, sort:{k:'sc', dir:-1}, open:new Set(), params:null, busy:false, q:'', t0:0, A:null, listOpen:false};
 const ASCII = /^[\x00-\x7f]*$/;
 const esc = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const fmt = n => n == null ? '' : Number(n).toLocaleString('es-CL', {maximumFractionDigits:0});
@@ -137,7 +137,9 @@ function matchShard(job, sh, P){
       for(let k = 0; k < Q.phrases.length; k++) if(ht.indexOf(Q.phrases[k]) >= 0) sc += 3;
       if(Q.joined && ht.indexOf(Q.joined) >= 0) sc += 4;
     }
-    ST.cnt[mec] = (ST.cnt[mec] || 0) + 1; ST.sum[mec] = (ST.sum[mec] || 0) + (mo || 0); ST.total++; ST.sumAll += (mo || 0);
+    const moa = mo > OUT_MAX ? 0 : (mo || 0);
+    ST.cnt[mec] = (ST.cnt[mec] || 0) + 1; ST.sum[mec] = (ST.sum[mec] || 0) + moa; ST.total++; ST.sumAll += moa;
+    accum(job, sh, i, mo || 0);
     if(ST.res.length < CAP){
       const r = {mec, ym: job.ym, sc}; for(const k in sh){ const a = sh[k]; if(Array.isArray(a)) r[k] = a[i]; }
       if(sh.fx && sh.fx[i]) r.fx = sh.fx[i];
@@ -161,7 +163,7 @@ function estadoOf(r){ if(r.mec === 'l') return r.es >= 0 ? D_().est[r.es] : 'Lic
 function linkOf(r){ return r.mec === 'l' ? 'http://www.mercadopublico.cl/fichaLicitacion.html?idLicitacion=' + encodeURIComponent(r.c) : 'https://www.mercadopublico.cl/PurchaseOrder/Modules/PO/DetailsPurchaseOrder.aspx?codigoOC=' + encodeURIComponent(r.c); }
 function prodsOf(r){ return r.p ? r.p.split(',').map(x => D_().prd[+x]) : []; }
 function rubOf(r){ return r.rb >= 0 ? D_().rub[r.rb] : ''; }
-const TIPO_LIC = {LE:'Licitación Pública menor a 100 UTM', L1:'Licitación Pública entre 100 y 1.000 UTM', LP:'Licitación Pública entre 1.000 y 2.000 UTM', LQ:'Licitación Pública entre 2.000 y 5.000 UTM',
+const TIPO_LIC = {L1:'Licitación Pública menor a 100 UTM', LE:'Licitación Pública entre 100 y 1.000 UTM', LP:'Licitación Pública entre 1.000 y 2.000 UTM', LQ:'Licitación Pública entre 2.000 y 5.000 UTM',
   LR:'Licitación Pública mayor a 5.000 UTM', LS:'Licitación Pública de servicios personales especializados', E2:'Licitación Privada menor a 100 UTM', CO:'Licitación Privada entre 100 y 1.000 UTM',
   B2:'Licitación Privada entre 1.000 y 2.000 UTM', H2:'Licitación Privada entre 2.000 y 5.000 UTM', I2:'Licitación Privada mayor a 5.000 UTM', O1:'Licitación Privada de servicios personales especializados', O2:'Licitación Privada'};
 function mecLabel(r){ if(r.mec === 'l') return r.k ? 'Licitación privada' : 'Licitación pública'; return MEC[r.mec].n; }
@@ -191,9 +193,14 @@ function hl(text, P){
   let out = '', p = 0; m.forEach(([a, b]) => { out += esc(t.slice(p, a)) + '<mark>' + esc(t.slice(a, b)) + '</mark>'; p = b; });
   return out + esc(t.slice(p));
 }
+function monCode(s){
+  const n = norm(s);
+  if(!n) return ''; if(n === 'clp' || n.indexOf('peso chileno') >= 0) return 'CLP'; if(n.indexOf('unidad de fomento') >= 0 || n === 'clf' || n === 'uf') return 'UF';
+  if(n.indexOf('dolar') >= 0 || n === 'usd') return 'USD'; if(n.indexOf('euro') >= 0 || n === 'eur') return 'EUR'; if(n.indexOf('revisar') >= 0) return 'Por revisar'; return String(s).trim();
+}
 function monedaTxt(r){
-  if(r.mec === 'l') return r.mo >= 0 ? D_().mon[r.mo] : '';
-  return r.fx ? fmt(r.fx[1]) + ' ' + D_().mon[r.fx[0]] : '';
+  if(r.mec === 'l') return r.mo >= 0 ? monCode(D_().mon[r.mo]) : '';
+  return r.fx ? fmt(r.fx[1]) + ' ' + monCode(D_().mon[r.fx[0]]) : '';
 }
 function fichaField(k, v, wide){ if(v == null || v === '') return ''; return `<div class="pf${wide ? ' pf-w' : ''}"><span class="pf-k">${esc(k)}</span><span class="pf-v">${v}</span></div>`; }
 function fichaHtml(r, P){
@@ -272,7 +279,7 @@ function renderResults(){
   const idx = sortedRes(), pages = Math.max(1, Math.ceil(idx.length / PAGE)); ST.page = Math.min(ST.page, pages - 1);
   const chips = MECS.filter(m => ST.cnt[m.k]).map(m => `<span class="proc-chip" style="--c:${m.c}"><i></i>${esc(m.n)} <b>${fmt(ST.cnt[m.k])}</b></span>`).join('');
   const th = (k, lab, cls) => `<th class="sortable ${cls || ''}" data-sort="${k}">${lab}${ST.sort.k === k ? (ST.sort.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`;
-  const rows = idx.slice(ST.page * PAGE, ST.page * PAGE + PAGE).map(ix => {
+  const rows = !ST.listOpen ? '' : idx.slice(ST.page * PAGE, ST.page * PAGE + PAGE).map(ix => {
     const r = ST.res[ix], o = orgOf(r), u = uniOf(r), m = MEC[r.mec], opened = ST.open.has(ix);
     const mo = r.mec === 'l' ? (r.moc ? '$' + fmt(r.moc) : (r.me ? '<span class="pf-s" title="Monto estimado de la licitación">est. ' + fmt(r.me) + '</span>' : '—')) : '$' + fmt(r.m);
     const pr = prodsOf(r), sub = (pr.length ? pr.slice(0, 2).join('; ') : rubOf(r).split(' › ').pop());
@@ -287,14 +294,17 @@ function renderResults(){
       <td>${esc(estadoOf(r))}</td></tr>` + (opened ? `<tr class="proc-f"><td colspan="8">${fichaHtml(r, P)}</td></tr>` : '');
   }).join('');
   const pg = pages > 1 ? `<div class="proc-pager"><button type="button" data-pg="-1" ${ST.page === 0 ? 'disabled' : ''}>← Anterior</button><span>Página ${ST.page + 1} de ${fmt(pages)}</span><button type="button" data-pg="1" ${ST.page >= pages - 1 ? 'disabled' : ''}>Siguiente →</button></div>` : '';
-  const cap = ST.capped ? `<p class="cp-cap-note">Hay ${fmt(ST.total)} coincidencias. Se muestran y se descargan las ${fmt(CAP)} más recientes; el recuento y los montos del resumen incluyen todas. Acota la búsqueda para verlas completas.</p>` : '';
+  const cap = ST.capped ? `<p class="cp-cap-note">Hay ${fmt(ST.total)} coincidencias. El análisis las incluye todas; el listado y la descarga traen las ${fmt(CAP)} más recientes. Acota la búsqueda para ver el listado completo.</p>` : '';
   const secs = ((Date.now() - ST.t0) / 1000).toFixed(1);
   const nota = ST.notice ? `<p class="cp-cap-note">${esc(ST.notice)}</p>` : '';
   out.innerHTML = `<div class="proc-sum"><div class="proc-sum-n"><b>${fmt(ST.total)}</b> proceso${ST.total === 1 ? '' : 's'}${ST.sumAll ? ' · <b>$' + fmt(ST.sumAll) + '</b> en OC (CLP)' : ''}</div><div class="proc-chips">${chips}</div></div>
     ${cap}${nota}
-    <div class="proc-dl"><label class="pf-s" for="procSort">Ordenar por</label><select id="procSort"><option value="sc"${ST.sort.k === 'sc' ? ' selected' : ''}>Relevancia</option><option value="f"${ST.sort.k === 'f' ? ' selected' : ''}>Más recientes</option><option value="mo"${ST.sort.k === 'mo' ? ' selected' : ''}>Mayor monto</option></select>${typeof dlBtn === 'function' ? dlBtn('procBuscador', 'procesos_de_compra_busqueda.csv', 'Descargar resultados (Excel)') : ''}<span class="pf-s">Búsqueda hecha en ${secs} s · haz clic en una fila para ver todos los antecedentes</span></div>
-    <div class="table-wrap proc-tw"><table class="dt proc-tbl"><thead><tr>${th('mec', 'Mecanismo')}${th('c', 'ID')}${th('f', 'Fecha')}${th('t', 'Título y qué se compró')}${th('org', 'Organismo · unidad')}<th>Proveedor</th>${th('mo', 'Monto (CLP)', 'num')}<th>Estado</th></tr></thead><tbody>${rows}</tbody></table></div>
-    ${pg}`;
+    <div class="proc-dl">${typeof dlBtn === 'function' ? dlBtn('procBuscador', 'procesos_de_compra_busqueda.csv', 'Descargar análisis y listado (Excel)') : ''}<span class="pf-s">El Excel trae el resumen, las tablas de este análisis y el listado; el CSV trae solo el listado. Búsqueda hecha en ${secs} s.</span></div>
+    ${anHtml()}
+    <details class="an-list" id="procList"${ST.listOpen ? ' open' : ''}><summary>Ver el listado de procesos (${fmt(Math.min(ST.total, CAP))})</summary>
+      <div class="proc-dl"><label class="pf-s" for="procSort">Ordenar por</label><select id="procSort"><option value="sc"${ST.sort.k === 'sc' ? ' selected' : ''}>Relevancia</option><option value="f"${ST.sort.k === 'f' ? ' selected' : ''}>Más recientes</option><option value="mo"${ST.sort.k === 'mo' ? ' selected' : ''}>Mayor monto</option></select><span class="pf-s">Haz clic en una fila para ver todos los antecedentes</span></div>
+      ${ST.listOpen ? `<div class="table-wrap proc-tw"><table class="dt proc-tbl"><thead><tr>${th('mec', 'Mecanismo')}${th('c', 'ID')}${th('f', 'Fecha')}${th('t', 'Título y qué se compró')}${th('org', 'Organismo · unidad')}<th>Proveedor</th>${th('mo', 'Monto (CLP)', 'num')}<th>Estado</th></tr></thead><tbody>${rows}</tbody></table></div>
+      ${pg}` : ''}</details>`;
 }
 function exportRows(){
   const D = D_();
@@ -309,7 +319,226 @@ function exportRows(){
   });
 }
 const EXP_HDR = ['Mecanismo','ID proceso','Fecha','Título / nombre','Descripción','Cód. organismo','Organismo','Sector','Cód. unidad de compra','Unidad de compra','RUT unidad','Región','Comuna / ciudad','Dirección',
-  'Proveedor(es)','RUT proveedor(es)','Monto OC (CLP)','Monto estimado','Moneda','Estado','N° oferentes','N° OC','Causal / procedencia','Tipo licitación / ID relacionado','Código PAC','Licitación de origen','Productos','Rubro › familia › clase','N° ítems','Enlace Mercado Público'];
+  'Proveedor(es)','RUT proveedor(es)','Monto OC (CLP)','Monto estimado','Moneda (monto estimado u original)','Estado','N° oferentes','N° OC','Causal / procedencia','Tipo licitación / ID relacionado','Código PAC','Licitación de origen','Productos','Rubro › familia › clase','N° ítems','Enlace Mercado Público'];
+
+// ---------- análisis de los resultados ----------
+// Se acumula durante la lectura de cada archivo (todas las coincidencias, sin el tope del listado) y se dibuja al final.
+const OUT_MAX = 2e11;   // un proceso con más de $200.000 millones se trata como monto atípico: se informa aparte y no entra en sumas ni promedios
+const HB = 0.02, HN = 1400;   // histograma logarítmico (paso de 2 %) para la mediana y los percentiles
+const RANGOS = [[0,1e6,'Hasta $1 millón'],[1e6,3e6,'$1 a $3 millones'],[3e6,1e7,'$3 a $10 millones'],[1e7,3e7,'$10 a $30 millones'],[3e7,1e8,'$30 a $100 millones'],
+  [1e8,5e8,'$100 a $500 millones'],[5e8,1e9,'$500 a $1.000 millones'],[1e9,Infinity,'Más de $1.000 millones']];
+const OFERTAS = [[1,1,'1 oferta'],[2,2,'2 ofertas'],[3,3,'3 ofertas'],[4,5,'4 a 5 ofertas'],[6,10,'6 a 10 ofertas'],[11,Infinity,'Más de 10 ofertas']];
+const TIPO_LAB = {'l-pub':'Licitación pública','l-priv':'Licitación privada'};
+const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; };
+const pct = (a, b) => b ? (100 * a / b).toLocaleString('es-CL', {maximumFractionDigits: 1}) + ' %' : '—';
+const dec1 = x => x == null || isNaN(x) ? '—' : x.toLocaleString('es-CL', {maximumFractionDigits: 1});
+function sig3(x){ if(!(x > 0)) return x; const p = Math.pow(10, Math.floor(Math.log10(x)) - 2); return Math.round(x / p) * p; }
+function fmtM(n){
+  if(n == null || isNaN(n)) return '—'; n = Math.round(n); const a = Math.abs(n);
+  if(a >= 1e12) return '$' + (n / 1e12).toLocaleString('es-CL', {maximumFractionDigits: 2}) + ' billones';
+  if(a >= 1e8) return '$' + Math.round(n / 1e6).toLocaleString('es-CL') + ' millones';
+  if(a >= 1e6){ const v = Math.round(n / 1e5) / 10; return '$' + v.toLocaleString('es-CL', {maximumFractionDigits: 1}) + (v === 1 ? ' millón' : ' millones'); }
+  return '$' + fmt(n);
+}
+function newAgg(){
+  return {n: 0, nAmt: 0, sum: 0, min: null, max: null, hist: new Float64Array(HN), out: {n: 0, sum: 0, top: []},
+    tipo: {}, tp: {}, rango: RANGOS.map(() => [0, 0]),
+    comp: {nL: 0, nFicha: 0, nOf: 0, sumOf: 0, hist: OFERTAS.map(() => 0), est: {}, nAdj: 0, nNs: 0, sumNs: 0, nOfAdj: 0, sumOfAdj: 0},
+    reg: Array.from({length: 17}, () => [0, 0]), sec: new Map(), org: new Map(), prov: new Map(), prd: new Map(), rub: new Map(), mes: new Map(),
+    cand: [], candSeen: 0, estAdj: -2, done: false, tiny: 0};
+}
+function bump(m, k, mo){ let e = m.get(k); if(!e){ e = [0, 0]; m.set(k, e); } e[0]++; e[1] += mo; return e; }
+function accum(job, sh, i, mo){
+  const A = ST.A, D = window.PROC_DIC, N = ST.N, mec = job.mec, isL = mec === 'l';
+  if(A.estAdj === -2) A.estAdj = D.est.findIndex(e => e.indexOf('Adjudicada') === 0);
+  A.n++;
+  const tk = isL ? (sh.k[i] ? 'l-priv' : 'l-pub') : mec;
+  const T = A.tipo[tk] || (A.tipo[tk] = [0, 0, 0]); T[0]++;
+  if(isL){ const tp = sh.tp[i] || '?'; (A.tp[tp] || (A.tp[tp] = [0, 0, 0]))[0]++; }
+  const atip = mo > OUT_MAX, m = (mo > 0 && !atip) ? mo : 0;
+  if(atip){
+    A.out.n++; A.out.sum += mo; A.out.top.push({c: sh.c[i], m: mo, t: sh.t[i], mec}); A.out.top.sort((a, b) => b.m - a.m); if(A.out.top.length > 5) A.out.top.length = 5;
+  } else if(m){
+    A.nAmt++; A.sum += m; T[1]++; T[2] += m;
+    if(isL){ const e = A.tp[sh.tp[i] || '?']; e[1]++; e[2] += m; }
+    const ref = () => ({c: sh.c[i], m, mec, ym: job.ym, t: sh.t[i], o: sh.o[i]});
+    if(m < 1000) A.tiny++; else if(!A.min || m < A.min.m) A.min = ref();
+    if(!A.max || m > A.max.m) A.max = ref();
+    A.hist[Math.min(HN - 1, Math.max(0, Math.floor(Math.log(m) / HB)))]++;
+    for(let k = 0; k < RANGOS.length; k++) if(m < RANGOS[k][1]){ A.rango[k][0]++; A.rango[k][1] += m; break; }
+  }
+  bump(A.mes, job.ym, m);
+  const rg = N.regc[window.PROC_DIC.uni[sh.u[i]][4]], re = A.reg[rg < 0 ? 16 : rg]; re[0]++; re[1] += m;
+  const o = D.org[sh.o[i]]; bump(A.sec, o[2] && o[2] !== 'SINDATO' ? o[2] : 'Sin sector', m); bump(A.org, sh.o[i], m);
+  // proveedores: en licitaciones se cuentan los adjudicados y los de las OC; el monto sale de las OC (CLP)
+  if(isL){
+    const seen = new Set();
+    const add = (s, withAmt) => { if(!s) return; s.split(',').forEach(x => { const p = x.split(':'), k = +p[0]; if(isNaN(k)) return;
+      let e = A.prov.get(k); if(!e){ e = [0, 0]; A.prov.set(k, e); } if(!seen.has(k)){ e[0]++; seen.add(k); } if(withAmt) e[1] += (+p[1] || 0); }); };
+    add(sh.adj[i], false); add(sh.ocv[i], true);
+  } else if(sh.v[i] >= 0) bump(A.prov, sh.v[i], m);
+  const ps = sh.p[i]; if(ps) ps.split(',').forEach(x => { bump(A.prd, +x, 0); });
+  const rb = sh.rb[i]; if(rb >= 0){ const key = sentence(D.rub[rb].split(' › ')[0]); bump(A.rub, key, m); }
+  if(isL){
+    const C = A.comp; C.nL++;
+    if(!sh.sb[i]){
+      C.nFicha++; const es = sh.es[i]; C.est[es] = (C.est[es] || 0) + 1;
+      const no = sh.no[i] || 0;
+      if(no > 0){ C.nOf++; C.sumOf += no; for(let k = 0; k < OFERTAS.length; k++) if(no >= OFERTAS[k][0] && no <= OFERTAS[k][1]){ C.hist[k]++; break; } }
+      if(es === A.estAdj){
+        C.nAdj++; const ns = sh.ns[i] || 0; if(ns > 0){ C.nNs++; C.sumNs += ns; } if(no > 0){ C.nOfAdj++; C.sumOfAdj += no; }
+        if(!sh.k[i] && no >= 3 && m){
+          A.candSeen++;
+          const rec = {c: sh.c[i], ym: job.ym, f: sh.f[i], t: sh.t[i], o: sh.o[i], u: sh.u[i], m, no, adj: sh.adj[i], ocv: sh.ocv[i], tp: sh.tp[i]};
+          if(A.cand.length < 20000) A.cand.push(rec); else { const j = Math.floor(Math.random() * A.candSeen); if(j < 20000) A.cand[j] = rec; }
+        }
+      }
+    }
+  }
+}
+function histQ(A, q){
+  const h = A.hist; let tot = 0; for(let i = 0; i < HN; i++) tot += h[i]; if(!tot) return null;
+  const t = q * tot; let c = 0; for(let i = 0; i < HN; i++){ c += h[i]; if(c >= t) return Math.exp((i + 0.5) * HB); } return null;
+}
+function pickCases(A){
+  const c = A.cand; if(!c.length) return {med: null, list: [], n: 0};
+  const ms = c.map(x => x.m).sort((a, b) => a - b), med = ms[Math.floor(ms.length / 2)];
+  const sorted = c.slice().sort((a, b) => Math.abs(Math.log(a.m / med)) - Math.abs(Math.log(b.m / med)) || b.no - a.no);
+  const list = [], porOrg = {};
+  for(const x of sorted){ const k = x.o; if((porOrg[k] || 0) >= 2) continue; porOrg[k] = (porOrg[k] || 0) + 1; list.push(x); if(list.length >= 10) break; }
+  return {med, list, n: A.candSeen};
+}
+function caseProv(x){ const a = provParse(x.adj); const l = a.length ? a : provParse(x.ocv); return l.length ? l[0].p[1] + (l.length > 1 ? ' (+' + (l.length - 1) + ')' : '') : ''; }
+function topList(m, by, n){
+  const a = [...m.entries()].map(([k, v]) => ({k, n: v[0], s: v[1]}));
+  a.sort((x, y) => by === 's' ? (y.s - x.s || y.n - x.n) : (y.n - x.n || y.s - x.s));
+  return a.slice(0, n);
+}
+function bars(rows, key, opt){
+  opt = opt || {}; const mx = Math.max(1, ...rows.map(r => r[key]));
+  return `<div class="an-bars">${rows.map(r => `<div class="an-b${r.attr ? '" ' + r.attr + ' tabindex="0" role="button' : ''}"><div class="an-bl" title="${esc(r.lab)}">${esc(r.lab)}</div>
+    <div class="an-bt"><i style="width:${Math.max(1, Math.round(100 * r[key] / mx))}%;background:${r.c || opt.c || 'var(--cc-royal)'}"></i></div><div class="an-bv">${r.val}</div></div>`).join('')}</div>`;
+}
+const an = {
+  kpi(lab, val, sub){ return `<div class="an-k"><div class="an-kl">${lab}</div><div class="an-kv">${val}</div>${sub ? `<div class="an-ks">${sub}</div>` : ''}</div>`; },
+  panel(h, body, note, wide){ return body ? `<section class="an-p${wide ? ' an-w' : ''}"><h3>${h}</h3>${body}${note ? `<p class="an-note">${note}</p>` : ''}</section>` : ''; }
+};
+function regTiles(A){
+  const D = REGS.map((r, i) => ({i, lab: r[0], n: A.reg[i][0], s: A.reg[i][1]}));
+  const mx = Math.max(1, ...D.map(r => r.n));
+  const w = [34, 38, 44, 40, 44, 52, 66, 50, 48, 44, 48, 44, 40, 46, 34, 30];
+  const rows = D.map(r => {
+    const a = r.n ? 0.18 + 0.82 * Math.sqrt(r.n / mx) : 0.06;
+    return `<div class="an-rg" data-reg="${r.i}" tabindex="0" role="button" title="Filtrar por esta región"><span class="an-rl">${esc(r.lab)}</span>
+      <span class="an-rt"><i style="width:${w[r.i]}px;background:rgba(0,50,162,${a.toFixed(2)})"></i></span><span class="an-rv">${fmt(r.n)}${r.s ? ' · ' + fmtM(r.s) : ''}</span></div>`;
+  }).join('');
+  const sin = A.reg[16][0] ? `<div class="an-rs">Sin región informada: ${fmt(A.reg[16][0])}</div>` : '';
+  return `<div class="an-map">${rows}</div>${sin}`;
+}
+function anHtml(){
+  const A = ST.A, D = window.PROC_DIC; if(!A || !A.n) return '';
+  const med = histQ(A, .5), q1 = histQ(A, .25), q3 = histQ(A, .75), avg = A.nAmt ? A.sum / A.nAmt : null;
+  const C = A.comp, hasL = C.nL > 0, cases = A.cases || pickCases(A);
+  const lnk = x => x ? `<a href="${esc(linkOf({mec: x.mec, c: x.c}))}" target="_blank" rel="noopener">${esc(x.c)}</a>` : '';
+  let kp = an.kpi('Procesos', fmt(A.n), A.nAmt < A.n ? fmt(A.nAmt) + ' con monto informado' : 'todos con monto')
+    + an.kpi('Monto total', fmtM(A.sum), 'en OC, pesos chilenos')
+    + an.kpi('Monto mínimo', A.min ? fmtM(A.min.m) : '—', A.min ? lnk(A.min) : '')
+    + an.kpi('Monto máximo', A.max ? fmtM(A.max.m) : '—', A.max ? lnk(A.max) : '')
+    + an.kpi('Mediana', med ? '≈ ' + fmtM(sig3(med)) : '—', q1 && q3 ? 'la mitad central: ' + fmtM(sig3(q1)) + ' a ' + fmtM(sig3(q3)) : '')
+    + an.kpi('Promedio', fmtM(avg), 'por proceso con monto')
+    + an.kpi('Organismos', fmt(A.org.size), 'distintos')
+    + an.kpi('Proveedores', fmt(A.prov.size), 'distintos');
+  if(hasL && C.nOf) kp += an.kpi('Ofertas por licitación', dec1(C.sumOf / C.nOf), 'promedio; ' + fmt(C.nOf) + ' licitaciones con dato')
+    + an.kpi('Con 3 o más ofertas', pct(C.hist[2] + C.hist[3] + C.hist[4] + C.hist[5], C.nOf), 'de las que informan ofertas');
+  // mecanismo y tipo
+  const order = ['l-pub', 'l-priv', 'td', 'ca', 'cm', 'cc', 'ot'];
+  const tRows = order.filter(k => A.tipo[k]).map(k => ({lab: TIPO_LAB[k] || MEC[k].n, c: (MEC[k] || MEC.l).c, n: A.tipo[k][0], s: A.tipo[k][2], val: `${fmt(A.tipo[k][0])} · ${pct(A.tipo[k][0], A.n)} · ${fmtM(A.tipo[k][2])}`}));
+  let tipoHtml = tRows.length ? bars(tRows, 'n') : '';
+  const tpKeys = Object.keys(A.tp).sort((a, b) => A.tp[b][0] - A.tp[a][0]);
+  if(tpKeys.length > 1) tipoHtml += `<div class="an-sub">Licitaciones por tipo</div>` + bars(tpKeys.slice(0, 8).map(k => ({lab: k + (TIPO_LIC[k] ? ' · ' + TIPO_LIC[k].replace('Licitación ', '') : ''), c: '#0032A2', n: A.tp[k][0], val: `${fmt(A.tp[k][0])} · ${fmtM(A.tp[k][2])}`})), 'n');
+  // rangos
+  const rgHtml = A.nAmt ? bars(RANGOS.map((r, k) => ({lab: r[2], n: A.rango[k][0], c: '#0B78CC', val: `${fmt(A.rango[k][0])} · ${pct(A.rango[k][0], A.nAmt)} · ${fmtM(A.rango[k][1])}`})), 'n') : '';
+  // competencia
+  let compHtml = '';
+  if(hasL && C.nFicha){
+    const estRows = Object.keys(C.est).map(k => ({lab: +k >= 0 ? D.est[+k] : 'Sin estado', n: C.est[k], c: '#4A2E8F', val: `${fmt(C.est[k])} · ${pct(C.est[k], C.nFicha)}`})).sort((a, b) => b.n - a.n);
+    compHtml = (C.nOf ? `<div class="an-sub">Ofertas recibidas (${fmt(C.nOf)} de ${fmt(C.nFicha)} licitaciones con ficha informan el dato)</div>`
+      + bars(OFERTAS.map((o, k) => ({lab: o[2], n: C.hist[k], c: '#005AF8', val: `${fmt(C.hist[k])} · ${pct(C.hist[k], C.nOf)}`})), 'n') : '<p class="an-note">Las licitaciones de esta búsqueda no informan el número de ofertas.</p>')
+      + `<div class="an-sub">Estado de las licitaciones con ficha</div>` + bars(estRows, 'n')
+      + `<p class="an-note">Adjudicadas: ${fmt(C.nAdj)}${C.nNs ? ' · proveedores adjudicados por licitación: ' + dec1(C.sumNs / C.nNs) + ' en promedio' : ''}${C.nOfAdj ? ' · ofertas por licitación adjudicada: ' + dec1(C.sumOfAdj / C.nOfAdj) : ''}.</p>`;
+  }
+  // sectores, organismos, proveedores, productos, rubros
+  const sec = topList(A.sec, 'n', 8).map(r => ({lab: r.k, n: r.n, c: '#007096', val: `${fmt(r.n)} · ${fmtM(r.s)}`}));
+  const org = topList(A.org, 's', 10).map(r => { const o = D.org[r.k]; return {lab: o[1], n: r.s || r.n, c: '#0032A2', attr: `data-org="${esc(o[1])}"`, val: `${fmtM(r.s)} · ${fmt(r.n)} proc.`}; });
+  const pv = topList(A.prov, 's', 10).map(r => { const p = D.prov[r.k]; return {lab: p[1], n: r.s || r.n, c: '#4A2E8F', attr: `data-prov="${esc(p[0])}"`, val: `${r.s ? fmtM(r.s) + ' · ' : ''}${fmt(r.n)} proc.`}; });
+  const pr = topList(A.prd, 'n', 10).map(r => ({lab: D.prd[r.k], n: r.n, c: '#6FD3E0', val: fmt(r.n) + ' proc.'}));
+  const rb = topList(A.rub, 's', 8).map(r => ({lab: r.k, n: r.s || r.n, c: '#E94860', val: `${fmtM(r.s)} · ${fmt(r.n)} proc.`}));
+  const ms = [...A.mes.keys()].sort(); const mm = ms.map(k => ({lab: ymLabel(k), n: A.mes.get(k)[0], s: A.mes.get(k)[1]}));
+  const mesHtml = mm.length > 1 ? bars(mm.map(x => ({lab: x.lab, n: x.n, c: '#0B78CC', val: `${fmt(x.n)} · ${fmtM(x.s)}`})), 'n') : '';
+  // casos de referencia
+  let casos = '';
+  if(cases.list.length){
+    const rows = cases.list.map(x => { const o = D.org[x.o];
+      return `<tr><td class="proc-id"><a href="${esc(linkOf({mec: 'l', c: x.c}))}" target="_blank" rel="noopener">${esc(x.c)}</a></td><td>${dayStr(x.f)}</td><td class="proc-t">${hl(x.t, ST.params && ST.params.q)}</td><td>${esc(o[1])}</td><td>${esc(caseProv(x))}</td><td class="num">${fmtM(x.m)}</td><td class="num">${x.no}</td></tr>`; }).join('');
+    casos = `<div class="table-wrap proc-tw"><table class="dt proc-tbl an-tbl"><thead><tr><th>ID</th><th>Fecha</th><th>Título</th><th>Organismo</th><th>Adjudicado a</th><th class="num">Monto OC</th><th class="num">Ofertas</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p class="an-note">Son licitaciones públicas adjudicadas con 3 o más ofertas y monto cercano a la mediana (${fmtM(cases.med)}) de las ${fmt(cases.n)} que cumplen esa condición en esta búsqueda, máximo dos por organismo. Sirven como punto de partida para revisar bases, criterios y precios; no son una recomendación.</p>`;
+  } else if(hasL) casos = '<p class="an-note">Esta búsqueda no tiene licitaciones públicas adjudicadas con 3 o más ofertas y monto conocido.</p>';
+  const ext = (A.min || A.max) ? `<p class="an-note">Menor monto: ${A.min ? lnk(A.min) + ' · ' + esc(A.min.t) : '—'}${A.tiny ? ' (se omiten ' + fmt(A.tiny) + ' OC con monto menor a $1.000, que suelen ser montos simbólicos o de prueba)' : ''}<br>Mayor monto: ${A.max ? lnk(A.max) + ' · ' + esc(A.max.t) : '—'}</p>` : '';
+  const atip = A.out.n ? `<div class="an-warn"><b>${fmt(A.out.n)} proceso${A.out.n === 1 ? '' : 's'} con monto atípico (más de $200.000 millones cada uno, ${fmtM(A.out.sum)} en total)</b> quedó fuera de las sumas, promedios y rangos. Suelen ser errores de digitación en la OC: ${A.out.top.map(x => lnk(x) + ' (' + fmtM(x.m) + ')').join(', ')}. Se cuentan en el número de procesos.</div>` : '';
+  return `${atip}<div class="an-kpis">${kp}</div>
+    <div class="an-grid">
+      ${an.panel('Mecanismo y tipo de proceso', tipoHtml, 'Barras según número de procesos; a la derecha, el monto de las OC.')}
+      ${an.panel('Rangos de monto', rgHtml, 'Solo procesos con monto conocido. En licitaciones es el monto de las OC emitidas.' + ext)}
+      ${an.panel('Competencia y adjudicación', compHtml)}
+      ${an.panel('Mapa por región del comprador', regTiles(A), 'De norte a sur; más oscuro, más procesos. Haz clic en una región para filtrar la búsqueda.')}
+      ${an.panel('Sectores compradores', sec.length ? bars(sec, 'n') : '')}
+      ${an.panel('Rubros', rb.length ? bars(rb, 'n') : '', 'Rubro del producto principal, según el catálogo de Mercado Público.')}
+      ${an.panel('Organismos que más compran', org.length ? bars(org, 'n') : '', 'Haz clic en un organismo para filtrar la búsqueda.')}
+      ${an.panel('Proveedores con más monto', pv.length ? bars(pv, 'n') : '', 'Monto de las OC; en licitaciones sin OC solo se cuenta la adjudicación. Haz clic para filtrar por proveedor.')}
+      ${an.panel('Productos más frecuentes', pr.length ? bars(pr, 'n') : '', 'Número de procesos que incluyen el producto.')}
+      ${an.panel('Evolución mensual', mesHtml, 'Procesos por mes de publicación (licitaciones) o de envío de la OC.')}
+      ${an.panel('Casos de referencia', casos, '', true)}
+    </div>`;
+}
+function anSheets(){
+  const A = ST.A, D = D_(); const C = A.comp, med = histQ(A, .5), q1 = histQ(A, .25), q3 = histQ(A, .75), cases = A.cases || pickCases(A);
+  const S = [];
+  S.push({name: 'Resumen', headers: ['Indicador', 'Valor', 'Nota'], rows: [
+    ['Búsqueda', ST.params ? ST.params.q.raw : '', 'Texto buscado'],
+    ['Procesos encontrados', A.n, 'Todos los que coinciden, aunque el listado se corte en ' + fmt(CAP)],
+    ['Procesos con monto informado', A.nAmt, ''],
+    ['Monto total (CLP)', Math.round(A.sum), 'Sin los montos atípicos'],
+    ['Monto mínimo (CLP)', A.min ? Math.round(A.min.m) : '', (A.min ? A.min.c : '') + (A.tiny ? ' · se omiten ' + A.tiny + ' OC con monto menor a $1.000' : '')],
+    ['Monto máximo (CLP)', A.max ? Math.round(A.max.m) : '', A.max ? A.max.c : ''],
+    ['Mediana aproximada (CLP)', med ? Math.round(sig3(med)) : '', 'Precisión de 1 %'],
+    ['Primer cuartil aproximado (CLP)', q1 ? Math.round(sig3(q1)) : '', ''],
+    ['Tercer cuartil aproximado (CLP)', q3 ? Math.round(sig3(q3)) : '', ''],
+    ['Promedio (CLP)', A.nAmt ? Math.round(A.sum / A.nAmt) : '', ''],
+    ['Organismos distintos', A.org.size, ''], ['Proveedores distintos', A.prov.size, ''],
+    ['Procesos con monto atípico (más de $200.000 millones)', A.out.n, A.out.top.map(x => x.c + ' ' + Math.round(x.m)).join('; ')],
+    ['Licitaciones con ficha que informan ofertas', C.nOf, C.nFicha ? 'de ' + C.nFicha + ' licitaciones con ficha' : ''],
+    ['Promedio de ofertas por licitación', C.nOf ? +(C.sumOf / C.nOf).toFixed(2) : '', ''],
+    ['Licitaciones adjudicadas', C.nAdj, '']]});
+  S.push({name: 'Por mecanismo', headers: ['Mecanismo o tipo', 'Procesos', '% de procesos', 'Procesos con monto', 'Monto OC (CLP)'],
+    rows: ['l-pub', 'l-priv', 'td', 'ca', 'cm', 'cc', 'ot'].filter(k => A.tipo[k]).map(k => [TIPO_LAB[k] || MEC[k].n, A.tipo[k][0], +(100 * A.tipo[k][0] / A.n).toFixed(1), A.tipo[k][1], Math.round(A.tipo[k][2])])
+      .concat(Object.keys(A.tp).sort((a, b) => A.tp[b][0] - A.tp[a][0]).map(k => ['Tipo ' + k + (TIPO_LIC[k] ? ' · ' + TIPO_LIC[k] : ''), A.tp[k][0], +(100 * A.tp[k][0] / A.n).toFixed(1), A.tp[k][1], Math.round(A.tp[k][2])]))});
+  S.push({name: 'Rangos de monto', headers: ['Rango (CLP)', 'Procesos', '% de procesos con monto', 'Monto OC (CLP)'], rows: RANGOS.map((r, k) => [r[2], A.rango[k][0], A.nAmt ? +(100 * A.rango[k][0] / A.nAmt).toFixed(1) : '', Math.round(A.rango[k][1])])});
+  if(C.nL){
+    S.push({name: 'Competencia', headers: ['Indicador', 'Licitaciones', '% del total que informa'], rows: OFERTAS.map((o, k) => [o[2], C.hist[k], C.nOf ? +(100 * C.hist[k] / C.nOf).toFixed(1) : '']).concat(
+      Object.keys(C.est).map(k => ['Estado: ' + (+k >= 0 ? D.est[+k] : 'Sin estado'), C.est[k], C.nFicha ? +(100 * C.est[k] / C.nFicha).toFixed(1) : ''])) });
+  }
+  S.push({name: 'Por región', headers: ['Región', 'Procesos', 'Monto OC (CLP)'], rows: REGS.map((r, i) => [r[0], A.reg[i][0], Math.round(A.reg[i][1])]).concat(A.reg[16][0] ? [['Sin región', A.reg[16][0], Math.round(A.reg[16][1])]] : [])});
+  S.push({name: 'Por sector', headers: ['Sector', 'Procesos', 'Monto OC (CLP)'], rows: topList(A.sec, 'n', 60).map(r => [r.k, r.n, Math.round(r.s)])});
+  S.push({name: 'Rubros', headers: ['Rubro', 'Procesos', 'Monto OC (CLP)'], rows: topList(A.rub, 's', 60).map(r => [r.k, r.n, Math.round(r.s)])});
+  S.push({name: 'Organismos', headers: ['Cód. organismo', 'Organismo', 'Sector', 'Procesos', 'Monto OC (CLP)'], rows: topList(A.org, 's', 100).map(r => { const o = D.org[r.k]; return [o[0], o[1], o[2], r.n, Math.round(r.s)]; })});
+  S.push({name: 'Proveedores', headers: ['RUT', 'Proveedor', 'Procesos', 'Monto OC (CLP)'], rows: topList(A.prov, 's', 100).map(r => { const p = D.prov[r.k]; return [p[0], p[1], r.n, Math.round(r.s)]; })});
+  S.push({name: 'Productos', headers: ['Producto', 'Procesos'], rows: topList(A.prd, 'n', 100).map(r => [D.prd[r.k], r.n])});
+  S.push({name: 'Por mes', headers: ['Mes', 'Procesos', 'Monto OC (CLP)'], rows: [...A.mes.keys()].sort().map(k => [ymLabel(k), A.mes.get(k)[0], Math.round(A.mes.get(k)[1])])});
+  S.push({name: 'Casos de referencia', headers: ['ID licitación', 'Fecha', 'Título', 'Organismo', 'Adjudicado a', 'Monto OC (CLP)', 'N° de ofertas', 'Enlace'],
+    rows: cases.list.map(x => [x.c, dayStr(x.f), x.t, D.org[x.o][1], caseProv(x), Math.round(x.m), x.no, linkOf({mec: 'l', c: x.c})])});
+  S.push({name: 'Listado', headers: EXP_HDR, rows: exportRows()});
+  return S;
+}
 
 // ---------- interfaz ----------
 const CSS = `
@@ -360,6 +589,36 @@ const CSS = `
 .proc-pager{display:flex;gap:14px;align-items:center;justify-content:center;margin:12px 0 2px;font-size:12.5px;color:var(--text-secondary);}
 .proc-pager button{font:inherit;font-size:12.5px;padding:6px 14px;border-radius:99px;border:1px solid rgba(0,50,162,.35);background:#fff;color:var(--cc-navy);cursor:pointer;} .proc-pager button:disabled{opacity:.4;cursor:default;}
 .proc-h2{font-size:16px;margin:1.6rem 0 6px;color:var(--cc-dark);}
+.an-warn{background:#FFF6E5;border:1px solid #E8C26A;border-radius:12px;padding:10px 14px;font-size:12.5px;color:var(--cc-dark);margin:8px 0 12px;}
+.an-warn a{color:var(--cc-navy);font-weight:700;}
+.an-kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px;margin:10px 0 14px;}
+.an-k{border:1px solid var(--border);border-radius:14px;padding:10px 12px;background:#fff;}
+.an-kl{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);font-weight:700;}
+.an-kv{font-size:19px;font-weight:700;color:var(--cc-navy);margin:3px 0 2px;line-height:1.15;overflow-wrap:anywhere;}
+.an-ks{font-size:11px;color:var(--text-secondary);overflow-wrap:anywhere;} .an-ks a{color:var(--cc-navy);}
+.an-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:12px;margin:0 0 14px;}
+.an-p{border:1px solid var(--border);border-radius:14px;padding:12px 14px;background:#fff;min-width:0;}
+.an-p.an-w{grid-column:1/-1;}
+.an-p h3{margin:0 0 8px;font-size:13px;color:var(--cc-dark);}
+.an-sub{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);font-weight:700;margin:12px 0 6px;}
+.an-note{font-size:11px;color:var(--text-secondary);margin:8px 0 0;line-height:1.45;} .an-note a{color:var(--cc-navy);}
+.an-bars{display:grid;gap:5px;}
+.an-b{display:grid;grid-template-columns:minmax(90px,40%) 1fr minmax(96px,auto);gap:8px;align-items:center;font-size:11.5px;border-radius:8px;}
+.an-b[data-org],.an-b[data-prov],.an-rg{cursor:pointer;} .an-b[data-org]:hover,.an-b[data-prov]:hover,.an-rg:hover{background:var(--cc-mist);}
+.an-bl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--cc-dark);}
+.an-bt{height:10px;background:#EDF1F7;border-radius:99px;overflow:hidden;} .an-bt i{display:block;height:100%;border-radius:99px;}
+.an-bv{text-align:right;color:var(--text-secondary);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.an-map{display:grid;gap:2px;}
+.an-rg{display:grid;grid-template-columns:minmax(120px,44%) 74px 1fr;align-items:center;gap:8px;font-size:11.5px;padding:1px 4px;border-radius:8px;}
+.an-rl{color:var(--cc-dark);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;}
+.an-rt{display:flex;justify-content:center;} .an-rt i{display:block;height:15px;border-radius:5px;border:1px solid rgba(0,50,162,.25);}
+.an-rv{color:var(--text-secondary);white-space:nowrap;} .an-rs{font-size:11px;color:var(--text-secondary);margin-top:6px;}
+.an-tbl td,.an-tbl th{font-size:11.5px;}
+.an-list{border:1px solid var(--border);border-radius:14px;padding:0 14px;background:#fff;margin:6px 0 8px;}
+.an-list>summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--cc-navy);padding:12px 0;list-style:none;} .an-list>summary::-webkit-details-marker{display:none;}
+.an-list>summary::before{content:'▸ ';} .an-list[open]>summary::before{content:'▾ ';}
+.an-list[open]{padding-bottom:12px;}
+@media (max-width:640px){.an-grid{grid-template-columns:1fr}.an-b{grid-template-columns:minmax(80px,34%) 1fr;}.an-bv{grid-column:1/-1;text-align:left;}.an-rg{grid-template-columns:minmax(90px,38%) 56px 1fr}}
 @media (max-width:640px){.proc-go{width:100%}.proc-filters .filter-field{flex:1 1 100%}.proc-filters .filter-field input,.proc-filters .filter-field select{width:100%}}
 `;
 function injectCss(){ if(document.getElementById('procCss')) return; const s = document.createElement('style'); s.id = 'procCss'; s.textContent = CSS; document.head.appendChild(s); }
@@ -387,7 +646,7 @@ function init(host){
         <optgroup label="Licitaciones"><option value="l:Adjudicada">Adjudicada</option><option value="l:Cerrada">Cerrada (sin adjudicar)</option><option value="l:Desierta">Desierta</option><option value="l:Revocada">Revocada</option><option value="l:Suspendida">Suspendida</option><option value="l:sin">Anterior a ene-2025 (sin ficha de bases)</option></optgroup>
         <optgroup label="Órdenes de compra"><option value="o:0">Aceptada</option><option value="o:1">Recepción conforme</option></optgroup></select></div>
       <div class="filter-field"><label for="procTipo">Tipo de licitación</label><select id="procTipo"><option value="">Todos</option><option value="pub">Todas las públicas</option><option value="priv">Todas las privadas</option>
-        <optgroup label="Públicas">${['LE','L1','LP','LQ','LR','LS'].map(t => `<option value="${t}">${t} · ${esc(TIPO_LIC[t].replace('Licitación Pública ', ''))}</option>`).join('')}</optgroup>
+        <optgroup label="Públicas">${['L1','LE','LP','LQ','LR','LS'].map(t => `<option value="${t}">${t} · ${esc(TIPO_LIC[t].replace('Licitación Pública ', ''))}</option>`).join('')}</optgroup>
         <optgroup label="Privadas">${['E2','CO','B2','H2','I2','O1','O2'].map(t => `<option value="${t}">${t} · ${esc(TIPO_LIC[t].replace('Licitación Privada ', '').replace('Licitación Privada', 'general'))}</option>`).join('')}</optgroup></select></div>
       <div class="filter-field"><label for="procCau">Causal de trato directo o procedencia</label><select id="procCau"><option value="">Todas</option></select></div>
       <div class="filter-field"><label for="procSec">Sector del comprador</label><select id="procSec"><option value="">Todos</option></select></div>
@@ -445,7 +704,7 @@ function init(host){
   }));
   host.querySelectorAll('#procMecs input').forEach(i => i.addEventListener('change', updateHint));
   $('procClr').addEventListener('click', () => {
-    ST.token++; ST.busy = false; ST.res = []; ST.cnt = {}; ST.sum = {}; ST.total = 0; ST.sumAll = 0; ST.capped = false; ST.page = 0; ST.open = new Set(); ST._sorted = null; ST.params = null;
+    ST.token++; ST.busy = false; ST.res = []; ST.cnt = {}; ST.sum = {}; ST.total = 0; ST.sumAll = 0; ST.capped = false; ST.page = 0; ST.open = new Set(); ST._sorted = null; ST.params = null; ST.A = null; ST.listOpen = false;
     ST.sort = {k: 'sc', dir: -1};
     ['procQ', 'procOrg', 'procProv', 'procMin', 'procMax', 'procRub', 'procId', 'procNmin', 'procNmax'].forEach(id => { $(id).value = ''; });
     ['procReg', 'procEst', 'procTipo', 'procCau', 'procSec'].forEach(id => { $(id).selectedIndex = 0; });
@@ -457,8 +716,18 @@ function init(host){
   $('procQ').addEventListener('keydown', e => { if(e.key === 'Enter') run(); });
   ['procOrg', 'procProv', 'procMin', 'procMax', 'procRub', 'procId', 'procNmin', 'procNmax'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key === 'Enter') run(); }));
   $('procOut').addEventListener('change', e => { if(e.target.id === 'procSort'){ ST.sort = {k: e.target.value, dir: -1}; ST.page = 0; renderResults(); } });
+  $('procOut').addEventListener('toggle', e => { if(e.target.id === 'procList'){ const op = e.target.open; if(op !== ST.listOpen){ ST.listOpen = op; if(op) renderResults(); } } }, true);
+  const aplicaClick = el => {
+    if(el.dataset.reg != null){ $('procReg').value = el.dataset.reg; }
+    else if(el.dataset.org != null){ $('procOrg').value = el.dataset.org; }
+    else if(el.dataset.prov != null){ $('procProv').value = el.dataset.prov; }
+    else return false;
+    run(); return true;
+  };
+  $('procOut').addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-reg],[data-org],[data-prov]')){ e.preventDefault(); aplicaClick(e.target); } });
   $('procOut').addEventListener('click', e => {
     if(e.target.id === 'procSort') return;
+    const an_ = e.target.closest('[data-reg],[data-org],[data-prov]'); if(an_ && aplicaClick(an_)) return;
     const th = e.target.closest('th[data-sort]');
     if(th){ const k = th.dataset.sort; ST.sort = {k, dir: ST.sort.k === k ? -ST.sort.dir : (k === 'f' || k === 'mo' ? -1 : 1)}; ST.page = 0; renderResults(); return; }
     const pg = e.target.closest('button[data-pg]'); if(pg){ ST.page += +pg.dataset.pg; renderResults(); $('procOut').scrollIntoView({block: 'start', behavior: 'smooth'}); return; }
@@ -497,7 +766,7 @@ function init(host){
       mecs.forEach(k => { const o = man.m[k] || {}; Object.keys(o).forEach(ym => { if(ym >= from && ym <= to) jobs.push({mec: k, ym, h: o[ym][2], bytes: o[ym][1]}); }); });
       jobs.sort((a, b) => a.ym < b.ym ? 1 : a.ym > b.ym ? -1 : (a.mec < b.mec ? -1 : 1));
       if(!jobs.length){ status.innerHTML = '<span class="proc-err">No hay archivos para ese período y mecanismos.</span>'; return; }
-      ST.res = []; ST.cnt = {}; ST.sum = {}; ST.total = 0; ST.sumAll = 0; ST.capped = false; ST.page = 0; ST.open = new Set(); ST._sorted = null; ST.params = P; ST.t0 = Date.now(); ST.sort = {k: q.groups.length || q.phrases.length ? 'sc' : 'f', dir: -1};
+      ST.res = []; ST.cnt = {}; ST.sum = {}; ST.total = 0; ST.sumAll = 0; ST.capped = false; ST.page = 0; ST.open = new Set(); ST._sorted = null; ST.A = newAgg(); ST.listOpen = false; ST.params = P; ST.t0 = Date.now(); ST.sort = {k: q.groups.length || q.phrases.length ? 'sc' : 'f', dir: -1};
       $('procOut').innerHTML = '';
       status.innerHTML = 'Cargando el índice de búsqueda…';
       await ensureDic();
@@ -515,7 +784,8 @@ function init(host){
       }
       if(my !== ST.token) return;
       status.innerHTML = '';
-      DL_STORE.procBuscador = {headers: EXP_HDR, get rows(){ return exportRows(); }};
+      ST.A.cases = pickCases(ST.A); ST.A.done = true;
+      DL_STORE.procBuscador = {headers: EXP_HDR, get rows(){ return exportRows(); }, sheets: anSheets};
       renderResults();
     } catch(e) {
       console.error(e); if(my === ST.token) status.innerHTML = `<span class="proc-err">${esc(e.message)}</span>`;
