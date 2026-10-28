@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r3' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -26,24 +26,46 @@ function encState(st){
   const a = [];
   if(st.o) a.push('o.' + st.o);
   if(st.u) a.push('u.' + st.u);
-  if(st.p) a.push('p.' + st.p);
-  if(st.t) a.push('t.' + st.t);
-  if(st.m) a.push('m.' + st.m);
+  const ls = (st.l || []).filter(l => l.p || l.q || l.m || l.n || l.pu);
+  if(ls.length) a.push('l.' + ls.map(l => [l.p || '', encodeURIComponent((l.q || '').replace(/[*!~+]/g, ' ').trim()), l.t === 'servicio' ? 's' : (l.t === 'bien' ? 'b' : ''), l.n || '', l.pu || '', l.m || ''].join('*')).join('!'));
   if(st.mes) a.push('f.' + st.mes);
   if(st.simple) a.push('e.1');
+  if(st.nd) a.push('d.' + st.nd);
   if(st.s && st.s.length) a.push('s.' + st.s.join('+'));
   if(st.tab && st.tab !== 'asesor') a.push('v.' + st.tab);
   return a.join('~');
 }
 function decState(txt){
-  const st = {s: []};
+  const st = {s: [], l: []};
   String(txt || '').split('~').forEach(kv => {
     const i = kv.indexOf('.'); if(i < 1) return; const k = kv.slice(0, i), v = decodeURIComponent(kv.slice(i + 1));
     if(k === 'o') st.o = v; else if(k === 'u') st.u = v; else if(k === 'p') st.p = v; else if(k === 't') st.t = v === 'servicio' ? 'servicio' : 'bien';
-    else if(k === 'm') st.m = Math.max(0, Math.round(Number(v) || 0)); else if(k === 'f') st.mes = v; else if(k === 'e') st.simple = true;
+    else if(k === 'm') st.m = Math.max(0, Math.round(Number(v) || 0)); else if(k === 'f') st.mes = v; else if(k === 'e') st.simple = true; else if(k === 'd' && /^\d{4}-\d{2}-\d{2}$/.test(v)) st.nd = v;
     else if(k === 's') st.s = v.split('+').filter(Boolean); else if(k === 'v') st.tab = v;
+    else if(k === 'l') st.l = v.split('!').slice(0, 15).map(x => { const f = x.split('*'); const num = y => Math.max(0, Math.round(Number(y) || 0)); return newLine({p: f[0] || '', q: decodeURIComponent(f[1] || ''), t: f[2] === 's' ? 'servicio' : (f[2] === 'b' ? 'bien' : ''), n: num(f[3]), pu: num(f[4]), m: num(f[5])}); });
   });
+  if(!st.l.length) st.l = [newLine({p: st.p || '', t: st.t || '', m: st.m || 0})];
   return st;
+}
+/* ------------------------------ líneas del proceso de compra ------------------------------ */
+let LSEQ = 0;
+function newLine(o){ return Object.assign({id: ++LSEQ, p: '', q: '', t: '', n: 0, pu: 0, m: 0}, o || {}); }
+const lineTotal = l => (l.n && l.pu) ? Math.round(l.n * l.pu) : (l.m || 0);
+function procTotal(){ return S.st.l.reduce((a, l) => a + lineTotal(l), 0); }
+function autoTipo(code){ const sg = Number(String(code || '').slice(0, 2)); return sg >= SERV_CODE && sg <= 94 ? 'servicio' : 'bien'; }
+function lineTipo(l){ return l.t || (l.p ? autoTipo(l.p) : 'bien'); }
+function lineName(l){ const i = l.p ? S.prodByCode[l.p] : null; return i != null ? sentence(S.C.n[i]) : (l.q || ''); }
+function activeLine(){ return S.st.l[S.li] || S.st.l[0]; }
+function recalc(){ S.st.m = procTotal(); }
+function activate(i){
+  S.li = Math.max(0, Math.min(i, S.st.l.length - 1)); const l = activeLine();
+  S.prodIdx = (l.p && S.prodByCode[l.p] != null) ? S.prodByCode[l.p] : null; S.prodQ = l.q || '';
+  S.st.p = l.p || null; S.st.t = lineTipo(l); S.segData = null; recalc();
+}
+function withLine(l, fn){
+  const sv = {pi: S.prodIdx, pq: S.prodQ, t: S.st.t, p: S.st.p};
+  S.prodIdx = (l.p && S.prodByCode[l.p] != null) ? S.prodByCode[l.p] : null; S.prodQ = l.q || ''; S.st.t = lineTipo(l); S.st.p = l.p || null;
+  try{ return fn(); } finally { S.prodIdx = sv.pi; S.prodQ = sv.pq; S.st.t = sv.t; S.st.p = sv.p; }
 }
 function shareUrl(){ return location.origin + location.pathname + location.search + '#asesor=' + encState(S.st); }
 function syncUrl(){ try{ history.replaceState(null, '', '#asesor=' + encState(S.st)); }catch(e){} }
@@ -52,6 +74,7 @@ function syncUrl(){ try{ history.replaceState(null, '', '#asesor=' + encState(S.
 function ensure(){
   if(S.ready) return S.ready;
   S.ready = Promise.all([loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver()), loadScript(AB + 'reglas.js' + ver()), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
+    loadScript(AB + 'pres.js' + ver()).then(() => { S.pres = window.AS_PRES || null; S.presTried = true; if(S.orgIdx != null) update(); }).catch(() => { S.presTried = true; });
     S.C = window.AS_CAT; S.O = window.AS_ORG;
     S.orgNorm = S.O.o.map(o => norm(o[1]) + ' ' + o[0]);
     S.prodNorm = S.C.n.map((n, i) => norm(n) + ' ' + S.C.c[i]);
@@ -110,6 +133,14 @@ const CSS = `
 .as-tipo input{accent-color:var(--cc-navy);} .as-tipo label:has(input:checked){border-color:var(--cc-navy);background:var(--cc-mist);font-weight:700;}
 .as-monto{display:flex;gap:8px;align-items:center;} .as-monto span{font-size:14px;font-weight:700;color:var(--cc-dark);}
 .as-eq{margin-top:8px;font-size:13px;font-weight:700;color:var(--cc-navy);}
+.as-ln{border:1px solid var(--border);border-radius:12px;padding:10px;margin-top:8px;background:var(--surface-card,#fff);} .as-ln.as-act{border-color:var(--cc-navy);box-shadow:0 0 0 2px rgba(20,60,120,.12);}
+.as-ln-h{display:flex;gap:8px;align-items:flex-start;justify-content:space-between;} .as-ln-n{flex:1;text-align:left;border:0;background:none;padding:0;font:inherit;cursor:pointer;display:flex;gap:8px;align-items:flex-start;color:inherit;}
+.as-ln-n b{display:block;font-size:13px;overflow-wrap:anywhere;} .as-ln-n small{display:block;font-size:11.5px;color:var(--text-secondary);font-weight:400;}
+.as-ln-k{flex:none;width:20px;height:20px;border-radius:99px;background:var(--cc-navy);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.as-ln-f{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;} .as-ln-f label{font-size:11px;color:var(--text-secondary);font-weight:600;display:flex;flex-direction:column;gap:3px;} .as-ln-f .as-in,.as-ln-f .as-sel{margin-top:0;}
+.as-ln-f .as-in[readonly]{background:var(--cc-mist);} .as-ln-ht{margin:6px 0 0;}
+.as-tot{display:flex;flex-direction:column;gap:2px;font-size:12.5px;} .as-tot b{font-size:20px;color:var(--cc-dark);font-variant-numeric:tabular-nums;} .as-tot small{color:var(--text-secondary);} .as-tot .as-warn{color:#9a5b00;font-weight:600;}
+.as-fin{margin:8px 0 0;} .as-dist{margin:10px 0 4px;} .as-pj-h td{background:var(--cc-mist);}
 .as-chk{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.45;padding:7px 0;border-bottom:1px solid var(--surface-page);cursor:pointer;} .as-chk input{margin-top:3px;accent-color:var(--cc-navy);flex:0 0 auto;}
 .as-chk small{display:block;color:var(--text-secondary);font-size:11px;}
 details.as-det summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--cc-navy);padding:4px 0;}
@@ -123,7 +154,7 @@ details.as-det summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var
 .as-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
 .as-chip{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);}
 .as-op{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--border);} .as-op:first-of-type{border-top:0;} .as-op-n{flex:0 0 74px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--cc-navy);padding-top:2px;} .as-op-b{flex:1;min-width:0;} .as-op-b p{margin:4px 0 6px;} .as-op-s{margin:2px 0 6px!important;} .as-op-s li.as-off{opacity:.7;text-decoration-color:#8a94a6;} .as-op-s li.as-off b{text-decoration:line-through;} .as-op-prev .as-op-n{color:#3D5466;}
-.as-mes{display:inline-block;margin:0 4px 3px 0;padding:2px 7px;border-radius:999px;background:#E1E9FF;color:#0032A2;font-size:11.5px;white-space:nowrap;} .as-mes-p{background:#EEF1F5;color:#5A6678;} .as-pk-sum{background:#EAF6EC;border:1px solid #9BD0A6;color:#143A1C;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:13px;line-height:1.55;}
+.as-mes{display:inline-block;margin:0 4px 3px 0;padding:2px 7px;border-radius:999px;background:#E1E9FF;color:#0032A2;font-size:11.5px;white-space:nowrap;} .as-mes-p{background:#EEF1F5;color:#5A6678;} .as-mes-ok{background:#E3F4E6;color:#14532D;} .as-pk-sum{background:#EAF6EC;border:1px solid #9BD0A6;color:#143A1C;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:13px;line-height:1.55;}
 .as-sec{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--pbi-shadow);}
 .as-sec h3{margin:0 0 8px;font-size:13.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--cc-navy);}
 .as-sec p{margin:0 0 8px;font-size:13px;line-height:1.6;color:var(--cc-dark);} .as-sec ul{margin:0 0 8px;padding-left:20px;font-size:13px;line-height:1.6;} .as-sec li{margin-bottom:4px;}
@@ -298,7 +329,8 @@ function compute(){
   S.vd = vd;
   const dm = S.prodIdx != null && S.segData ? S.segData.dm[orgRegion() + '|' + S.prodIdx] : null;
   const consumible = esConsumible();
-  const inp = {bt: btDetect(), consumible, montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
+  const noMueble = S.prodIdx != null && S.C.c[S.prodIdx].slice(0, 2) === '95';
+  const inp = {bt: btDetect(), consumible, noMueble, montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
     sector: S.org ? S.org[2] : '', demanda: dm ? {no: dm[0], mm: dm[1]} : null,
     hist: h ? {noCmUtm: h.noCmUtm, totalUtm: h.totalUtm} : null, fueraCm: fueraCmMM()};
   S.inp = inp;
@@ -325,17 +357,18 @@ function renderTab(){
   v.innerHTML = `<div class="as-grid"><div class="as-side">
     <div class="as-card" id="as-c1"><h3><span class="as-n">1</span>¿Quién compra?</h3>
       <input class="as-in" id="as-org" type="search" autocomplete="off" placeholder="Nombre del organismo o su código" aria-label="Buscar organismo">
-      <div class="as-list" id="as-orgres" hidden></div><div id="as-orgsel"></div></div>
+      <div class="as-list" id="as-orgres" hidden></div><div id="as-orgsel"></div><div id="as-orgfin"></div></div>
     <div class="as-card" id="as-c2"><h3><span class="as-n">2</span>¿Qué necesitas comprar?</h3>
+      <div id="as-lines"></div>
       <input class="as-in" id="as-prod" type="search" autocomplete="off" placeholder="Ej.: toallas de papel, guardias de seguridad, 14111703" aria-label="Buscar producto o servicio">
-      <div class="as-list" id="as-prodres" hidden></div><div id="as-prodsel"></div>
-      <div class="as-tipo" role="radiogroup" aria-label="Tipo de contratación"><label><input type="radio" name="as-tipo" value="bien"> Bien</label><label><input type="radio" name="as-tipo" value="servicio"> Servicio</label></div>
-      <p class="as-hint">Si no encuentras tu producto, sigue al paso 3: la recomendación por monto y por norma funciona igual, pero sin datos de precios ni de Convenio Marco.</p></div>
-    <div class="as-card" id="as-c3"><h3><span class="as-n">3</span>¿Cuánto crees que costará?</h3>
-      <label class="as-lab" for="as-monto">Monto total estimado, IVA incluido (pesos)</label>
-      <div class="as-monto"><span>$</span><input class="as-in" id="as-monto" inputmode="numeric" autocomplete="off" placeholder="Ej.: 25.000.000"></div>
-      <label class="as-lab" for="as-mes">Mes de la UTM</label><select class="as-sel" id="as-mes" style="margin-top:0"></select>
+      <div class="as-list" id="as-prodres" hidden></div>
+      <button class="as-btn" id="as-addln" style="margin-top:8px">+ Agregar otro producto al mismo proceso</button>
+      <p class="as-hint">Cada línea es un producto o servicio con su cantidad y precio. Si todos forman parte del mismo proceso de compra, el Asesor suma el total para definir el procedimiento. El tipo (bien o servicio) se asigna solo desde el código del producto. Si no encuentras tu producto, escribe igual una descripción y elige si es bien o servicio: la recomendación por monto y por norma funciona, pero sin datos de precios ni de Convenio Marco.</p></div>
+    <div class="as-card" id="as-c3"><h3><span class="as-n">3</span>¿Cuánto costará?</h3>
+      <div class="as-tot" id="as-tot" aria-live="polite"></div>
       <div class="as-eq" id="as-eq" aria-live="polite"></div>
+      <label class="as-lab" for="as-mes">Mes de la UTM</label><select class="as-sel" id="as-mes" style="margin-top:0"></select>
+      <label class="as-lab" for="as-need">¿Para cuándo necesitas la adjudicación? (opcional)</label><input class="as-in" id="as-need" type="date" style="margin-top:0">
       <label class="as-chk"><input type="checkbox" id="as-simple"><span>Es de simple y objetiva especificación<small>Permite reducir los plazos mínimos de publicación en licitaciones (art. 46)</small></span></label></div>
     <div class="as-card" id="as-c4"><h3><span class="as-n">4</span>¿Hay una situación especial?</h3>
       <details class="as-det" id="as-det"><summary id="as-detsum">Ninguna (compra habitual)</summary><div id="as-sits"></div></details>
@@ -352,19 +385,35 @@ function wire(){
   const oi = $('as-org'), pi = $('as-prod');
   oi.addEventListener('input', () => { S.orgQ = oi.value; searchOrg(); });
   oi.addEventListener('focus', () => { if(oi.value) searchOrg(); });
-  pi.addEventListener('input', () => { S.prodQ = pi.value; searchProd(); clearTimeout(S.tq); S.tq = setTimeout(update, 250); });
+  pi.addEventListener('input', () => { S.prodQ = pi.value; const l = activeLine(); if(!l.p){ l.q = pi.value; } searchProd(); clearTimeout(S.tq); S.tq = setTimeout(() => { paintLines(); update(); }, 250); });
   pi.addEventListener('focus', () => { if(pi.value) searchProd(); });
-  S.host.querySelectorAll('input[name=as-tipo]').forEach(r => r.addEventListener('change', () => { S.st.t = r.value; syncUrl(); update(); }));
-  const mi = $('as-monto');
-  mi.addEventListener('input', () => { const d = mi.value.replace(/\D/g, ''); S.st.m = d ? Number(d) : 0; update(); });
-  mi.addEventListener('blur', () => { mi.value = S.st.m ? fmt(S.st.m) : ''; });
+  $('as-addln').addEventListener('click', () => { if(S.st.l.length >= 15) return; S.st.l.push(newLine()); activate(S.st.l.length - 1); $('as-prod').value = ''; $('as-prodres').hidden = true; paintLines(); update(); $('as-prod').focus(); });
+  const ln = $('as-lines');
+  ln.addEventListener('click', e => {
+    const b = e.target.closest('[data-a]'); if(!b) return; const i = Number(b.dataset.i), a = b.dataset.a, l = S.st.l[i]; if(!l) return;
+    if(a === 'sel'){ activate(i); $('as-prod').value = l.p ? '' : (l.q || ''); $('as-prodres').hidden = true; paintLines(); loadSegFor(); update(); }
+    else if(a === 'chg'){ activate(i); l.p = ''; l.q = ''; l.t = ''; activate(i); $('as-prod').value = ''; $('as-prodres').hidden = true; paintLines(); update(); $('as-prod').focus(); }
+    else if(a === 'del'){ S.st.l.splice(i, 1); if(!S.st.l.length) S.st.l.push(newLine()); activate(Math.min(S.li > i ? S.li - 1 : S.li, S.st.l.length - 1)); $('as-prod').value = activeLine().p ? '' : (activeLine().q || ''); paintLines(); loadSegFor(); update(); }
+  });
+  ln.addEventListener('change', e => { const t = e.target; if(!t.classList.contains('as-ln-t')) return; const l = S.st.l[Number(t.dataset.i)]; l.t = t.value === (l.p ? autoTipo(l.p) : 'bien') && l.p ? '' : t.value; if(Number(t.dataset.i) === S.li) activate(S.li); paintLines(); update(); });
+  ln.addEventListener('input', e => {
+    const t = e.target, row = t.closest('.as-ln'); if(!row || !/as-ln-(q|pu|m)\b/.test(t.className)) return;
+    const l = S.st.l[Number(row.dataset.i)], prev = lineTotal(l), d = t.value.replace(/\D/g, ''), v = d ? Number(d) : 0;
+    if(t.classList.contains('as-ln-q')) l.n = v; else if(t.classList.contains('as-ln-pu')) l.pu = v; else { l.m = v; l.n = 0; l.pu = 0; }
+    const tin = row.querySelector('.as-ln-m');
+    if(l.n && l.pu){ l.m = 0; tin.readOnly = true; tin.value = fmt(lineTotal(l)); }
+    else if(!t.classList.contains('as-ln-m')){ l.m = prev; tin.readOnly = false; tin.value = prev ? fmt(prev) : ''; }
+    recalc(); paintTot(); update();
+  });
+  ln.addEventListener('focusout', e => { const t = e.target; if(!/as-ln-(q|pu)\b/.test(t.className)) return; const l = S.st.l[Number(t.closest('.as-ln').dataset.i)]; const v = t.classList.contains('as-ln-q') ? l.n : l.pu; t.value = v ? fmt(v) : ''; });
   const sel = $('as-mes'); sel.innerHTML = S.utmKeys.slice().reverse().map(k => `<option value="${k}">${monthLab(k)} · UTM $${fmt(S.C.utm[k])}</option>`).join('');
   sel.value = curUtmKey(); sel.addEventListener('change', () => { S.st.mes = sel.value; update(); });
   $('as-simple').addEventListener('change', e => { S.st.simple = e.target.checked; update(); });
+  $('as-need').addEventListener('change', e => { S.st.nd = e.target.value || null; update(); });
   const box = $('as-sits'); box.innerHTML = R().SITUACIONES.map(s => `<label class="as-chk"><input type="checkbox" value="${s.k}"><span>${esc(s.t)}<small>${esc(s.ar)}</small></span></label>`).join('');
   box.querySelectorAll('input').forEach(c => c.addEventListener('change', () => { S.st.s = [...box.querySelectorAll('input:checked')].map(x => x.value); update(); }));
   $('as-copy').addEventListener('click', copyLink); $('as-print').addEventListener('click', () => window.print());
-  $('as-reset').addEventListener('click', () => { S.st = {s: []}; S.org = null; S.od = null; S.orgIdx = null; S.prodIdx = null; S.segData = null; $('as-org').value = ''; $('as-prod').value = ''; $('as-monto').value = ''; paintSelections(); update(); });
+  $('as-reset').addEventListener('click', () => { S.st = {s: [], l: [newLine()]}; S.li = 0; S.pacLn = {}; S.org = null; S.od = null; S.orgIdx = null; S.prodIdx = null; S.segData = null; $('as-org').value = ''; $('as-prod').value = ''; paintSelections(); update(); });
 }
 function monthLab(k){ const [a, m] = k.split('-'); return ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][Number(m) - 1] + ' ' + a; }
 function copyLink(){
@@ -385,19 +434,37 @@ function paintSelections(){
     const un = $('as-unit'); if(un) un.addEventListener('change', () => { S.st.u = un.value || null; update(); loadSegFor(); });
     $('as-org').style.display = 'none';
   } else { os.innerHTML = ''; $('as-org').style.display = ''; }
-  // producto
-  const ps = $('as-prodsel');
-  if(S.prodIdx != null){
-    const i = S.prodIdx;
-    ps.innerHTML = `<div class="as-sel-box"><div><b>${esc(sentence(S.C.n[i]))}</b>${esc(S.C.rubros[S.C.r[i]] || '')} · código ${esc(S.C.c[i])}${S.C.cm[i] ? ' · en Convenio Marco' : ''}</div><button class="as-x" id="as-prodx">cambiar</button></div>`;
-    $('as-prodx').addEventListener('click', () => { S.prodIdx = null; S.st.p = null; S.segData = null; $('as-prod').value = ''; paintSelections(); update(); $('as-prod').focus(); });
-    $('as-prod').style.display = 'none';
-  } else { ps.innerHTML = ''; $('as-prod').style.display = ''; }
-  S.host.querySelectorAll('input[name=as-tipo]').forEach(r => r.checked = (S.st.t || 'bien') === r.value);
-  if(S.st.m) $('as-monto').value = fmt(S.st.m);
-  $('as-mes').value = curUtmKey(); $('as-simple').checked = !!S.st.simple;
+  // producto y montos (líneas)
+  paintLines();
+  $('as-mes').value = curUtmKey(); $('as-simple').checked = !!S.st.simple; $('as-need').value = S.st.nd || '';
   const box = $('as-sits'); box.querySelectorAll('input').forEach(c => c.checked = (S.st.s || []).includes(c.value));
-  $('as-c1').classList.toggle('as-done', S.orgIdx != null); $('as-c2').classList.toggle('as-done', S.prodIdx != null); $('as-c3').classList.toggle('as-done', !!S.st.m);
+  $('as-c1').classList.toggle('as-done', S.orgIdx != null); $('as-c2').classList.toggle('as-done', S.st.l.some(l => l.p || l.q)); $('as-c3').classList.toggle('as-done', !!S.st.m);
+}
+function paintLines(){
+  const box = $('as-lines'); if(!box) return;
+  const L = S.st.l, many = L.length > 1, ai = activeLine();
+  box.innerHTML = L.map((l, i) => {
+    const pi = l.p ? S.prodByCode[l.p] : null, nm = lineName(l), act = i === S.li, tipo = lineTipo(l), auto = l.p ? autoTipo(l.p) : null, calc = !!(l.n && l.pu), tot = lineTotal(l);
+    const meta = pi != null ? `${esc(S.C.rubros[S.C.r[pi]] || '')} · código ${esc(l.p)}${S.C.cm[pi] ? ' · en Convenio Marco' : ''}` : '';
+    const nota = auto ? `Tipo asignado según el código ONU ${esc(l.p)}${l.t && l.t !== auto ? '; lo cambiaste a mano' : ''}.` : (act ? 'Elige un producto de la lista y el tipo se asigna solo. Mientras tanto, indica si es bien o servicio.' : '');
+    return `<div class="as-ln${act ? ' as-act' : ''}" data-i="${i}">
+      <div class="as-ln-h"><button class="as-ln-n" data-a="sel" data-i="${i}" aria-label="Ver el análisis de la línea ${i + 1}">${many ? `<span class="as-ln-k">${i + 1}</span>` : ''}<span><b>${nm ? esc(nm) : 'Sin producto todavía'}</b>${meta ? `<small>${meta}</small>` : ''}</span></button>
+        ${pi != null ? `<button class="as-x" data-a="chg" data-i="${i}">cambiar</button>` : ''}${many ? `<button class="as-x" data-a="del" data-i="${i}" aria-label="Quitar la línea ${i + 1}">quitar</button>` : ''}</div>
+      <div class="as-ln-f">
+        <label>Tipo<select class="as-sel as-ln-t" data-i="${i}"><option value="bien"${tipo === 'bien' ? ' selected' : ''}>Bien</option><option value="servicio"${tipo === 'servicio' ? ' selected' : ''}>Servicio</option></select></label>
+        <label>Cantidad<input class="as-in as-ln-q" inputmode="numeric" autocomplete="off" placeholder="Ej.: 20" value="${l.n ? fmt(l.n) : ''}"></label>
+        <label>Precio unitario con IVA<input class="as-in as-ln-pu" inputmode="numeric" autocomplete="off" placeholder="$" value="${l.pu ? fmt(l.pu) : ''}"></label>
+        <label>Total de la línea con IVA<input class="as-in as-ln-m" inputmode="numeric" autocomplete="off" placeholder="$"${calc ? ' readonly' : ''} value="${tot ? fmt(tot) : ''}"></label>
+      </div>${nota ? `<p class="as-hint as-ln-ht">${nota}</p>` : ''}</div>`;
+  }).join('');
+  const pr = $('as-prod'); if(pr){ const show = !ai.p; pr.style.display = show ? '' : 'none'; if(!show) $('as-prodres').hidden = true; }
+  paintTot();
+}
+function paintTot(){
+  const el = $('as-tot'); if(!el) return; const L = S.st.l, t = procTotal(), sin = L.map((l, i) => (l.p || l.q) && !lineTotal(l) ? i + 1 : 0).filter(Boolean);
+  el.innerHTML = t ? `<span>Total del proceso, IVA incluido</span><b>${clp(t)}</b>${L.length > 1 ? `<small>${L.length} líneas sumadas</small>` : ''}` : '<span>Ingresa cantidad y precio unitario, o directamente el total, en cada línea del paso 2.</span>';
+  if(sin.length && t) el.insertAdjacentHTML('beforeend', `<small class="as-warn">Falta el monto de la línea ${sin.join(', ')}.</small>`);
+  const c3 = $('as-c3'); if(c3) c3.classList.toggle('as-done', !!t);
 }
 function searchOrg(){
   const q = norm(S.orgQ).trim(), box = $('as-orgres');
@@ -409,14 +476,39 @@ function searchOrg(){
   box.innerHTML = res.slice(0, 12).map(i => { const o = S.O.o[i]; return `<button class="as-opt" data-i="${i}"><b>${esc(o[1])}</b><small>${esc(o[2] === 'null' ? 'Sin sector' : o[2])} · ${fmt(o[6])} OC en 12 meses · ${esc(regName(o[3]))}</small></button>`; }).join('') || '<p class="as-hint">Sin resultados. Prueba con otra parte del nombre.</p>';
   box.querySelectorAll('.as-opt').forEach(b => b.addEventListener('click', () => chooseOrg(Number(b.dataset.i))));
 }
+/* Sinónimos del lenguaje cotidiano hacia productos del catálogo ONU (el catálogo usa nombres técnicos: "mail" o "casilla" no aparecen). */
+const ALIAS = [
+  {re: /\b(e-?mails?|mails?|correos? electronic\w*|casillas?|buzon(es)?|cuentas? de correo|correo institucional|webmail|correos?)\b/, cods: ['81112102', '43233501', '81112105', '81112107', '43232108'], nota: 'correo electrónico y casillas'},
+  {re: /\b(courier|encomiendas?|carta certificada|cartas certificadas|correos de chile|correspondencia|franqueo|despacho de documentos|mensajeria fisica)\b|\bcorreos?\b/, cods: ['78102203', '78102201', '78102202', '78102204', '78102205'], nota: 'correo postal y courier'},
+  {re: /\b(microsoft|office|365|word|excel|powerpoint|google workspace|ofimatica|suite de oficina)\b/, cods: ['43232112', '43232104', '43232110', '43232106', '43233501'], nota: 'ofimática y licencias'},
+  {re: /\b(nube|cloud|servidor(es)?|hosting|alojamiento|dominio|pagina web|sitio web)\b/, cods: ['81112105', '81112106', '81112107', '81112103'], nota: 'nube, hosting y sitios web'},
+  {re: /\b(teams|zoom|videoconferencias?|reuniones virtuales|webinar)\b/, cods: ['43233502', '43233503'], nota: 'videoconferencia'},
+  {re: /\b(wifi|internet|enlace|banda ancha|fibra)\b/, cods: ['81112101'], nota: 'servicio de Internet'},
+  {re: /\b(licencias?|software|antivirus)\b/, cods: ['43231512', '81112202'], nota: 'licencias y software'}
+];
 function searchProd(){
   const q = norm(S.prodQ).trim(), box = $('as-prodres');
   if(q.length < 2){ box.hidden = true; return; }
-  const toks = q.split(/\s+/); const res = [];
-  for(let i = 0; i < S.prodNorm.length; i++){ const s = S.prodNorm[i]; if(toks.every(t => s.includes(t))) res.push(i); }
-  res.sort((a, b) => (S.C.cm[b] ? 1e9 : 0) + S.C.v[b] - ((S.C.cm[a] ? 1e9 : 0) + S.C.v[a]));
+  const sq = q.split(/\s+/).map(t => stem(t)).filter(t => t.length >= 2);
+  if(!S.prodStem){ S.prodStem = S.prodNorm.map(s => s.split(/\s+/).map(stem)); S.codeIdx = {}; S.C.c.forEach((c, i) => { S.codeIdx[c] = i; }); }
+  const rank_ = (a, b) => (S.C.cm[b] ? 1e9 : 0) + S.C.v[b] - ((S.C.cm[a] ? 1e9 : 0) + S.C.v[a]);
+  // coincidencia: cada palabra escrita es prefijo de alguna palabra del nombre, sin importar plurales
+  const hit = i => { const w = S.prodStem[i]; return sq.every(t => w.some(x => x.startsWith(t))); };
+  const res = []; for(let i = 0; i < S.prodNorm.length; i++){ if(hit(i)) res.push(i); }
+  res.sort(rank_);
+  // sinónimos
+  const rel = [], notas = []; ALIAS.forEach(al => { if(al.re.test(q)){ notas.push(al.nota); al.cods.forEach(c => { const i = S.codeIdx[c]; if(i != null && !rel.includes(i)) rel.push(i); }); } });
+  // si no hay nada, acepta coincidencias parciales (al menos una palabra)
+  let par = [];
+  if(!res.length && !rel.length && sq.length > 1){ for(let i = 0; i < S.prodNorm.length; i++){ const w = S.prodStem[i]; if(sq.some(t => t.length >= 4 && w.some(x => x.startsWith(t)))) par.push(i); } par.sort(rank_); }
   box.hidden = false;
-  box.innerHTML = res.slice(0, 14).map(i => `<button class="as-opt" data-i="${i}"><b>${esc(sentence(S.C.n[i]))}</b><small>${esc(S.C.rubros[S.C.r[i]] || '')} · ${esc(S.C.c[i])} · ${mm(S.C.v[i])} en 12 meses${S.C.cm[i] ? ' · en Convenio Marco' : ''}</small></button>`).join('') || '<p class="as-hint">Sin resultados. Prueba con una palabra más corta o el código ONU.</p>';
+  const opt = i => `<button class="as-opt" data-i="${i}"><b>${esc(sentence(S.C.n[i]))}</b><small>${esc(S.C.rubros[S.C.r[i]] || '')} · ${esc(S.C.c[i])} · ${mm(S.C.v[i])} en 12 meses${S.C.cm[i] ? ' · en Convenio Marco' : ''}</small></button>`;
+  let h = '';
+  if(rel.length) h += `<p class="as-hint" style="margin:6px 8px">Productos relacionados con ${esc(notas.join(', '))}:</p>` + rel.slice(0, 8).map(opt).join('');
+  const resR = res.filter(i => !rel.includes(i));
+  if(resR.length) h += (rel.length ? '<p class="as-hint" style="margin:6px 8px">Otros que coinciden con lo escrito:</p>' : '') + resR.slice(0, rel.length ? 8 : 14).map(opt).join('');
+  if(par.length) h += '<p class="as-hint" style="margin:6px 8px">No hay coincidencia exacta. Productos que contienen alguna de tus palabras:</p>' + par.slice(0, 10).map(opt).join('');
+  box.innerHTML = h || '<p class="as-hint">Sin resultados. Prueba con una palabra más corta, un sinónimo (por ejemplo "correo electrónico" en vez de "mail") o el código ONU.</p>';
   box.querySelectorAll('.as-opt').forEach(b => b.addEventListener('click', () => chooseProd(Number(b.dataset.i))));
 }
 function chooseOrg(i){
@@ -424,7 +516,8 @@ function chooseOrg(i){
   loadOrg(i).then(d => { if(S.orgIdx !== i) return; S.od = d; S.loadingOrg = false; paintSelections(); loadSegFor(); update(); }).catch(e => { S.loadingOrg = false; paintSelections(); const r = $('as-res'); if(r) r.innerHTML = '<div class="as-err">' + esc(e.message) + '</div>'; });
 }
 function chooseProd(i){
-  S.prodIdx = i; S.st.p = S.C.c[i]; S.st.t = Number(S.C.c[i].slice(0, 2)) >= SERV_CODE ? 'servicio' : 'bien'; $('as-prodres').hidden = true; paintSelections(); loadSegFor(); update();
+  const l = activeLine(); l.p = S.C.c[i]; l.q = ''; l.t = ''; $('as-prod').value = ''; $('as-prodres').hidden = true;
+  activate(S.li); paintLines(); loadSegFor(); update();
 }
 function loadSegFor(){
   if(S.prodIdx == null) { S.segData = null; return Promise.resolve(); }
@@ -445,15 +538,16 @@ function citas(arts){
 function update(){
   const res = $('as-res'); if(!res) return;
   const eq = $('as-eq');
+  recalc(); paintTot(); paintOrgFin();
   const utm = utmNow();
   if(eq) eq.textContent = S.st.m ? '= ' + dec(S.st.m / utm, 1) + ' UTM · ' + R().TRAMOS[R().tramoUtm(S.st.m / utm)].nom : '';
   const n = (S.st.s || []).length, ds = $('as-detsum'); if(ds) ds.textContent = n ? n + ' situación(es) marcada(s)' : 'Ninguna (compra habitual)';
   syncUrl();
+  ensurePac(); ensureRef(); ensureOc();
   if(S.orgIdx == null || !S.st.m){
     res.innerHTML = `<div class="as-empty"><b>Tu recomendación aparecerá aquí.</b><br>Elige el organismo (paso 1) e indica el monto estimado (paso 3). Mientras más completes, más datos reales verás: precios de referencia, Convenios Marco, proveedores de tu región y compras de otros organismos que podrías consolidar.</div>`;
     return;
   }
-  ensurePac();
   const out = compute(); S.out = out;
   res.innerHTML = resultHtml(out);
   wireResult();
@@ -461,64 +555,212 @@ function update(){
 function ensurePac(){
   if(S.orgIdx == null || S.pacOrg === S.orgIdx || S.pacLoading === S.orgIdx) return;
   const idx = S.orgIdx; S.pacLoading = idx;
-  loadPac(idx).then(p => { if(S.orgIdx !== idx) { S.pacLoading = null; return; } S.pac = p; S.pacOrg = idx; S.pacKey = null; S.pacLoading = null; update(); });
+  loadPac(idx).then(p => { if(S.orgIdx !== idx) { S.pacLoading = null; return; } S.pac = p; S.pacOrg = idx; S.pacLn = {}; S.pacTot = null; S.pacLoading = null; update(); });
 }
 const pesos = v => v >= 1e6 ? mm(v / 1e6) : clp(Math.round(v));
 const MES3 = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-function pacMeses(str){ return str ? str.split(',').map(x => { const [m, v] = x.split(':'); return {m: Number(m), v: Number(v)}; }) : []; }
-function pacItems(){
-  const P = S.pacOrg === S.orgIdx ? S.pac : null; if(!P) return null;
-  const qt = [...new Set(toks(consultaTexto()))]; if(!qt.length) return [];
-  const key = S.orgIdx + '|' + qt.join(' ');
-  if(S.pacKey !== key){
-    S.pacKey = key; const need = qt.length >= 3 ? qt.length - 1 : qt.length, res = [];
-    const head = [];
-    P.i.forEach((it, k) => { const tk = toks(it[0]), set = new Set(tk); let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0){ res.push(k); if(qt.some(t => tk.slice(0, 3).includes(t))) head.push(k); } });
-    const hs = new Set(head), amt = k => P.i[k][4];
-    res.sort((a, b) => ((hs.has(b) ? 1 : 0) - (hs.has(a) ? 1 : 0)) || (amt(b) - amt(a))); S.pacMatches = res.slice(0, 40);
-    S.pacSel = new Set(S.pacMatches.filter(k => hs.has(k) && P.i[k][5]));
-  }
-  return S.pacMatches.map(k => ({k, it: P.i[k]}));
+function ensureOc(){
+  if(S.orgIdx == null || S.ocOrg === S.orgIdx || S.ocLoading === S.orgIdx) return;
+  const idx = S.orgIdx; S.ocLoading = idx; window.AS_OC = window.AS_OC || {};
+  (window.AS_OC[idx] ? Promise.resolve() : loadScript(AB + 'oc26/oc_' + idx + '.js' + ver()).catch(() => null)).then(() => { if(S.orgIdx !== idx){ S.ocLoading = null; return; } S.oc = window.AS_OC[idx] || null; S.ocOrg = idx; S.ocLoading = null; update(); });
 }
-function pacResumen(items){
-  const P = S.pac, meses = new Set(); let total = 0, n = 0;
-  items.forEach(x => { if(!S.pacSel.has(x.k)) return; n++; const ms = pacMeses(x.it[5]); if(ms.length){ ms.forEach(m => { meses.add(m.m); total += m.v; }); } else total += x.it[4]; });
-  return {n, meses: meses.size, totalClp: Math.round(total), mesesList: [...meses].sort((a, b) => a - b)};
+/* Compras 2026 del organismo para el producto de una línea, por mes: {mes: [N OC, pesos]} */
+function ocMeses(l){
+  if(!l.p || S.ocOrg !== S.orgIdx || !S.oc || !S.oc.p[l.p]) return null;
+  const o = {}; S.oc.p[l.p].split(',').forEach(x => { const [m, n, k] = x.split(':'); o[Number(m)] = [Number(n), Number(k) * 1000]; }); return o;
+}
+function pacMeses(str){ return str ? str.split(',').map(x => { const [m, v] = x.split(':'); return {m: Number(m), v: Number(v)}; }) : []; }
+/* Ítems del PAC asociados a una línea: el texto del ítem debe contener las palabras del producto elegido (el PAC no trae código ONU). */
+function pacState(l){
+  const P = S.pacOrg === S.orgIdx ? S.pac : null; if(!P) return null;
+  S.pacLn = S.pacLn || {};
+  const qt = [...new Set(toks(withLine(l, consultaTexto)))], key = S.orgIdx + '|' + qt.join(' ');
+  let st = S.pacLn[l.id];
+  if(!st || st.key !== key){
+    const need = qt.length >= 3 ? qt.length - 1 : qt.length, res = [], head = new Set();
+    if(qt.length) P.i.forEach((it, k) => { const tk = toks(it[0]), set = new Set(tk); let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0){ res.push(k); if(qt.some(t => tk.slice(0, 3).includes(t))) head.add(k); } });
+    res.sort((a, b) => ((head.has(b) ? 1 : 0) - (head.has(a) ? 1 : 0)) || (P.i[b][4] - P.i[a][4]));
+    const matches = res.slice(0, 40);
+    st = S.pacLn[l.id] = {key, matches, sel: new Set(matches.filter(k => head.has(k) && P.i[k][5]))};
+  }
+  return st;
+}
+function pacItems(){ const P = S.pacOrg === S.orgIdx ? S.pac : null, st = P && pacState(activeLine()); return st ? st.matches.map(k => ({k, it: P.i[k]})) : null; }
+function pacResumen(items, sel, skip){
+  const meses = new Set(), porMes = {}; let total = 0, n = 0, sinMes = 0, omit = 0;
+  items.forEach(x => { if(!sel.has(x.k)) return; n++; const ms = pacMeses(x.it[5]); if(ms.length){ ms.forEach(m => { if(skip && skip.has(m.m)){ omit += m.v; return; } meses.add(m.m); total += m.v; porMes[m.m] = (porMes[m.m] || 0) + m.v; }); } else { total += x.it[4]; sinMes += x.it[4]; } });
+  return {n, meses: meses.size, totalClp: Math.round(total), mesesList: [...meses].sort((a, b) => a - b), porMes, sinMes, omit: Math.round(omit)};
+}
+function ocHtml(l, planned){
+  const oc = ocMeses(l), mes = new Date().getMonth() + 1, gen = S.oc && S.oc.g ? S.oc.g : '';
+  if(S.ocOrg !== S.orgIdx) return '<p class="as-hint">Revisando las compras 2026 del organismo…</p>';
+  if(!oc) return `<p><b>Compras 2026 de este producto en tu organismo:</b> no se registran órdenes de compra de este producto entre enero y ${MES3[mes - 1]}. Si el PAC planifica meses ya pasados, esa compra sigue pendiente.</p>`;
+  const ch = Object.keys(oc).map(Number).sort((a, b) => a - b).map(m => `<span class="as-mes as-mes-ok">${MES3[m - 1]} · ${oc[m][0]} OC · ${pesos(oc[m][1])}</span>`).join(' ');
+  const pend = planned.filter(m => m <= mes && !oc[m]), hecho = planned.filter(m => oc[m]);
+  return `<p><b>Compras 2026 de este producto en tu organismo (todas las vías):</b> ${ch}</p>` + (planned.length ? `<p>${hecho.length ? 'Meses planificados con compra registrada: ' + hecho.map(m => MES3[m - 1]).join(', ') + '. ' : ''}${pend.length ? 'Meses planificados ya cumplidos sin compra registrada: ' + pend.map(m => MES3[m - 1]).join(', ') + ' (compra pendiente o hecha con otro producto).' : ''}</p>` : '') + `<p class="as-hint">Cruce por código de producto ONU con las órdenes de compra de datos abiertos${gen ? ' hasta ' + gen : ''}. El monto de una OC con varios productos se reparte en partes iguales. Si compraron un producto parecido con otro código, no aparece aquí.</p>`;
+}
+function distHtml(rs){
+  const hoy = new Date().getMonth() + 1;
+  const ch = rs.mesesList.map(m => `<span class="as-mes${m < hoy ? ' as-mes-p' : ''}">${MES3[m - 1]} ${pesos(rs.porMes[m])}</span>`).join(' ') + (rs.sinMes ? ` <span class="as-mes">sin mes ${pesos(rs.sinMes)}</span>` : '');
+  return `<p class="as-dist"><b>Distribución de lo que marcaste:</b> ${ch}</p>`;
 }
 function pacConsHtml(o){
   if(S.orgIdx == null) return '';
-  const items = pacItems(), nm = S.org ? S.org[1] : '', nmEnc = encodeURIComponent(nm);
-  const head = '<div class="as-sec as-pac" id="as-pacc"><h3>Tu PAC 2026 y la consolidación de este producto</h3>';
+  const P = S.pacOrg === S.orgIdx ? S.pac : null, items = pacItems(), nm = S.org ? S.org[1] : '', nmEnc = encodeURIComponent(nm), l = activeLine(), many = S.st.l.length > 1;
+  const head = `<div class="as-sec as-pac" id="as-pacc"><h3>Tu PAC 2026 y la consolidación${many ? ' de la línea ' + (S.li + 1) : ' de este producto'}</h3>`;
   if(S.pacOrg !== S.orgIdx) return head + '<div class="as-load">Revisando el PAC 2026 de tu organismo…</div></div>';
   if(!S.pac) return head + `<p>No encontré PAC 2026 publicado para ${esc(nm)} en el archivo del 20-10-2026 (proyectos Publicado y Actualizado). Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley 19.886 art. 12; DS 661 art. 27). Revisa el <a href="#pac26=${nmEnc}" target="_blank" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
-  if(!items.length) return head + `<p>En el PAC 2026 de tu organismo no aparece un ítem que coincida con «${esc(sentence(consultaTexto()) || 'este producto')}». Si vas a comprarlo, agrégalo con una modificación del PAC y fundamenta el motivo en el acto administrativo (Ley art. 12; DS 661 arts. 27 y 166). Para revisar el PAC completo: <a href="#pac26=${nmEnc}" target="_blank" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
-  const hoy = new Date().getMonth() + 1, P = S.pac, rs = pacResumen(items);
-  let h = head + `<p>El Asesor revisó el PAC de tu organismo (versión del 20-10-2026) y encontró ${items.length} ítem(s) que coinciden con este producto. Marca los que corresponden a la misma necesidad para consolidarlos.</p>`;
-  h += '<div class="as-tw" style="max-height:380px;overflow:auto"><table class="as-t"><tr><th></th><th>Ítem del PAC</th><th>Meses planificados</th><th class="n">Total</th></tr>' + items.map(x => {
+  const st = pacState(l), nomL = sentence(consultaTexto()) || 'este producto';
+  if(!items.length) return head + `<p>En el PAC 2026 de tu organismo no aparece un ítem que coincida con «${esc(nomL)}». Si vas a comprarlo, agrégalo con una modificación del PAC y fundamenta el motivo en el acto administrativo (Ley art. 12; DS 661 arts. 27 y 166). Para revisar el PAC completo: <a href="#pac26=${nmEnc}" target="_blank" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
+  const hoy = new Date().getMonth() + 1, oc = ocMeses(l), plannedAll = pacResumen(items, st.sel).mesesList, tieneComprados = !!(oc && plannedAll.some(m => oc[m]));
+  const skip = (tieneComprados && S.pendOnly !== false) ? new Set(plannedAll.filter(m => oc[m])) : null, rs = pacResumen(items, st.sel, skip), conPr = !!(P.pr && items.some(x => x.it[7] != null));
+  let h = head + `<p>El Asesor asoció tu producto con ${items.length} ítem(s) del PAC de ${esc(nm)} (versión del 20-10-2026)${conPr ? ', agrupados por proyecto' : ''}. Marca los que corresponden a la misma necesidad: el Asesor suma sus meses y propone una sola compra.</p>`;
+  const fila = x => {
     const ms = pacMeses(x.it[5]);
     const mtxt = ms.length ? ms.map(m => `<span class="as-mes${m.m < hoy ? ' as-mes-p' : ''}">${MES3[m.m - 1]} ${pesos(m.v)}</span>`).join(' ') : '<span class="as-hint">sin mes definido</span>';
-    return `<tr><td><input type="checkbox" class="as-pk" data-k="${x.k}" ${S.pacSel.has(x.k) ? 'checked' : ''} aria-label="Incluir en la consolidación"></td><td>${esc(sentence(x.it[0]))}<br><span class="as-hint">${esc(P.u[x.it[1]] || '')} · ${esc(P.m[x.it[3]] || '')}</span></td><td>${mtxt}</td><td class="n">${pesos(ms.length ? ms.reduce((a, m) => a + m.v, 0) : x.it[4])}</td></tr>`;
-  }).join('') + '</table></div>' + (items.length >= 40 ? '<p class="as-hint">Se muestran hasta 40 ítems: primero los que parten con el producto, luego los que solo lo mencionan.</p>' : '') + '<p class="as-hint">Meses en gris ya pasaron: confirma en las compras de tu organismo (más abajo) si ya se concretaron. Si el texto del ítem corresponde a otro producto, desmárcalo.</p>';
+    return `<tr><td><input type="checkbox" class="as-pk" data-k="${x.k}" ${st.sel.has(x.k) ? 'checked' : ''} aria-label="Incluir en la consolidación"></td><td>${esc(sentence(x.it[0]))}<br><span class="as-hint">${esc(P.u[x.it[1]] || '')} · ${esc(P.m[x.it[3]] || '')}</span></td><td class="n">${x.it[6] != null ? fmt(x.it[6]) : '—'}</td><td>${mtxt}</td><td class="n">${pesos(ms.length ? ms.reduce((a, m) => a + m.v, 0) : x.it[4])}</td></tr>`;
+  };
+  let filas = '';
+  if(conPr){
+    const gr = []; const seen = {};
+    items.forEach(x => { const k = x.it[7] == null ? -1 : x.it[7]; if(seen[k] == null){ seen[k] = gr.length; gr.push({k, xs: []}); } gr[seen[k]].xs.push(x); });
+    gr.forEach(g => { const pj = g.k >= 0 ? P.pr[g.k] : null, all = g.xs.every(x => st.sel.has(x.k)), tot = g.xs.reduce((a, x) => a + x.it[4], 0);
+      filas += `<tr class="as-pj-h"><td><input type="checkbox" class="as-pj" data-ks="${g.xs.map(x => x.k).join(',')}" ${all ? 'checked' : ''} aria-label="Marcar todo el proyecto"></td><td colspan="3"><b>${pj ? 'Proyecto ' + esc(pj[0]) : 'Sin proyecto informado'}</b>${pj && pj[1] ? ' · ' + esc(sentence(pj[1])) : ''}<br><span class="as-hint">${g.xs.length} ítem(s)</span></td><td class="n">${pesos(tot)}</td></tr>` + g.xs.map(fila).join(''); });
+  } else filas = items.map(fila).join('');
+  h += '<div class="as-tw" style="max-height:420px;overflow:auto"><table class="as-t"><tr><th></th><th>Ítem del PAC</th><th class="n">Cant.</th><th>Meses planificados</th><th class="n">Total</th></tr>' + filas + '</table></div>' + (items.length >= 40 ? '<p class="as-hint">Se muestran hasta 40 ítems: primero los que parten con el producto, luego los que solo lo mencionan.</p>' : '') + '<p class="as-hint">Meses en gris ya pasaron: confirma en las compras de tu organismo (más abajo) si ya se concretaron. Si el texto del ítem corresponde a otro producto, desmárcalo.' + (conPr ? '' : ' Este PAC aún no trae el código de proyecto en el Asesor: se muestra la unidad de compra.') + '</p>';
+  h += ocHtml(l, plannedAll);
+  if(tieneComprados) h += `<p><label class="as-chk"><input type="checkbox" id="as-pend" ${S.pendOnly !== false ? 'checked' : ''}><span>Consolidar solo los meses sin compra registrada<small>Descuenta ${rs.omit ? pesos(rs.omit) : 'lo ya comprado'} de los meses con órdenes de compra de este producto.</small></span></label></p>`;
   if(!rs.n) return h + '<p>No hay ítems marcados. Marca los que corresponden a esta necesidad para ver la compra consolidada.</p></div>';
-  const cons = R().consolidar(S.inp, rs), tot = cons.totalClp, difiere = S.st.m && Math.abs(tot - S.st.m) / S.st.m > 0.05;
-  h += `<div class="as-pk-sum"><b>Compra consolidada sugerida: ${pesos(tot)} (${dec(cons.totalUtm, 1)} UTM, ${esc(cons.tramoNom)})</b>${rs.mesesList.length ? '<br>Reúne lo planificado en ' + rs.mesesList.map(m => MES3[m - 1]).join(', ') + '.' : ''}<br>Procedimiento para ese monto: <b>${esc(cons.rec.principal.nom)}</b>.</div>`;
+  const cons = R().consolidar(S.inp, rs), tot = cons.totalClp, cur = lineTotal(l), difiere = !cur || Math.abs(tot - cur) / cur > 0.05;
+  h += distHtml(rs);
+  h += `<div class="as-pk-sum"><b>Compra consolidada sugerida${many ? ' para esta línea' : ''}: ${pesos(tot)} (${dec(cons.totalUtm, 1)} UTM, ${esc(cons.tramoNom)})</b>${rs.mesesList.length > 1 ? '<br>Una sola compra en lugar de ' + rs.mesesList.length + ' (' + rs.mesesList.map(m => MES3[m - 1]).join(', ') + ').' : ''}<br>Procedimiento para ese monto: <b>${esc(cons.rec.principal.nom)}</b>.</div>`;
   cons.texto.forEach(t => { h += `<p>${esc(t)}</p>`; });
   cons.alertas.forEach(a => { h += `<div class="as-al as-al-${a.nivel}"><b>Atención</b>${esc(a.t)}</div>`; });
-  if(difiere) h += `<p><button class="as-btn as-main" id="as-usepac">Usar ${pesos(tot)} como monto del análisis</button></p>`;
+  if(difiere) h += `<p><button class="as-btn as-main" id="as-usepac">Usar ${pesos(tot)} como monto de ${many ? 'la línea ' + (S.li + 1) : 'esta compra'}</button></p><p class="as-hint">Verifica si el monto del PAC incluye IVA antes de usarlo.</p>`;
   return h + citas(cons.arts.concat([{n: 'Ley 19.886', t: 'art. 12'}])) + '</div>';
 }
 function wireResult(){
-  S.host.querySelectorAll('.as-pk').forEach(c => c.addEventListener('change', () => { const k = Number(c.dataset.k); if(c.checked) S.pacSel.add(k); else S.pacSel.delete(k); update(); }));
+  const st = () => pacState(activeLine());
+  S.host.querySelectorAll('.as-pk').forEach(c => c.addEventListener('change', () => { const k = Number(c.dataset.k), s_ = st(); if(c.checked) s_.sel.add(k); else s_.sel.delete(k); update(); }));
+  S.host.querySelectorAll('.as-pj').forEach(c => c.addEventListener('change', () => { const s_ = st(); c.dataset.ks.split(',').forEach(k => { if(c.checked) s_.sel.add(Number(k)); else s_.sel.delete(Number(k)); }); update(); }));
+  const pe = $('as-pend'); if(pe) pe.addEventListener('change', () => { S.pendOnly = pe.checked; update(); });
   const b = $('as-usepac');
-  if(b) b.addEventListener('click', () => { const items = pacItems(), rs = pacResumen(items); S.st.m = rs.totalClp; const mi = $('as-monto'); if(mi) mi.value = fmt(S.st.m); update(); });
+  if(b) b.addEventListener('click', () => { const s_ = st(), P = S.pac, l = activeLine(), oc_ = ocMeses(l), pl_ = pacResumen(s_.matches.map(k => ({k, it: P.i[k]})), s_.sel).mesesList, sk_ = (oc_ && S.pendOnly !== false) ? new Set(pl_.filter(m => oc_[m])) : null, rs = pacResumen(s_.matches.map(k => ({k, it: P.i[k]})), s_.sel, sk_); l.n = 0; l.pu = 0; l.m = rs.totalClp; recalc(); paintLines(); update(); });
+  S.host.querySelectorAll('.as-goln').forEach(bt => bt.addEventListener('click', () => { activate(Number(bt.dataset.i)); $('as-prod').value = ''; paintLines(); loadSegFor(); update(); const r = $('as-res'); if(r) r.scrollIntoView({behavior: 'smooth', block: 'start'}); }));
+}
+/* Presupuesto y PAC del organismo */
+function pacTotal(){
+  const P = S.pacOrg === S.orgIdx ? S.pac : null; if(!P) return null;
+  if(!S.pacTot || S.pacTot.o !== S.orgIdx){ let t = 0; P.i.forEach(it => { t += it[4]; }); S.pacTot = {o: S.orgIdx, t, n: P.i.length, pj: P.pr ? P.pr.length : null}; }
+  return S.pacTot;
+}
+function orgFinTxt(corto){
+  if(S.orgIdx == null) return '';
+  const code = S.org[0], pt = pacTotal(), pr = S.pres && S.pres.o ? S.pres.o[code] : null;
+  let a = '', comp = '';
+  if(S.pres && S.pres.o){
+    if(pr && pr[1] === 2 && pr[0] > 0){
+      a = `Presupuesto 2026 del servicio en la Ley N° 21.796 (subtítulos 22 y 29, sin terrenos ni edificios): <b>${pesos(pr[0])}</b>${pr[2] ? ' · ' + esc(pr[2]) : ''}.${pr[3] > 1 ? ` Es del servicio completo y lo comparten ${pr[3]} organismos de la base.` : ''}`;
+      if(pr[5] && pr[0]) comp += `Ya ejecutó ${pesos(pr[5])} en órdenes de compra entre enero y septiembre (cifra del organismo, no solo de esta partida).`;
+      if(!corto && S.st.m) comp += ` Este proceso equivale al ${dec(S.st.m / pr[0] * 100, 1)} % de ese presupuesto.`;
+    } else if(pr && pr[1] === 4) a = `La Ley no desglosa un presupuesto propio para este organismo: solo se identifica el ministerio${pr[2] ? ' (' + esc(pr[2]) + ')' : ''}.`;
+    else a = 'Sin presupuesto propio en la Ley de Presupuestos 2026 (por ejemplo municipios, corporaciones, universidades y empresas públicas): se financia con recursos propios o transferencias.';
+  } else if(S.presTried) a = 'El presupuesto de la Ley 2026 aún no está cargado en el Asesor. Revísalo en la vista <a href="#presupuesto" target="_blank" rel="noopener">Presupuesto 2026</a> del sitio.';
+  let b = '';
+  if(S.pacOrg !== S.orgIdx) b = 'Revisando el PAC 2026…';
+  else if(!pt) b = 'No tiene PAC 2026 publicado en el archivo del 20-10-2026.';
+  else b = `PAC 2026: <b>${pesos(pt.t)}</b> en ${fmt(pt.n)} ítem(s)${pt.pj ? ' y ' + fmt(pt.pj) + ' proyecto(s)' : ''}.`;
+  return [a, b, comp.trim()].filter(Boolean).join(' ');
+}
+function paintOrgFin(){ const el = $('as-orgfin'); if(!el) return; const t = orgFinTxt(true); el.innerHTML = t ? `<p class="as-hint as-fin">${t}</p>` : ''; }
+/* Resumen del proceso con varias líneas */
+function procesoHtml(o){
+  const L = S.st.l.filter(l => l.p || l.q || lineTotal(l)); if(L.length < 2) return '';
+  const utm = utmNow(), filas = [];
+  let cmClp = 0, fuera = 0;
+  L.forEach(l => { const idx = S.st.l.indexOf(l);
+    const r = withLine(l, () => { const vd = veredictoCm(), pt = lineTipo(l), cons = pt === 'servicio' ? false : esConsumible(), nm = S.prodIdx != null && S.C.c[S.prodIdx].slice(0, 2) === '95';
+      return {vd, tipo: pt, ec: pt === 'bien' && !cons && !nm}; });
+    const ps = pacState(l), cm = ['catalogo', 'oc', 'familia', 'tema'].includes(r.vd.nivel), t = lineTotal(l);
+    if(cm) cmClp += t; else fuera += t;
+    const cmTxt = cm ? ((r.vd.cms[0].v && r.vd.cms[0].v.nombre) || r.vd.cms[0].id) + (r.vd.nivel === 'catalogo' || r.vd.nivel === 'oc' ? '' : ' (probable)') : 'No';
+    const pacTxt = ps ? (ps.matches.length ? ps.matches.length + ' ítem(s)' + (ps.sel.size ? ', ' + ps.sel.size + ' marcado(s)' : '') : 'Sin ítem') : '…';
+    filas.push(`<tr><td>${idx + 1}</td><td>${esc(lineName(l) || 'Sin producto')}</td><td>${r.tipo === 'servicio' ? 'Servicio' : 'Bien'}</td><td class="n">${t ? pesos(t) : '—'}</td><td>${r.ec ? 'Consultar primero' : 'No aplica'}</td><td>${esc(cmTxt)}</td><td>${pacTxt}</td><td><button class="as-x as-goln" data-i="${idx}">${idx === S.li ? 'en pantalla' : 'ver detalle'}</button></td></tr>`);
+  });
+  let h = `<div class="as-sec"><h3>Resumen del proceso: ${L.length} líneas, ${pesos(S.st.m)} (${dec(S.st.m / utm, 1)} UTM)</h3><div class="as-tw"><table class="as-t"><tr><th>#</th><th>Producto o servicio</th><th>Tipo</th><th class="n">Monto</th><th>Economía circular</th><th>Convenio Marco</th><th>PAC</th><th></th></tr>${filas.join('')}</table></div>`;
+  h += `<p>El análisis completo que sigue corresponde a la línea ${S.li + 1}, con el total del proceso para definir el tramo. Cambia de línea con «ver detalle».</p>`;
+  if(cmClp) h += `<p><b>Por Convenio Marco:</b> ${pesos(cmClp)} (${dec(cmClp / utm, 1)} UTM). Cada línea se compra por su convenio${cmClp / utm > 1000 ? '; sobre 1.000 UTM corresponde Gran Compra (DS 661, art. 90)' : ''}.</p>`;
+  if(fuera){ const rec = R().recomendar(Object.assign({}, S.inp, {cm: false, cmNombres: [], montoClp: fuera, bt: []}));
+    h += `<p><b>Fuera de Convenio Marco:</b> ${pesos(fuera)} (${dec(fuera / utm, 1)} UTM, ${esc(rec.tramoNom)}). Si estas líneas forman un mismo proceso de compra, el procedimiento se define con esa suma: <b>${esc(rec.principal.nom)}</b>. Si son necesidades distintas puedes tratarlas por separado, pero no dividas una compra para quedar bajo un umbral.</p>`; }
+  return h + citas([{n: 'DS 661/2024', t: 'art. 16'}, {n: 'DS 661/2024', t: 'art. 90'}]) + '</div>';
+}
+/* Procesos de referencia: licitaciones y Compras Ágiles reales del mismo producto (índice data/asesor/ref/ref_SS.js, construido desde el buscador de procesos). */
+function ensureRef(){
+  if(S.prodIdx == null) return; const sg = S.C.c[S.prodIdx].slice(0, 2); S.ref = S.ref || {};
+  if(S.ref[sg] !== undefined || (S.refLoading && S.refLoading[sg])) return;
+  S.refLoading = S.refLoading || {}; S.refLoading[sg] = true;
+  loadScript(AB + 'ref/ref_' + sg + '.js' + ver()).then(() => (window.AS_REF && window.AS_REF[sg]) || null).catch(() => null).then(d => { S.ref[sg] = d; S.refLoading[sg] = false; update(); });
+}
+function refFor(D, code){
+  const own = D[code] || {}, cl = code.slice(0, 6), out = {L: own.L, C: own.C, claseL: false, claseC: false};
+  const sib = Object.keys(D).filter(k => k !== code && k.slice(0, 6) === cl);
+  const merge = (key, rowsAt) => {
+    const rows = [], sum = {n: 0, a: 0, d: 0, ofs: 0, wa: 0};
+    sib.forEach(k => { const e = D[k][key]; if(!e) return; sum.n += e[0]; if(key === 'L'){ sum.a += e[1]; sum.d += e[2]; sum.ofs += e[3] * e[1]; sum.wa += e[1]; } e[rowsAt].forEach(r => rows.push(r)); });
+    rows.sort((x, y) => (y[1] || '').localeCompare(x[1] || ''));
+    return sum.n ? {sum, rows: rows.slice(0, 10)} : null;
+  };
+  if(!own.L || own.L[0] < 3){ const m = merge('L', 5); if(m){ out.claseL = true; out.L = [m.sum.n + (own.L ? own.L[0] : 0), m.sum.a + (own.L ? own.L[1] : 0), m.sum.d + (own.L ? own.L[2] : 0), m.sum.wa ? Math.round(m.sum.ofs / m.sum.wa * 10) / 10 : 0, 0, (own.L ? own.L[5] : []).concat(m.rows).sort((x, y) => (y[1] || '').localeCompare(x[1] || '')).slice(0, 10)]; } }
+  if(!own.C || own.C[0] < 3){ const m = merge('C', 2); if(m){ out.claseC = true; out.C = [m.sum.n + (own.C ? own.C[0] : 0), 0, (own.C ? own.C[2] : []).concat(m.rows).sort((x, y) => (y[1] || '').localeCompare(x[1] || '')).slice(0, 10)]; } }
+  return out;
+}
+function planHtml(r){
+  const T = r.L && r.L[6]; if(!T || r.claseL || T[0] < 5) return '';
+  const fmtD = d => d.toLocaleDateString('es-CL', {day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC'});
+  let h = `<p><b>Tiempos reales:</b> en ${fmt(T[0])} licitaciones de este producto, desde que se publicaron hasta que se adjudicaron pasaron una mediana de <b>${T[1]} días</b>; el 75 % se adjudicó en <b>${T[2]} días</b> o menos (incluye plazo de publicación, preguntas, evaluación y adjudicación; no incluye contrato ni entrega).</p>`;
+  if(S.st.nd){
+    const need = new Date(S.st.nd + 'T00:00:00Z'), a = new Date(need.getTime() - T[1] * 864e5), b = new Date(need.getTime() - T[2] * 864e5), hoy = new Date(), h0 = new Date(Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate()));
+    h += `<p>Para tener la adjudicación el <b>${fmtD(need)}</b>, publica a más tardar el <b>${fmtD(b)}</b> si quieres cubrir el 75 % de los casos, o el ${fmtD(a)} en un caso típico.${b < h0 ? ' <b>La fecha prudente ya pasó</b>: evalúa si conviene Convenio Marco, o simplificar las bases (con una especificación simple y objetiva se reducen los plazos mínimos, DS 661 art. 46).' : ''}</p>`;
+  } else h += '<p class="as-hint">Indica en el paso 3 para cuándo necesitas la adjudicación y el Asesor calcula la fecha límite de publicación.</p>';
+  return h;
+}
+function refHtml(o){
+  if(S.prodIdx == null) return '';
+  const code = S.C.c[S.prodIdx], sg = code.slice(0, 2), D = S.ref && S.ref[sg], nm = sentence(S.C.n[S.prodIdx]), lic = o.montoUtm > 100, l = activeLine(), monto = lineTotal(l) || S.st.m;
+  const head = `<div class="as-sec as-ref"><h3>${lic ? 'Licitaciones de referencia' : 'Compras Ágiles de referencia'}: ${esc(nm)}</h3>`;
+  if(D === undefined) return head + '<div class="as-load">Buscando procesos parecidos…</div></div>';
+  const busca = ' Puedes buscar por palabra en el <a href="#rubro" target="_blank" rel="noopener">buscador de procesos de compra</a> del sitio.';
+  const r = D ? refFor(D, code) : {};
+  const cerca = rows => rows.slice().sort((a, b) => Math.abs(Math.log((a[4] || 1) / monto)) - Math.abs(Math.log((b[4] || 1) / monto))).slice(0, 5).sort((a, b) => (b[1] || '').localeCompare(a[1] || ''));
+  const link = (c, mec) => mec === 'l' ? `http://www.mercadopublico.cl/fichaLicitacion.html?idLicitacion=${encodeURIComponent(c)}` : `https://www.mercadopublico.cl/PurchaseOrder/Modules/PO/DetailsPurchaseOrder.aspx?codigoOC=${encodeURIComponent(c)}`;
+  if(lic){
+    if(!r.L) return head + `<p>No encontré licitaciones adjudicadas de este producto ni de su clase entre enero de 2025 y octubre de 2026 en los datos abiertos.${busca}</p></div>`;
+    const L = r.L, des = L[2], pc = L[0] ? Math.round(des / L[0] * 100) : 0;
+    let h = head + `<p>${r.claseL ? 'No hay suficientes licitaciones de este producto exacto; se muestran las de su clase (productos parecidos). ' : ''}En los últimos 12 meses se publicaron <b>${fmt(L[0])}</b> licitaciones${r.claseL ? ' de la clase' : ' de este producto'}: <b>${fmt(L[1])}</b> se adjudicaron y <b>${fmt(des)}</b> (${pc} %) quedaron desiertas o cerradas sin adjudicar.${L[3] ? ` Las adjudicadas recibieron en promedio <b>${dec(L[3], 1)}</b> ofertas.` : ''}${L[4] ? ` Monto mediano adjudicado: <b>${pesos(L[4])}</b>.` : ''}</p>`;
+    if(L[3] && L[3] < 2.5) h += '<p>Se reciben pocas ofertas por licitación. Conviene revisar que las exigencias y los plazos de las bases no limiten la participación, y difundir el proceso entre proveedores del rubro.</p>';
+    else if(pc >= 20) h += '<p>Más de 1 de cada 5 licitaciones de este producto no se adjudica. Antes de publicar, revisa los requisitos de admisibilidad y el presupuesto estimado frente a los precios de referencia.</p>';
+    const rows = cerca(L[5]);
+    h += '<div class="as-tw"><table class="as-t"><tr><th>Licitación</th><th>Publicada</th><th>Título</th><th>Organismo</th><th class="n">Monto</th><th class="n">Ofertas</th><th>Adjudicada a</th></tr>' + rows.map(x => `<tr><td><a href="${link(x[0], 'l')}" target="_blank" rel="noopener">${esc(x[0])}</a><br><span class="as-hint">${esc(x[7] || '')}</span></td><td>${esc(x[1])}</td><td>${esc(sentence(x[2]))}</td><td>${esc(x[3])}</td><td class="n">${x[4] ? pesos(x[4]) : '—'}</td><td class="n">${x[5] || '—'}</td><td>${esc(x[6] || '—')}</td></tr>`).join('') + '</table></div>';
+    h += planHtml(r);
+    return h + `<p class="as-hint">Se muestran las 5 licitaciones adjudicadas con monto más cercano al tuyo (${pesos(monto)}), entre una muestra de las más recientes desde enero de 2025, con montos variados. Ábrelas en Mercado Público para ver sus bases, criterios de evaluación y plazos. Los estados de licitaciones de 2025 pueden estar desactualizados.${S.st.l.length > 1 ? ' Corresponde a la línea ' + (S.li + 1) + '.' : ''}</p></div>`;
+  }
+  if(!r.C) return head + `<p>No encontré Compras Ágiles de este producto ni de su clase entre enero de 2025 y octubre de 2026 en los datos abiertos.${busca}</p></div>`;
+  const C = r.C;
+  let h = head + `<p>${r.claseC ? 'No hay suficientes Compras Ágiles de este producto exacto; se muestran las de su clase (productos parecidos). ' : ''}En los últimos 12 meses hubo <b>${fmt(C[0])}</b> compras ágiles${r.claseC ? ' de la clase' : ' de este producto'}${C[1] ? `, con un monto mediano de <b>${pesos(C[1])}</b>` : ''}.</p>`;
+  const rows = cerca(C[2]);
+  h += '<div class="as-tw"><table class="as-t"><tr><th>Orden de compra</th><th>Fecha</th><th>Título</th><th>Organismo</th><th class="n">Monto</th><th>Proveedor</th></tr>' + rows.map(x => `<tr><td><a href="${link(x[0], 'c')}" target="_blank" rel="noopener">${esc(x[0])}</a></td><td>${esc(x[1])}</td><td>${esc(sentence(x[2]))}</td><td>${esc(x[3])}</td><td class="n">${x[4] ? pesos(x[4]) : '—'}</td><td>${esc(x[5] || '—')}</td></tr>`).join('') + '</table></div>';
+  return h + `<p class="as-hint">Se muestran las 5 compras con monto más cercano al tuyo (${pesos(monto)}), entre una muestra de las más recientes desde enero de 2025, con montos variados. Sirven para calibrar el precio y ver qué proveedores responden; la ficha en Mercado Público muestra el detalle.</p></div>`;
 }
 function resultHtml(o){
-  const p = o.principal, st = S.st, h = histProd(), ci = cmInfo();
+  const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
-  let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>
-    <div class="as-chips"><span class="as-chip">${esc(prodName)}</span><span class="as-chip">${dec(o.montoUtm, 1)} UTM</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div></div>`;
+  let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div>${(o.escalera && o.escalera.ecOpcion) ? `<h2>Primero, economía circular</h2><p>Es un bien mueble: antes de comprar, consulta si otro organismo tiene uno disponible (DS 661, art. 28). Si no existe o no está disponible, deja constancia de que el producto no está disponible en economía circular y sigue con: <b>${esc(p.nom)}</b>.</p>` : `<h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>`}
+    <div class="as-chips"><span class="as-chip">${esc(prodName)}</span>${st_.l.length > 1 ? `<span class="as-chip">Línea ${S.li + 1} de ${st_.l.length}</span>` : ''}<span class="as-chip">${dec(o.montoUtm, 1)} UTM${st_.l.length > 1 ? ' en total' : ''}</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div></div>`;
+  html += `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
+  html += procesoHtml(o);
   html += vereditoHtml(S.vd || veredictoCm(), o);
   html += escaleraHtml(o);
+  html += refHtml(o);
   html += pacConsHtml(o);
   if(S.od == null) html += '<div class="as-load">Cargando las compras del organismo para cruzarlas con la recomendación…</div>';
   // alertas
@@ -555,9 +797,10 @@ function escaleraHtml(o){
   const e = o.escalera; if(!e) return '';
   const ec = o.pasos.find(x => x.titulo === 'Economía circular');
   let h = '<div class="as-sec as-esc"><h3>Orden de opciones para esta compra</h3>';
-  if(ec) h += `<div class="as-op as-op-prev"><div class="as-op-n">Antes</div><div class="as-op-b"><b>Economía circular</b> <span class="as-tag as-t-${esc2(ec.estado)}">${esc(ec.estado)}</span><p>${esc(ec.texto)}</p>${citas(ec.arts)}</div></div>`;
+  if(ec && !e.ecOpcion) h += `<div class="as-op as-op-prev"><div class="as-op-n">Antes</div><div class="as-op-b"><b>Economía circular</b> <span class="as-tag as-t-${esc2(ec.estado)}">${esc(ec.estado)}</span><p>${esc(ec.texto)}</p>${citas(ec.arts)}</div></div>`;
   e.opciones.forEach(op => {
-    h += `<div class="as-op as-op-${op.k.toLowerCase()}"><div class="as-op-n">Opción ${op.n}</div><div class="as-op-b"><b>${esc(op.titulo)}</b> <span class="as-tag as-t-${op.tag === 'prioridad' ? 'obligatorio' : (op.tag === 'excepcional' ? 'verificar' : 'recomendado')}">${esc(op.tag)}</span><p>${esc(op.texto)}</p>`;
+    h += `<div class="as-op as-op-${op.k.toLowerCase()}"><div class="as-op-n">Opción ${op.n}</div><div class="as-op-b"><b>${esc(op.titulo)}</b> <span class="as-tag as-t-${op.tag === 'prioridad' || op.tag === 'primera opción' ? 'obligatorio' : (op.tag === 'excepcional' ? 'verificar' : 'recomendado')}">${esc(op.tag)}</span><p>${esc(op.texto)}</p>`;
+    if(op.k === 'EC') h += `<p class="as-hint">Consulta la plataforma: <a href="${window.AS_CMV ? window.AS_CMV.eco : '#'}" target="_blank" rel="noopener">Economía Circular de Mercado Público</a>.</p>`;
     if(op.subs) h += '<ul class="as-op-s">' + op.subs.map(s => `<li class="${s.est === 'descartada' ? 'as-off' : ''}"><b>${esc(s.nom)}</b> <span class="as-tag as-t-${s.est === 'descartada' ? 'descartado' : (s.est === 'procede' ? 'recomendado' : (s.est === 'obligatoria' ? 'obligatorio' : 'verificar'))}">${esc(s.est)}</span> ${esc(s.texto)}${linksHtml(s.links)}${s.arts && s.k === 'BT' ? citas(s.arts) : ''}</li>`).join('') + '</ul>';
     if(op.causales) h += '<ul class="as-op-s">' + op.causales.map(c => `<li><b>${esc(CAUS_NOM(c))}</b> <span class="as-hint">(art. ${esc(c.n)} DS 661)</span></li>`).join('') + '</ul><p class="as-hint">Si ninguna calza con hechos que puedas acreditar, esta opción no corresponde. Elige en el paso 3 la situación que aplique y el Asesor te muestra los requisitos de esa causal.</p>';
     h += citas(op.arts) + '</div></div>';
@@ -716,7 +959,7 @@ function init(host, payload){
   return ensure().then(() => {
     shell();
     const st = S.st;
-    if(st.p && S.prodByCode[st.p] != null){ S.prodIdx = S.prodByCode[st.p]; }
+    S.li = 0; S.pacLn = {}; activate(0);
     if(!st.mes || !S.C.utm[st.mes]) st.mes = null;
     const ready = [];
     if(st.o && S.orgByCode[st.o] != null){ S.orgIdx = S.orgByCode[st.o]; S.org = S.O.o[S.orgIdx]; S.loadingOrg = true; ready.push(loadOrg(S.orgIdx).then(d => { S.od = d; S.loadingOrg = false; })); }

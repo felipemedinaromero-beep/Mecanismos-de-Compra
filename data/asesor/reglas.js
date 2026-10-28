@@ -206,11 +206,11 @@ function recomendar(inp){
   // 1. Economía circular (paso previo, art. 28 DS 661)
   let ecTxt = null;
   if(bien){
-    if(inp.consumible){
-      ecTxt = 'Por su naturaleza, este bien (de consumo o de un solo uso) no puede reutilizarse ni compartirse, así que la consulta previa no aplica y puedes seguir con el paso siguiente.';
+    if(inp.consumible || inp.noMueble){
+      ecTxt = inp.noMueble ? 'La economía circular se consulta para bienes muebles; un terreno, edificio o estructura no lo es, así que la consulta previa no aplica.' : 'Por su naturaleza, este bien (de consumo o de un solo uso) no puede reutilizarse ni compartirse, así que la consulta previa no aplica y puedes seguir con el paso siguiente.';
       paso('Economía circular', 'no aplica', ecTxt, [ds('art. 28')]);
     } else {
-      ecTxt = 'Antes de adquirir bienes muebles debes consultar la plataforma de economía circular por si otro organismo tiene uno que sirva a tu necesidad (art. 28). Si no existe o no está disponible, deja constancia con esta frase: "producto no existe o no se encuentra disponible en economía circular", y continúa con el Convenio Marco. Si existe, puedes pedirlo en traspaso en vez de comprar.';
+      ecTxt = 'Antes de adquirir bienes muebles debes consultar la plataforma de economía circular por si otro organismo tiene uno que sirva a tu necesidad (art. 28). Si no existe o no está disponible, deja constancia con esta frase: "producto no disponible en economía circular", y continúa con el Convenio Marco. Si existe, puedes pedirlo en traspaso en vez de comprar.';
       paso('Economía circular', 'previo', ecTxt, [ds('art. 28')]);
     }
   } else {
@@ -346,13 +346,16 @@ function recomendar(inp){
   if(sit.has('coordina') && pr.k !== 'CC') alt('CC', 'Marcaste que otros organismos necesitan lo mismo: solicita a la Dirección de Compras que te represente.');
 
   // Escalera de opciones: Convenio Marco -> fuera de Convenio Marco -> excepcional
-  const esc = {previo: bien ? (inp.consumible ? 'El bien es de consumo: la consulta de economía circular no aplica.' : 'Primero, consulta economía circular. Si no está, "producto no existe o no se encuentra disponible en economía circular".') : 'Servicio: no corresponde la consulta de economía circular.', opciones: []};
+  const esc = {previo: bien ? ((inp.consumible || inp.noMueble) ? (inp.noMueble ? 'No es un bien mueble: la consulta de economía circular no aplica.' : 'El bien es de consumo: la consulta de economía circular no aplica.') : 'Primero, consulta economía circular. Si no está, "producto no disponible en economía circular".') : 'Servicio: no corresponde la consulta de economía circular.', opciones: []};
   const enCm = !!inp.cm && !ffaa;
+  const ecOp = bien && !inp.consumible && !inp.noMueble, off = ecOp ? 1 : 0;
+  esc.ecOpcion = ecOp;
+  if(ecOp) esc.opciones.push({n: 1, k: 'EC', tag: 'primera opción', titulo: 'Economía circular', texto: 'Los bienes muebles se consultan primero en la plataforma de economía circular, antes de cualquier compra, tengas o no el producto en Catálogo (DS 661, art. 28). Si otro organismo tiene un bien que sirva a tu necesidad, pídelo en transferencia a título gratuito y no compres. Si no existe o no está disponible, deja constancia con esta frase: "producto no disponible en economía circular", y pasa a la opción siguiente.', arts: [ds('art. 28'), A('Ley 21.634', 'art. segundo')], cm: false});
   if(enCm){
-    esc.opciones.push({n: 1, k: 'CM', tag: 'prioridad', titulo: u > 1000 ? 'Gran Compra por Convenio Marco' : 'Compra por Convenio Marco', texto: cmTexto, cm: true, arts: [ley('art. 30 letra d)'), ds('arts. 29, 89, 90')]});
+    esc.opciones.push({n: 1 + off, k: 'CM', tag: 'prioridad', titulo: u > 1000 ? 'Gran Compra por Convenio Marco' : 'Compra por Convenio Marco', texto: cmTexto, cm: true, arts: [ley('art. 30 letra d)'), ds('arts. 29, 89, 90')]});
   }
   // fuera de Convenio Marco
-  const fuera = {n: enCm ? 2 : 1, k: 'FUERA', tag: enCm ? 'alternativa' : 'recomendado', titulo: enCm ? 'Fuera de Convenio Marco' : 'Procedimiento según el monto', subs: [], arts: [ley('art. 30 letra d); art. 7'), ds('art. 92')]};
+  const fuera = {n: (enCm ? 2 : 1) + off, k: 'FUERA', tag: enCm ? 'alternativa' : 'recomendado', titulo: enCm ? 'Fuera de Convenio Marco' : 'Procedimiento según el monto', subs: [], arts: [ley('art. 30 letra d); art. 7'), ds('art. 92')]};
   fuera.texto = enCm
     ? 'La norma permite comprar fuera del Convenio Marco si el producto no está disponible o si obtienes condiciones más ventajosas objetivas y demostrables. Debes informarlo a la Dirección de Compras y guardar los antecedentes (art. 92). En ese caso, el procedimiento depende del monto:'
     : 'El producto no está en Convenio Marco, así que el procedimiento depende del monto:';
