@@ -74,6 +74,10 @@ const CSS = `
 .pv-tbl td{padding:7px 8px;border-bottom:1px solid #EDF1F7;vertical-align:top;} .pv-tbl td.num,.pv-tbl th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;} .pv-tbl a{color:var(--cc-navy);}
 .pv-tag{display:inline-block;font-size:10.5px;font-weight:700;border-radius:99px;padding:2px 9px;white-space:nowrap;} .pv-ok{background:#E3F4E5;color:#1E6B2A;} .pv-no{background:#EDF1F7;color:#33475B;} .pv-rej{background:#FDE8EA;color:#9B1C2E;}
 .pv-tip{position:fixed;z-index:10000;display:none;max-width:340px;background:var(--cc-navy,#00233B);color:#fff;font-size:12px;line-height:1.45;padding:9px 12px;border-radius:10px;box-shadow:0 6px 22px rgba(0,35,59,.35);pointer-events:none;} .pv-tip b{display:block;margin-bottom:3px;font-size:12.5px;overflow-wrap:anywhere;}
+.pv-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px;} .pv-tab{font:inherit;font-size:12px;padding:6px 13px;border:1px solid rgba(0,50,162,.35);border-radius:99px;background:#fff;color:var(--cc-navy);cursor:pointer;} .pv-tab:hover{background:var(--cc-mist);} .pv-tab[aria-pressed=true]{background:var(--cc-navy);color:#fff;font-weight:700;}
+.pv-rkh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin:4px 0 6px;} .pv-rkh p{margin:0;font-size:12.5px;color:var(--text-secondary);line-height:1.5;max-width:880px;}
+.pv-tbl tr.pv-rk{cursor:pointer;} .pv-tbl tr.pv-rk:hover td{background:var(--cc-mist);} .pv-tbl td b{color:var(--cc-dark);} .pv-tbl td small{display:block;color:var(--text-secondary);font-size:10.5px;} .pv-up{color:#1E6B2A;font-weight:700;} .pv-dn{color:#9B1C2E;font-weight:700;}
+.pv-lead{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:10px;} .pv-lead .pv-p h3{font-size:12.5px;} .pv-lead .pv-b{grid-template-columns:minmax(90px,45%) 1fr auto;}
 @media (max-width:760px){.pv-grid{grid-template-columns:1fr}.pv-r{grid-template-columns:1fr 1fr}.pv-b{grid-template-columns:1fr}.pv-bv{text-align:left}}
 `;
 function injectCss(){ if(document.getElementById('pvCss')) return; const s = document.createElement('style'); s.id = 'pvCss'; s.textContent = CSS; document.head.appendChild(s); }
@@ -121,10 +125,98 @@ function rowHtml(i){
 }
 function showList(hits, titulo){
   const el = $('pvList'); if(!el) return;
-  if(hits == null){ el.innerHTML = `<div class="pv-h2">${titulo}</div><div class="pv-list">${S.top.map(rowHtml).join('')}</div>`; return; }
+  if(hits == null){ showRank(); return; }
   if(!hits.length){ el.innerHTML = '<div class="pv-note">No hay proveedores que coincidan. Prueba con menos palabras o con el RUT. Solo están los proveedores que vendieron (OC) u ofertaron en licitaciones con ficha desde 2025.</div>'; return; }
   const shown = hits.slice(0, 30);
   el.innerHTML = `<div class="pv-h2">${fmt(hits.length)} proveedor${hits.length === 1 ? '' : 'es'}${hits.length > 30 ? ' (se muestran los 30 con más ventas)' : ''}</div><div class="pv-list">${shown.map(rowHtml).join('')}</div>`;
+}
+
+
+// ---------- rankings de la portada ----------
+const RK = {tab: 'top', sub: 0};
+async function ensureRank(){
+  if(window.PROV_RANK) return window.PROV_RANK;
+  await loadScript(PB + 'rank.js?v=' + (S.X.rk || ''));
+  return window.PROV_RANK;
+}
+const orgNm = o => o >= 0 && S.D.org[o] ? S.D.org[o][1] : 'Sin dato';
+const prv = i => { const p = S.D.prov[i]; return `<b>${esc(p[1])}</b><small>${p[0] ? 'RUT ' + esc(p[0]) : 'Sin RUT informado'}</small>`; };
+const pm = v => dec1(v / 10) + ' %';
+function rkTable(heads, rows, nums){
+  nums = nums || [];
+  return `<div class="pv-tw"><table class="pv-tbl"><thead><tr><th>#</th>${heads.map((h, k) => `<th class="${nums.indexOf(k) >= 0 ? 'num' : ''}">${h}</th>`).join('')}</tr></thead><tbody>${rows.map((r, n) => `<tr class="pv-rk" data-pi="${r[0]}" tabindex="0"><td class="num">${n + 1}</td>${r.slice(1).map((c, k) => `<td class="${nums.indexOf(k) >= 0 ? 'num' : ''}">${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function rankTabs(R){
+  const M = R.kpi.meses;
+  return [
+    {k: 'top', lab: 'Más ventas', desc: 'Los 25 proveedores con mayor monto vendido en órdenes de compra desde enero de 2025.',
+     heads: ['Proveedor', 'Ventas', 'OC', 'Licitaciones ofertadas'], nums: [1, 2, 3],
+     rows: () => S.top25.map(i => [i, prv(i), fmtM(S.X.m[i]), fmt(S.X.n[i]), fmt(S.X.l[i])])},
+    {k: 'fiel', lab: 'Un solo comprador', desc: `Proveedores con ventas desde 2025 de $100 millones o más, al menos 10 OC y 90 % o más de sus ventas a un mismo organismo: ${fmt(R.nfiel[0])} proveedores, ${fmtM(R.nfiel[1])} en total. Una venta concentrada no es irregular por sí sola; sirve para revisar dependencia mutua y competencia.`,
+     heads: ['Proveedor', 'Comprador', '% con ese comprador', 'OC', 'Ventas', 'Meses con venta'], nums: [2, 3, 4, 5],
+     rows: () => R.fiel.map(r => [r[0], prv(r[0]), esc(orgNm(r[1])), pm(r[2]), fmt(r[3]), fmtM(r[4]), r[5] + ' de ' + M])},
+    {k: 'par', lab: 'Pares comprador–proveedor', desc: 'Las relaciones de compra más grandes entre un organismo y un proveedor, con cuánto pesa el proveedor dentro del gasto total de ese organismo.',
+     heads: ['Proveedor', 'Comprador', 'Ventas', 'OC', 'Meses con venta', '% del gasto del comprador'], nums: [2, 3, 4, 5],
+     rows: () => R.par.map(r => [r[0], prv(r[0]), esc(orgNm(r[1])), fmtM(r[2]), fmt(r[3]), r[4] + ' de ' + M, pm(r[5])])},
+    {k: 'cm', lab: 'Convenios Marco', desc: 'Proveedores con ventas en más Convenios Marco distintos (cada código de convenio cuenta una vez). Entre paréntesis se muestra cuántos proveedores tienen ventas en algún convenio.',
+     heads: ['Proveedor', 'Convenios Marco', 'Ventas en convenios', 'OC'], nums: [1, 2, 3],
+     rows: () => R.cm.map(r => [r[0], prv(r[0]), fmt(r[1]), fmtM(r[2]), fmt(r[3])]), foot: `${fmt(R.kpi.pcm)} proveedores venden por Convenio Marco.`},
+    {k: 'org', lab: 'Más compradores', desc: 'Proveedores que venden a más organismos distintos: menor dependencia de un cliente y mayor presencia en el Estado.',
+     heads: ['Proveedor', 'Organismos distintos', 'Ventas'], nums: [1, 2],
+     rows: () => R.org.map(r => [r[0], prv(r[0]), fmt(r[1]), fmtM(r[2])])},
+    {k: 'td', lab: 'Trato directo', subs: ['Mayor monto', 'Dependen del trato directo'],
+     desc: s => s === 0 ? 'Proveedores con mayor monto vendido por trato o contratación directa.' : `Proveedores con $50 millones o más por trato directo y 80 % o más de sus ventas por esa vía: ${fmt(R.ntdd[0])} proveedores, ${fmtM(R.ntdd[1])}. Es una señal para revisar causales y posibles licitaciones, no una conclusión de irregularidad.`,
+     heads: ['Proveedor', 'Monto por trato directo', 'OC', '% de sus ventas'], nums: [1, 2, 3],
+     rows: s => (s === 0 ? R.td : R.tdd).map(r => [r[0], prv(r[0]), fmtM(r[1]), fmt(r[2]), pm(r[3])])},
+    {k: 'lic', lab: 'Licitaciones', subs: ['Más adjudicaciones', 'Mejor tasa de éxito', 'Ofertan mucho y no ganan'],
+     desc: s => s === 0 ? 'Proveedores con más licitaciones adjudicadas (licitaciones con ficha de bases, 2025 en adelante).' : s === 1 ? 'Entre quienes ofertaron en 20 licitaciones o más, los que más veces resultaron adjudicados.' : 'Entre quienes ofertaron en 20 licitaciones o más, los que menos adjudicaciones logran. Puede reflejar ofertas poco competitivas, rechazos por bases o participación sin intención de contratar.',
+     heads: ['Proveedor', 'Ofertó', 'Adjudicadas', s => s === 0 ? 'Monto adjudicado' : 'Tasa de éxito'], nums: [1, 2, 3],
+     rows: s => s === 0 ? R.ad.map(r => [r[0], prv(r[0]), fmt(r[1]), fmt(r[2]), fmtM(r[3])]) : (s === 1 ? R.tasa : R.sinex).map(r => [r[0], prv(r[0]), fmt(r[1]), fmt(r[2]), pm(r[3])])},
+    {k: 'mov', lab: 'Crecen y caen', subs: ['Más crecen', 'Más caen'],
+     desc: 'Ventas de los últimos 6 meses frente a los 6 anteriores. Solo se consideran proveedores con $50 millones o más en el período de mayor venta.',
+     heads: ['Proveedor', 'Últimos 6 meses', '6 meses anteriores', 'Variación'], nums: [1, 2, 3],
+     rows: s => (s === 0 ? R.up : R.dn).map(r => [r[0], prv(r[0]), fmtM(r[1]), fmtM(r[2]), `<span class="${r[1] >= r[2] ? 'pv-up' : 'pv-dn'}">${r[1] >= r[2] ? '+' : '−'}${fmtM(Math.abs(r[1] - r[2]))}</span>`])},
+    {k: 'nuevos', lab: 'Nuevos en 2026', desc: `Proveedores cuya primera OC es de 2026: ${fmt(R.nnuevos[0])} proveedores, ${fmtM(R.nnuevos[1])} vendido. Se muestran los 25 con mayores ventas.`,
+     heads: ['Proveedor', 'Ventas', 'OC', 'Primera OC'], nums: [1, 2],
+     rows: () => R.nuevos.map(r => [r[0], prv(r[0]), fmtM(r[2]), fmt(r[1]), dayStr(r[3])])},
+    {k: 'rub', lab: 'Líderes por rubro', desc: 'Los 14 rubros con más ventas y sus 5 principales proveedores, con su participación en el rubro. Sirve para ver qué tan concentrado está cada mercado.', custom: true}
+  ];
+}
+function rkBody(R){
+  const tabs = rankTabs(R), T = tabs.find(t => t.k === RK.tab) || tabs[0];
+  const sub = T.subs ? Math.min(RK.sub, T.subs.length - 1) : 0;
+  const head = `<div class="pv-rkh"><p>${typeof T.desc === 'function' ? T.desc(sub) : T.desc}</p>${T.custom ? '' : '<button type="button" class="pv-btn" id="pvRkDl">Descargar este ranking (Excel)</button>'}</div>`;
+  const subs = T.subs ? `<div class="pv-seg">${T.subs.map((t, k) => `<button type="button" data-rksub="${k}" aria-pressed="${k === sub}">${t}</button>`).join('')}</div>` : '';
+  if(T.custom){
+    return head + `<div class="pv-lead">${R.rub.map(r => `<div class="pv-p"><h3>${esc(sentence(r[0]))}</h3><div class="pv-note" style="margin:0 0 6px">${fmtM(r[1])} vendido</div>${bars(r[2].map(x => ({lab: S.D.prov[x[0]][1], tip: S.D.prov[x[0]][1] + ' · ' + pm(x[2]) + ' del rubro', w: x[1], a: fmtM(x[1]), b: pm(x[2]), c: 'var(--cc-royal,#005AF8)'}))).replace(/class="pv-b"/g, 'class="pv-b" style="cursor:pointer"').replace(/data-tip=/g, 'data-tip=')}</div>`).join('')}</div>`;
+  }
+  const rows = T.rows(sub), heads = T.heads.map(h => typeof h === 'function' ? h(sub) : h);
+  return head + subs + rkTable(heads, rows, T.nums) + (T.foot ? `<p class="pv-note">${T.foot}</p>` : '');
+}
+async function showRank(){
+  const el = $('pvList'); if(!el) return;
+  el.innerHTML = '<div class="pv-status">Cargando rankings…</div>';
+  let R; try { R = await ensureRank(); } catch(e){ el.innerHTML = `<div class="pv-status pv-err">${esc(e.message)}</div>`; return; }
+  if(!S.top25) S.top25 = Array.from({length: S.D.prov.length}, (_, i) => i).filter(i => S.X.m[i] > 0).sort((a, b) => S.X.m[b] - S.X.m[a]).slice(0, 25);
+  if($('pvQ') && $('pvQ').value.trim().length >= 3) return;
+  const k = R.kpi;
+  const kp = [kpi('Proveedores con ventas', fmt(k.act), 'con OC desde enero de 2025'), kpi('Ventas en OC', fmtM(k.monto), k.meses + ' meses'),
+    kpi('Concentración', pm(k.top10), 'de las ventas están en 10 proveedores; en 100: ' + pm(k.top100)),
+    kpi('Por mecanismo', pm(k.cm) + ' CM', pm(k.td) + ' trato directo · ' + pm(k.ca) + ' Compra Ágil'),
+    kpi('Con un solo comprador', fmt(k.un_comprador), 'proveedores con 90 % o más de sus ventas a un organismo (5 OC o más)'),
+    kpi('Participan en licitaciones', fmt(k.pl), 'proveedores con ofertas registradas')].join('');
+  const tabs = rankTabs(R);
+  el.innerHTML = `<div class="pv-kpis">${kp}</div><div class="pv-h2">Rankings</div><div class="pv-tabs" role="group" aria-label="Rankings de proveedores">${tabs.map(t => `<button type="button" class="pv-tab" data-rktab="${t.k}" aria-pressed="${t.k === RK.tab}">${t.lab}</button>`).join('')}</div><div id="pvRkBody">${rkBody(R)}</div>
+    <p class="pv-note">Período: enero de 2025 a octubre de 2026 (OC en estado Aceptada o Recepción Conforme). Los montos de OC superiores a $1 billón se excluyen por error de digitación. Los rankings describen ventas y no indican por sí solos irregularidades.</p>`;
+}
+function rkRefresh(){ const R = window.PROV_RANK, b = $('pvRkBody'); if(!R || !b) return; b.innerHTML = rkBody(R); }
+function rkSheets(){
+  const R = window.PROV_RANK, tabs = rankTabs(R), T = tabs.find(t => t.k === RK.tab) || tabs[0], sub = T.subs ? Math.min(RK.sub, T.subs.length - 1) : 0;
+  const strip = h => String(h).replace(/<[^>]+>/g, '').replace(/&amp;/g, '&');
+  const rows = T.rows(sub).map((r, n) => [n + 1].concat(r.slice(1).map(strip))), heads = ['#'].concat(T.heads.map(h => typeof h === 'function' ? h(sub) : h));
+  // prv() entrega «nombre + RUT» pegados al quitar etiquetas: separamos nombre y RUT
+  const out = rows.map((r, n) => { const p = S.D.prov[T.rows(sub)[n][0]]; r.splice(1, 1, p[1], p[0] || ''); return r; }); heads.splice(1, 1, 'Proveedor', 'RUT');
+  return [{name: T.lab.slice(0, 28), headers: heads, rows: out}, {name: 'Nota', headers: ['Dato', 'Valor'], rows: [['Ranking', T.lab + (T.subs ? ' · ' + T.subs[sub] : '')], ['Período', 'ene-2025 a oct-2026'], ['Fuente', 'Datos abiertos de ChileCompra (Mercado Público)'], ['Generado el', new Date().toLocaleString('es-CL')]]}];
 }
 
 // ---------- ficha ----------
@@ -258,8 +350,13 @@ function wire(){
   let tm = null;
   inp.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { S.q = inp.value; const h = search(S.q); if(h == null) showList(null, 'Proveedores con más ventas'); else showList(h); }, 160); });
   inp.addEventListener('keydown', e => { if(e.key === 'Enter'){ const h = search(inp.value); if(h && h.length === 1) openProv(h[0]); } });
+  host.addEventListener('keydown', e => { if(e.key === 'Enter'){ const r = e.target.closest && e.target.closest('tr[data-pi]'); if(r) openProv(+r.dataset.pi); } });
   host.addEventListener('click', e => {
     const r = e.target.closest('.pv-r'); if(r){ openProv(+r.dataset.i); return; }
+    const rk = e.target.closest('[data-pi]'); if(rk){ openProv(+rk.dataset.pi); return; }
+    const tb = e.target.closest('[data-rktab]'); if(tb){ RK.tab = tb.dataset.rktab; RK.sub = 0; host.querySelectorAll('[data-rktab]').forEach(b => b.setAttribute('aria-pressed', String(b === tb))); rkRefresh(); return; }
+    const sb = e.target.closest('[data-rksub]'); if(sb){ RK.sub = +sb.dataset.rksub; rkRefresh(); return; }
+    if(e.target.closest('#pvRkDl')){ const sh = rkSheets(); DL_STORE.provRank = {headers: [], rows: [], sheets: () => sh}; downloadXlsx('provRank', 'ranking_proveedores_' + RK.tab + '.xlsx', e.target.closest('#pvRkDl')); return; }
     const m = e.target.closest('[data-metric]'); if(m && S.cur){ S.metric = m.dataset.metric; $('pvChart').innerHTML = monthChart(S.cur.rec, S.metric); host.querySelectorAll('[data-metric]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.metric === S.metric))); return; }
     if(e.target.closest('#pvCopy')){ const rut = S.D.prov[S.cur.i][0], b = e.target.closest('#pvCopy'); const done = () => { const o = b.textContent; b.textContent = 'RUT copiado'; setTimeout(() => { b.textContent = o; }, 1800); };
       if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(rut).then(done, done); else { const ta = document.createElement('textarea'); ta.value = rut; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch(x){} ta.remove(); done(); } return; }
