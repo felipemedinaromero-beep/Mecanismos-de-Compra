@@ -195,20 +195,22 @@ function recomendar(inp){
   // 2. Convenio Marco
   const cmAplica = !!inp.cm && !ffaa;
   let cmTexto, cmEstado;
+  const nomCm = inp.cmNombres && inp.cmNombres.length ? inp.cmNombres.join('; ') : 'un convenio vigente';
+  const cert = inp.cmCerteza === 'media' ? ' (por la materia del convenio, sin coincidencia exacta con un producto del Catálogo)' : '';
   if(inp.cm){
     if(u > 100){
       cmEstado = 'obligatorio';
-      cmTexto = 'Este producto se ha transado por Convenio Marco (' + (inp.cmNombres && inp.cmNombres.length ? inp.cmNombres.join('; ') : 'ver Catálogo') + '). Sobre 100 UTM debes consultar el Catálogo antes de cualquier otro procedimiento y, si contiene el bien o servicio, comprar por Convenio Marco, salvo que obtengas directamente condiciones más ventajosas objetivas y demostrables (plazo de entrega, garantías, calidad o mejor costo-beneficio), que debes informar a la Dirección de Compras y respaldar.';
+      cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Sobre 100 UTM corresponde comprar por Convenio Marco antes que por cualquier otro procedimiento, salvo que obtengas directamente condiciones más ventajosas objetivas y demostrables (plazo de entrega, garantías, calidad o mejor costo-beneficio), que debes informar a la Dirección de Compras y respaldar.';
       if(ffaa) cmTexto += ' Las Fuerzas Armadas y de Orden y Seguridad no están obligadas respecto de los bienes y servicios que determinen sus propias autoridades logísticas.';
     } else {
       cmEstado = 'recomendado';
-      cmTexto = 'Este producto se ha transado por Convenio Marco (' + (inp.cmNombres && inp.cmNombres.length ? inp.cmNombres.join('; ') : 'ver Catálogo') + '). Hasta 100 UTM la Compra Ágil no exige consultar el Catálogo, pero conviene comparar con el precio del Convenio Marco antes de pedir cotizaciones: si es más barato, la compra por Convenio Marco es la opción eficiente.';
+      cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Hasta 100 UTM puedes ir por Compra Ágil sin pasar por el Catálogo, pero el precio del convenio sirve de tope de referencia: si es menor que las cotizaciones, compra por Convenio Marco.';
     }
   } else {
-    cmEstado = 'verificar';
-    cmTexto = 'No encontré en las compras de los últimos 12 meses este producto en un Convenio Marco. Aun así, ' + (u > 100 ? 'sobre 100 UTM la consulta al Catálogo vigente es obligatoria antes de licitar, tratar directo o usar otro procedimiento especial; ' : '') + 'confirma en el Catálogo de Mercado Público, porque esta lista se deduce de las órdenes de compra y puede no incluir convenios recientes.';
+    cmEstado = 'descartado';
+    cmTexto = 'Lo que necesitas no está en ningún Convenio Marco vigente, por lo que no corresponde ese procedimiento y se sigue con el que aplica según el monto' + (u > 100 ? ' (sobre 100 UTM, la licitación pública, salvo una causal de trato directo o un mecanismo especial)' : '') + '.';
   }
-  paso('Consulta el Catálogo de Convenios Marco', cmEstado, cmTexto, [ley('art. 30 letra d); art. 57'), ds('arts. 29, 85, 89, 92, 96')]);
+  paso('Convenio Marco', cmEstado, cmTexto, [ley('art. 30 letra d); art. 57'), ds('arts. 29, 85, 89, 92, 96')]);
 
   // 3. Determinar el procedimiento
   const SC = {
