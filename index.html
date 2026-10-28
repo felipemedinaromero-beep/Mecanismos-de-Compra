@@ -521,6 +521,14 @@
         </div>
         <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
       </a>
+      <a class="explore-card" href="#proveedores" target="_blank" rel="noopener">
+        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01"/><path d="M15 11h.01"/></svg></div>
+        <div class="explore-card-text">
+          <p class="explore-card-title">Proveedores</p>
+          <p class="explore-card-sub">Busca un proveedor por nombre o RUT y revisa su ficha: ventas en OC, mecanismos, Convenios Marco, licitaciones en que participó, organismos compradores y enlace a su ficha oficial</p>
+        </div>
+        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </a>
     </div>
   </section>
 
@@ -576,6 +584,7 @@
 <div id="subastaView" class="wrap" style="display:none;"></div>
 <div id="pacView" class="wrap" style="display:none;"></div>
 <div id="pac26View" class="wrap" style="display:none;"></div>
+<div id="proveedoresView" class="wrap" style="display:none;"></div>
 <div id="presView" class="wrap" style="display:none;"></div>
 
 <script src="data/data.js"></script>
@@ -3463,12 +3472,34 @@ function renderRubroPage(initialKey){
   updateRubroResults();
   procInit();
 }
+// Proveedores: búsqueda por nombre o RUT y ficha. El código vive en data/prov/proveedores.js y se carga al abrir la página.
+function renderProveedoresPage(key){
+  const view = document.getElementById('proveedoresView');
+  if(!view.dataset.ready){
+    view.innerHTML = `
+    <a class="back-link" href="${esc(location.pathname + location.search)}" onclick="goHome(event)">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      Volver al panel de mecanismos
+    </a>
+    <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Proveedores</h1>
+    <p class="block-note">Busca un proveedor por nombre o RUT y revisa qué ha vendido al Estado: ventas en órdenes de compra (OC), mecanismos de compra, Convenios Marco, licitaciones en que ofertó y organismos que le compran. Datos abiertos de ChileCompra desde enero de 2025; montos en pesos chilenos (CLP). Marco: Ley N° 19.886 (texto de la Ley N° 21.634) y D.S. N° 661/2024.</p>
+    <div id="provHost"></div>`;
+    view.dataset.ready = '1';
+  }
+  const h = document.getElementById('provHost');
+  const go = () => window.ProvFicha && window.ProvFicha.init(h, key);
+  if(window.ProvFicha) return go();
+  const sc = document.createElement('script'); sc.src = 'data/prov/proveedores.js?v=' + (DATA.generado || '') + '-r1';
+  sc.onload = go;
+  sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar la página de proveedores. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
+  document.head.appendChild(sc);
+}
 // Buscador de procesos de compra (licitaciones, tratos directos, Compra Ágil…): el código y el índice viven en data/proc/ y se cargan al abrir esta página.
 function procInit(){
   const h = document.getElementById('procSearchHost'); if(!h) return;
   const go = () => window.ProcBuscador && window.ProcBuscador.init(h);
   if(window.ProcBuscador) return go();
-  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r4';
+  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r5';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el buscador de procesos. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -6421,7 +6452,8 @@ function route(){
   const detalleMatch = raw.match(/^#detalle=(.+)$/);
   const m = detalleMatch ? decodeURIComponent(detalleMatch[1]) : null;
   const compradorMatch = raw.match(/^#comprador(?:=(.+))?$/);
-  const rubroMatch = raw.match(/^#rubro(?:=(.+))?$/);
+  const rubroMatch = raw.match(/^#rubro(?:=([^&]+))?(?:&prov=(.+))?$/);
+  const provMatch = raw.match(/^#proveedores(?:=(.+))?$/);
 
   document.getElementById('mainView').style.display = 'none';
   document.getElementById('detailView').style.display = 'none';
@@ -6435,6 +6467,7 @@ function route(){
   document.getElementById('subastaView').style.display = 'none';
   document.getElementById('pacView').style.display = 'none';
   document.getElementById('pac26View').style.display = 'none';
+  document.getElementById('proveedoresView').style.display = 'none';
   document.getElementById('presView').style.display = 'none';
   const goreRt = raw.match(/^#gore(?:=(.+))?$/);
   const pac26Match = raw.match(/^#pac26(?:=(.+))?$/);
@@ -6449,7 +6482,12 @@ function route(){
     { const cm = compradorMatch[1] ? decodeURIComponent(compradorMatch[1]).split('&unidad=') : [null,null]; renderCompradorPage(cm[0]||null, cm[1]||null); }
   } else if(rubroMatch){
     document.getElementById('rubroView').style.display = 'block';
+    window.PROC_PRESET = rubroMatch[2] ? {prov: decodeURIComponent(rubroMatch[2])} : null;
     renderRubroPage(rubroMatch[1]!=null ? decodeURIComponent(rubroMatch[1]) : null);
+  } else if(provMatch){
+    document.getElementById('proveedoresView').style.display = 'block';
+    renderProveedoresPage(provMatch[1] ? decodeURIComponent(provMatch[1]) : '');
+    document.title = 'Proveedores · ChileCompra';
   } else if(goreRt){
     document.getElementById('goreView').style.display = 'block';
     { const gp = goreRt[1] ? decodeURIComponent(goreRt[1]).split('&unidad=') : ['', null]; renderGorePage(gp[0] || '', gp[1] != null ? Number(gp[1]) : -1); }
