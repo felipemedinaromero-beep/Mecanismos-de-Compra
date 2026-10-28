@@ -1,5 +1,5 @@
 /* Convenios Marco vigentes según https://felipemedinaromero-beep.github.io/Convenios-Marco/ (fichas al 28-10-2026). Reemplazable por las maestras del Catálogo. */
-window.AS_CMV = {gen:'2026-10-28', cmcat:false, tienda:'https://www.mercadopublico.cl/TiendaHome/', eco:'https://eco.mercadopublico.cl/economia_circular/', fuente:'https://felipemedinaromero-beep.github.io/Convenios-Marco/', cm:{
+window.AS_CMV = {gen:'2026-10-28', cmcat:true, tienda:'https://www.mercadopublico.cl/TiendaHome/', eco:'https://eco.mercadopublico.cl/economia_circular/', fuente:'https://felipemedinaromero-beep.github.io/Convenios-Marco/', cm:{
 '2239-21-LR23':['Insumos y dispositivos médicos','14-06-2027',1,'Compra directa por catálogo','https://conveniomarco.mercadopublico.cl/insumos2'],
 '2239-12-LR23':['Seguro colectivo de vida con adicional de salud','25-10-2026',0,'Compra directa del plan; convenio en transición a 2239-7-LR26','https://segurosv3-up.mercadopublico.cl/seguros3'],
 '2239-9-LR23':['Productos y servicios de ferretería','20-03-2027',1,'Compra directa por catálogo; algunos productos y la línea de instalación se cotizan','https://conveniomarco2.mercadopublico.cl/ferreteria2'],

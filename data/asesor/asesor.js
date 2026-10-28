@@ -67,6 +67,11 @@ function loadOrg(i){
   if(get()) return Promise.resolve(get());
   return loadScript(AB + 'o_' + sh + '.js' + ver()).then(get);
 }
+function loadPac(i){
+  window.AS_PAC = window.AS_PAC || {};
+  if(window.AS_PAC[i]) return Promise.resolve(window.AS_PAC[i]);
+  return loadScript(AB + 'pac/pac_' + i + '.js' + ver()).then(() => window.AS_PAC[i] || null).catch(() => null);
+}
 function loadSeg(code){
   const sg = String(code).slice(0, 2); window.AS_P = window.AS_P || {};
   if(window.AS_P[sg]) return Promise.resolve(window.AS_P[sg]);
@@ -117,6 +122,8 @@ details.as-det summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var
 .as-reco h2{margin:4px 0 6px;font-size:22px;line-height:1.25;color:#fff;} .as-reco p{margin:0;font-size:13px;line-height:1.6;color:#E3EEF9;}
 .as-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
 .as-chip{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);}
+.as-op{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--border);} .as-op:first-of-type{border-top:0;} .as-op-n{flex:0 0 74px;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--cc-navy);padding-top:2px;} .as-op-b{flex:1;min-width:0;} .as-op-b p{margin:4px 0 6px;} .as-op-s{margin:2px 0 6px!important;} .as-op-s li.as-off{opacity:.7;text-decoration-color:#8a94a6;} .as-op-s li.as-off b{text-decoration:line-through;} .as-op-prev .as-op-n{color:#3D5466;}
+.as-mes{display:inline-block;margin:0 4px 3px 0;padding:2px 7px;border-radius:999px;background:#E1E9FF;color:#0032A2;font-size:11.5px;white-space:nowrap;} .as-mes-p{background:#EEF1F5;color:#5A6678;} .as-pk-sum{background:#EAF6EC;border:1px solid #9BD0A6;color:#143A1C;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:13px;line-height:1.55;}
 .as-sec{background:#fff;border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--pbi-shadow);}
 .as-sec h3{margin:0 0 8px;font-size:13.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--cc-navy);}
 .as-sec p{margin:0 0 8px;font-size:13px;line-height:1.6;color:var(--cc-dark);} .as-sec ul{margin:0 0 8px;padding-left:20px;font-size:13px;line-height:1.6;} .as-sec li{margin-bottom:4px;}
@@ -126,7 +133,7 @@ details.as-det summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var
 .as-steps li::before{counter-increment:p;content:counter(p);width:26px;height:26px;border-radius:50%;background:var(--cc-mist);color:var(--cc-navy);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;}
 .as-steps b{font-size:13px;} .as-steps p{margin:3px 0 0!important;font-size:12.5px!important;color:var(--text-secondary)!important;}
 .as-tag{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:middle;text-transform:uppercase;letter-spacing:.03em;}
-.as-t-obligatorio{background:#E1E9FF;color:#0032A2;} .as-t-recomendado{background:#E3F4D9;color:#2F6B16;} .as-t-descartado{background:#EEF1F5;color:#4A5568;} .as-t-verificar{background:#FFF1D6;color:#8A5A00;} .as-t-previo{background:#EEF1F5;color:#3D5466;}
+.as-t-obligatorio{background:#E1E9FF;color:#0032A2;} .as-t-recomendado{background:#E3F4D9;color:#2F6B16;} .as-t-descartado{background:#EEF1F5;color:#4A5568;} .as-t-verificar{background:#FFF1D6;color:#8A5A00;} .as-t-previo{background:#EEF1F5;color:#3D5466;} .as-t-no-aplica{background:#EEF1F5;color:#4A5568;}
 .as-al{border-radius:12px;padding:10px 14px;margin-bottom:8px;font-size:12.5px;line-height:1.55;border:1px solid;} .as-al b{display:block;margin-bottom:2px;}
 .as-al-alto{background:#FDECEA;border-color:#E5A29C;color:#6B1410;} .as-al-medio{background:#FFF6E5;border-color:#E8C26A;color:#5B3F00;} .as-al-info{background:#EAF3FB;border-color:#B7D5EE;color:#0B3A5C;}
 .as-al .as-acc{display:block;margin-top:4px;font-weight:700;}
@@ -204,14 +211,15 @@ function consultaTexto(){
   return out.join(' ');
 }
 function cmVigListado(id){ const v = cmVig(id); return v; }
-function buscarCatalogo(q, reg){
+function buscarCatalogo(q, reg, parcial){
   const CT = window.AS_CMCAT; if(!CT || !q) return [];
-  if(!S.ctIdx){ S.ctIdx = CT.it.map(it => new Set(toks(it[1] + ' ' + it[2] + ' ' + it[3] + ' ' + it[4]))); }
+  if(!S.ctIdx){ S.ctIdx = CT.it.map(it => new Set(toks(it[1] + ' ' + it[2] + ' ' + it[3] + ' ' + it[4]))); S.ctHead = CT.it.map(it => new Set(toks(it[1]).slice(0, 3))); }
   const qt = [...new Set(toks(q))]; if(!qt.length) return [];
-  const need = qt.length >= 3 ? qt.length - 1 : qt.length, g = {};
-  CT.it.forEach((it, i) => { const set = S.ctIdx[i]; let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0){ const k = it[0]; (g[k] = g[k] || []).push({it, n}); } });
-  return Object.keys(g).map(k => { const lst = g[k].sort((a, b) => b.n - a.n); const id = CT.cms[k][0]; const best = lst[0].it; const rg = best[9].find(r => r[0] === reg);
-    return {id, n: lst.length, ej: lst.slice(0, 3).map(x => x.it[1]), tipo: best[2], url: best[10], nProvReg: rg ? rg[1] : 0, pmedReg: rg ? rg[2] : 0, pmed: best[7]}; }).sort((a, b) => b.n - a.n);
+  const need = parcial ? 1 : (qt.length >= 3 ? qt.length - 1 : qt.length), g = {};
+  CT.it.forEach((it, i) => { const set = S.ctIdx[i]; let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0 && (parcial ? S.ctHead[i].has(qt[0]) : qt.some(t => S.ctHead[i].has(t)))){ const k = it[0]; (g[k] = g[k] || []).push({it, n}); } });
+  return Object.keys(g).map(k => { const lst = g[k].sort((a, b) => b.n - a.n); const id = CT.cms[k][0]; const best = lst[0].it; const enReg = lst.filter(x => x.it[9] === 0 || ((x.it[9] >> reg) & 1)).length; const pr = CT.pc[k] && (CT.pc[k][reg] || CT.pc[k][99]);
+    const ps = lst.map(x => x.it[7]).filter(x => x).sort((a, b) => a - b);
+    return {id, n: lst.length, enReg, nProvReg: pr ? pr.length : 0, ej: lst.slice(0, 3).map(x => x.it[1]), tipo: best[2], pmin: ps[0] || 0, pmed: ps.length ? ps[Math.floor(ps.length / 2)] : 0, pmax: ps[ps.length - 1] || 0}; }).sort((a, b) => b.n - a.n);
 }
 function veredictoCm(){
   const V = window.AS_CMV, ci = cmInfo(), q = consultaTexto();
@@ -220,7 +228,9 @@ function veredictoCm(){
   const reg = orgRegion();
   const add = (id, nivel, motivo, extra) => { const v = cmVig(id) || {}; let e = res.cms.find(x => x.id === id); if(!e){ e = {id, nivel, motivos: [], v, extra: {}}; res.cms.push(e); } if(rank(nivel) > rank(e.nivel)) e.nivel = nivel; e.motivos.push(motivo); Object.assign(e.extra, extra || {}); };
   // a) maestras (Catálogo)
-  buscarCatalogo(q, reg).forEach(r => add(r.id, 'catalogo', `En la maestra hay ${r.n} producto(s) que coinciden, por ejemplo: ${r.ej.map(x => sentence(x)).join('; ')}.`, {cat: r}));
+  const exa = buscarCatalogo(q, reg);
+  if(!exa.length && toks(q).length === 2) buscarCatalogo(q, reg, true).forEach(r => add(r.id, 'tema', `En la maestra hay ${r.n} producto(s) del mismo tipo base (por ejemplo: ${r.ej.map(x => sentence(x)).join('; ')}), aunque no coinciden con toda la descripción que escribiste.`, {cat: r}));
+  exa.forEach(r => add(r.id, 'catalogo', `En la maestra hay ${r.n} producto(s) que coinciden, por ejemplo: ${r.ej.map(x => sentence(x)).join('; ')}.`, {cat: r}));
   // b) OC
   ci.lista.forEach(x => { if(x.v && x.v.vigente || !V) add(x.id, 'oc', `Se ha comprado este producto por este convenio${x.hist ? ' (solo antes de nov-2025)' : ' en los últimos 12 meses'}.`, {mm: x.mm}); });
   // c) familia ONU
@@ -233,19 +243,19 @@ function veredictoCm(){
     const qn = ' ' + norm(q) + ' ', code = S.prodIdx != null ? S.C.c[S.prodIdx] : '';
     Object.keys(V.det).forEach(id => { const d = V.det[id], v = cmVig(id); if(!v || !v.vigente) return;
       if(d.ex && d.ex.some(x => qn.includes(' ' + norm(x)))) return;
-      const kw = d.kw.find(k => { const kn = norm(k).trim(); return kn.length <= 5 ? qn.includes(' ' + kn + ' ') : qn.includes(' ' + kn); });
+      const kw = d.kw.find(k => { const kn = norm(k).trim(); return kn.length <= 5 ? (qn.includes(' ' + kn + ' ') || qn.includes(' ' + kn + 's ') || qn.includes(' ' + kn + 'es ')) : qn.includes(' ' + kn); });
       const pre = code && d.onu.find(o => code.startsWith(o));
-      if(kw) add(id, 'tema', `Lo que escribiste coincide con "${kw}", materia de este convenio.`);
+      if(kw) add(id, 'tema', `Lo que escribiste coincide con "${kw}", materia de este convenio.`, {kw: 1});
       else if(pre) add(id, 'tema', `El código ONU ${code} pertenece a una línea que este convenio suele cubrir.`);
     });
   }
-  const ord = {catalogo: 4, oc: 3, familia: 2, tema: 1};
-  res.cms.sort((a, b) => ord[b.nivel] - ord[a.nivel]);
+  const ord = {catalogo: 4, oc: 3, tema: 2, familia: 1};
+  res.cms.sort((a, b) => (ord[b.nivel] - ord[a.nivel]) || ((b.extra.kw ? 1 : 0) - (a.extra.kw ? 1 : 0)) || ((b.extra.cat ? b.extra.cat.n : 0) - (a.extra.cat ? a.extra.cat.n : 0)));
   res.nivel = res.cms.length ? res.cms[0].nivel : (ci.sinVigente ? 'novigente' : 'no');
   res.sinVigente = ci.sinVigente;
   return res;
 }
-function rank(n){ return {catalogo: 4, oc: 3, familia: 2, tema: 1}[n] || 0; }
+function rank(n){ return {catalogo: 4, oc: 3, tema: 2, familia: 1}[n] || 0; }
 function vereditoHtml(vd, o){
   const V = window.AS_CMV, p = o.principal, u = o.montoUtm;
   if(vd.nivel === 'ninguno') return '<div class="as-vd as-vd-no"><div class="as-vd-h"><span class="as-vd-b">CONVENIO MARCO</span><h3>Indica qué necesitas comprar</h3></div><p>Escribe lo que necesitas en el paso 2 (por ejemplo “papel higiénico” o “notebook”). El Asesor lo cruza con los Convenios Marco y con las compras del Estado, y te dice si está en un convenio o qué procedimiento corresponde.</p></div>';
@@ -255,10 +265,10 @@ function vereditoHtml(vd, o){
   let h = `<div class="as-vd as-vd-${si ? 'ok' : 'no'}"><div class="as-vd-h"><span class="as-vd-b">CONVENIO MARCO: ${si ? 'SÍ' : 'NO'}</span><span class="as-vd-b">${cert}</span><h3>${si ? 'Está en Convenio Marco: ' + esc(vp.nombre || principal.id) : 'No está en ningún Convenio Marco vigente'}</h3></div>`;
   if(si){
     h += '<ul class="as-vd-l">' + vd.cms.slice(0, 3).map(c => { const v = c.v || {};
-      return `<li><b>${esc(v.nombre || c.id)}</b> <span class="as-hint">(${esc(c.id)}${v.hasta ? ' · vigente hasta ' + esc(v.hasta) : ''})</span>${v.cot ? `<br>Forma de compra: ${esc(v.cot)}.` : ''}${c.extra.cat ? `<br>${c.extra.cat.nProvReg ? c.extra.cat.nProvReg + ' proveedor(es) en tu región' : 'Sin proveedores informados en tu región'}${c.extra.cat.pmedReg ? ', precio mediano en tienda $' + fmt(c.extra.cat.pmedReg) : ''}.` : ''}<br><span class="as-hint">${esc(c.motivos[0])}</span></li>`; }).join('') + '</ul>';
+      return `<li><b>${esc(v.nombre || c.id)}</b> <span class="as-hint">(${esc(c.id)}${v.hasta ? ' · vigente hasta ' + esc(v.hasta) : ''})</span>${v.cot ? `<br>Forma de compra: ${esc(v.cot)}.` : ''}${c.extra.cat ? `<br>${c.extra.cat.n} producto(s) del Catálogo coinciden; ${c.extra.cat.enReg} se ofrecen en tu región (${c.extra.cat.nProvReg} proveedor(es) del convenio con presencia ahí). Precio en tienda: mediana $${fmt(c.extra.cat.pmed)}, rango $${fmt(c.extra.cat.pmin)} a $${fmt(c.extra.cat.pmax)}.` : ''}<br><span class="as-hint">${esc(c.motivos[0])}</span></li>`; }).join('') + '</ul>';
     h += u > 100
-      ? `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM corresponde comprar por Convenio Marco${u > 1000 ? ' mediante Gran Compra' : ''}. Solo puedes salir de él si obtienes directamente condiciones más ventajosas objetivas y demostrables, que debes informar a la Dirección de Compras (DS 661, art. 89).${alta ? '' : ' La coincidencia es por la materia del convenio: si el producto exacto no estuviera en el Catálogo, sigue el procedimiento de más abajo.'}</p>`
-      : `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM puedes comprar por Compra Ágil sin pasar por el Catálogo (DS 661, art. 97). Usa el precio del Convenio Marco como tope de referencia: si es menor que las cotizaciones, compra por Convenio Marco.</p>`;
+      ? `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM la primera opción es comprar por Convenio Marco${u > 1000 ? ' mediante Gran Compra' : ''}. Puedes salir de él solo si el producto no está disponible o si obtienes condiciones más ventajosas objetivas y demostrables, que debes informar a la Dirección de Compras (DS 661, arts. 89 y 92). La segunda opción, fuera de convenio, está en el cuadro de abajo.${alta ? '' : ' La coincidencia es por la materia del convenio: si el producto exacto no estuviera en el Catálogo, pasa a la segunda opción.'}</p>`
+      : `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM la primera opción es el Convenio Marco; su precio sirve de tope de referencia. La segunda, fuera de convenio, es la Compra Ágil (DS 661, arts. 92 y 97).</p>`;
   } else {
     h += `<p>${vd.nivel === 'novigente' ? 'Este producto solo se compró por convenios que ya terminaron o fueron reemplazados.' : 'No coincide con las maestras de productos, con el objeto de los convenios vigentes ni con compras anteriores por Convenio Marco.'}</p>`;
     h += `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM corresponde <b>${esc(p.nom)}</b>. El detalle de cómo se hace y el orden de revisión están más abajo.</p>`;
@@ -268,13 +278,30 @@ function vereditoHtml(vd, o){
   return h;
 }
 
+function esConsumible(){
+  const t = (S.st.t || 'bien') !== 'servicio'; if(!t) return false;
+  const code = S.prodIdx != null ? S.C.c[S.prodIdx] : '', seg = code.slice(0, 2);
+  if(['10', '11', '12', '14', '15', '47', '50', '51'].includes(seg)) return true;
+  return /alimento|vivere|colaci|aseo|papel higi|toalla|detergente|cloro|desinfect|jab[oó]n|insumo|medicament|f[aá]rmaco|combustible|bencina|di[eé]sel|petr[oó]leo|gas licuado|reactivo|mascarilla|guante|pa[ñn]al|cartucho|t[oó]ner|resma|agua purificada|bolsa/i.test(norm(consultaTexto()));
+}
+function btDetect(){
+  const R_ = R(), q = ' ' + norm(consultaTexto()) + ' ', code = S.prodIdx != null ? S.C.c[S.prodIdx] : '', serv = (S.st.t || 'bien') === 'servicio';
+  if(!q.trim() && !code) return [];
+  return R_.BASES_TIPO.filter(b => {
+    if(b.soloBien && serv) return false;
+    if(b.kw.some(k => q.includes(' ' + k) )) return true;
+    return !!code && b.onu.some(o => code.startsWith(o));
+  });
+}
 function compute(){
   const R_ = R(), ci = cmInfo(), h = histProd(), vd = veredictoCm(), cmSi = ['catalogo', 'oc', 'familia', 'tema'].includes(vd.nivel);
   S.vd = vd;
   const dm = S.prodIdx != null && S.segData ? S.segData.dm[orgRegion() + '|' + S.prodIdx] : null;
-  const inp = {montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
+  const consumible = esConsumible();
+  const inp = {bt: btDetect(), consumible, montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
     sector: S.org ? S.org[2] : '', demanda: dm ? {no: dm[0], mm: dm[1]} : null,
     hist: h ? {noCmUtm: h.noCmUtm, totalUtm: h.totalUtm} : null, fueraCm: fueraCmMM()};
+  S.inp = inp;
   return R_.recomendar(inp);
 }
 
@@ -426,17 +453,73 @@ function update(){
     res.innerHTML = `<div class="as-empty"><b>Tu recomendación aparecerá aquí.</b><br>Elige el organismo (paso 1) e indica el monto estimado (paso 3). Mientras más completes, más datos reales verás: precios de referencia, Convenios Marco, proveedores de tu región y compras de otros organismos que podrías consolidar.</div>`;
     return;
   }
+  ensurePac();
   const out = compute(); S.out = out;
   res.innerHTML = resultHtml(out);
   wireResult();
 }
-function wireResult(){ }
+function ensurePac(){
+  if(S.orgIdx == null || S.pacOrg === S.orgIdx || S.pacLoading === S.orgIdx) return;
+  const idx = S.orgIdx; S.pacLoading = idx;
+  loadPac(idx).then(p => { if(S.orgIdx !== idx) { S.pacLoading = null; return; } S.pac = p; S.pacOrg = idx; S.pacKey = null; S.pacLoading = null; update(); });
+}
+const pesos = v => v >= 1e6 ? mm(v / 1e6) : clp(Math.round(v));
+const MES3 = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+function pacMeses(str){ return str ? str.split(',').map(x => { const [m, v] = x.split(':'); return {m: Number(m), v: Number(v)}; }) : []; }
+function pacItems(){
+  const P = S.pacOrg === S.orgIdx ? S.pac : null; if(!P) return null;
+  const qt = [...new Set(toks(consultaTexto()))]; if(!qt.length) return [];
+  const key = S.orgIdx + '|' + qt.join(' ');
+  if(S.pacKey !== key){
+    S.pacKey = key; const need = qt.length >= 3 ? qt.length - 1 : qt.length, res = [];
+    const head = [];
+    P.i.forEach((it, k) => { const tk = toks(it[0]), set = new Set(tk); let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0){ res.push(k); if(qt.some(t => tk.slice(0, 3).includes(t))) head.push(k); } });
+    const hs = new Set(head), amt = k => P.i[k][4];
+    res.sort((a, b) => ((hs.has(b) ? 1 : 0) - (hs.has(a) ? 1 : 0)) || (amt(b) - amt(a))); S.pacMatches = res.slice(0, 40);
+    S.pacSel = new Set(S.pacMatches.filter(k => hs.has(k) && P.i[k][5]));
+  }
+  return S.pacMatches.map(k => ({k, it: P.i[k]}));
+}
+function pacResumen(items){
+  const P = S.pac, meses = new Set(); let total = 0, n = 0;
+  items.forEach(x => { if(!S.pacSel.has(x.k)) return; n++; const ms = pacMeses(x.it[5]); if(ms.length){ ms.forEach(m => { meses.add(m.m); total += m.v; }); } else total += x.it[4]; });
+  return {n, meses: meses.size, totalClp: Math.round(total), mesesList: [...meses].sort((a, b) => a - b)};
+}
+function pacConsHtml(o){
+  if(S.orgIdx == null) return '';
+  const items = pacItems(), nm = S.org ? S.org[1] : '', nmEnc = encodeURIComponent(nm);
+  const head = '<div class="as-sec as-pac" id="as-pacc"><h3>Tu PAC 2026 y la consolidación de este producto</h3>';
+  if(S.pacOrg !== S.orgIdx) return head + '<div class="as-load">Revisando el PAC 2026 de tu organismo…</div></div>';
+  if(!S.pac) return head + `<p>No encontré PAC 2026 publicado para ${esc(nm)} en el archivo del 20-10-2026 (proyectos Publicado y Actualizado). Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley 19.886 art. 12; DS 661 art. 27). Revisa el <a href="#pac26=${nmEnc}" target="_blank" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
+  if(!items.length) return head + `<p>En el PAC 2026 de tu organismo no aparece un ítem que coincida con «${esc(sentence(consultaTexto()) || 'este producto')}». Si vas a comprarlo, agrégalo con una modificación del PAC y fundamenta el motivo en el acto administrativo (Ley art. 12; DS 661 arts. 27 y 166). Para revisar el PAC completo: <a href="#pac26=${nmEnc}" target="_blank" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
+  const hoy = new Date().getMonth() + 1, P = S.pac, rs = pacResumen(items);
+  let h = head + `<p>El Asesor revisó el PAC de tu organismo (versión del 20-10-2026) y encontró ${items.length} ítem(s) que coinciden con este producto. Marca los que corresponden a la misma necesidad para consolidarlos.</p>`;
+  h += '<div class="as-tw" style="max-height:380px;overflow:auto"><table class="as-t"><tr><th></th><th>Ítem del PAC</th><th>Meses planificados</th><th class="n">Total</th></tr>' + items.map(x => {
+    const ms = pacMeses(x.it[5]);
+    const mtxt = ms.length ? ms.map(m => `<span class="as-mes${m.m < hoy ? ' as-mes-p' : ''}">${MES3[m.m - 1]} ${pesos(m.v)}</span>`).join(' ') : '<span class="as-hint">sin mes definido</span>';
+    return `<tr><td><input type="checkbox" class="as-pk" data-k="${x.k}" ${S.pacSel.has(x.k) ? 'checked' : ''} aria-label="Incluir en la consolidación"></td><td>${esc(sentence(x.it[0]))}<br><span class="as-hint">${esc(P.u[x.it[1]] || '')} · ${esc(P.m[x.it[3]] || '')}</span></td><td>${mtxt}</td><td class="n">${pesos(ms.length ? ms.reduce((a, m) => a + m.v, 0) : x.it[4])}</td></tr>`;
+  }).join('') + '</table></div>' + (items.length >= 40 ? '<p class="as-hint">Se muestran hasta 40 ítems: primero los que parten con el producto, luego los que solo lo mencionan.</p>' : '') + '<p class="as-hint">Meses en gris ya pasaron: confirma en las compras de tu organismo (más abajo) si ya se concretaron. Si el texto del ítem corresponde a otro producto, desmárcalo.</p>';
+  if(!rs.n) return h + '<p>No hay ítems marcados. Marca los que corresponden a esta necesidad para ver la compra consolidada.</p></div>';
+  const cons = R().consolidar(S.inp, rs), tot = cons.totalClp, difiere = S.st.m && Math.abs(tot - S.st.m) / S.st.m > 0.05;
+  h += `<div class="as-pk-sum"><b>Compra consolidada sugerida: ${pesos(tot)} (${dec(cons.totalUtm, 1)} UTM, ${esc(cons.tramoNom)})</b>${rs.mesesList.length ? '<br>Reúne lo planificado en ' + rs.mesesList.map(m => MES3[m - 1]).join(', ') + '.' : ''}<br>Procedimiento para ese monto: <b>${esc(cons.rec.principal.nom)}</b>.</div>`;
+  cons.texto.forEach(t => { h += `<p>${esc(t)}</p>`; });
+  cons.alertas.forEach(a => { h += `<div class="as-al as-al-${a.nivel}"><b>Atención</b>${esc(a.t)}</div>`; });
+  if(difiere) h += `<p><button class="as-btn as-main" id="as-usepac">Usar ${pesos(tot)} como monto del análisis</button></p>`;
+  return h + citas(cons.arts.concat([{n: 'Ley 19.886', t: 'art. 12'}])) + '</div>';
+}
+function wireResult(){
+  S.host.querySelectorAll('.as-pk').forEach(c => c.addEventListener('change', () => { const k = Number(c.dataset.k); if(c.checked) S.pacSel.add(k); else S.pacSel.delete(k); update(); }));
+  const b = $('as-usepac');
+  if(b) b.addEventListener('click', () => { const items = pacItems(), rs = pacResumen(items); S.st.m = rs.totalClp; const mi = $('as-monto'); if(mi) mi.value = fmt(S.st.m); update(); });
+}
 function resultHtml(o){
   const p = o.principal, st = S.st, h = histProd(), ci = cmInfo();
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
   let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>
     <div class="as-chips"><span class="as-chip">${esc(prodName)}</span><span class="as-chip">${dec(o.montoUtm, 1)} UTM</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div></div>`;
   html += vereditoHtml(S.vd || veredictoCm(), o);
+  html += escaleraHtml(o);
+  html += pacConsHtml(o);
   if(S.od == null) html += '<div class="as-load">Cargando las compras del organismo para cruzarlas con la recomendación…</div>';
   // alertas
   if(o.alertas.length) html += '<div class="as-sec"><h3>Alertas</h3>' + o.alertas.map(a => `<div class="as-al as-al-${a.nivel}"><b>${a.nivel === 'alto' ? 'Atención' : (a.nivel === 'medio' ? 'Revisa' : 'Para tener presente')}</b>${esc(a.t)}${a.accion ? `<span class="as-acc">${esc(a.accion)}</span>` : ''}${a.arts ? citas(a.arts).replace('as-cite', 'as-cite" style="color:inherit;opacity:.85') : ''}</div>`).join('') + '</div>';
@@ -445,10 +528,11 @@ function resultHtml(o){
   if(p.mec && p.mec.cuando) html += `<p>${esc(p.mec.cuando)}</p>`;
   if(p.plazos.length) html += '<p><b>Plazos</b></p><ul>' + p.plazos.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';
   if(p.req.length) html += '<p><b>Qué debes cumplir</b></p><ul>' + p.req.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';
+  if(p.links && p.links.length) html += '<p><b>Base Tipo</b>' + linksHtml(p.links) + '</p>';
   if(p.vigencia) html += `<p class="as-cite">${esc(p.vigencia)}</p>`;
   html += citas(p.arts) + '</div>';
   // orden de verificación
-  html += '<div class="as-sec"><h3>Orden de la decisión</h3><ol class="as-steps">' + o.pasos.map(x => `<li><div><b>${esc(x.titulo)}</b><span class="as-tag as-t-${x.estado}">${x.estado}</span><p>${esc(x.texto)}</p>${citas(x.arts)}</div></li>`).join('') + '</ol></div>';
+  html += '<div class="as-sec"><h3>Orden de la decisión</h3><ol class="as-steps">' + o.pasos.map(x => `<li><div><b>${esc(x.titulo)}</b><span class="as-tag as-t-${x.estado}">${x.estado}</span><p>${esc(x.texto)}</p>${linksHtml(x.links)}${citas(x.arts)}</div></li>`).join('') + '</ol></div>';
   // datos del organismo
   html += datosOrg(o, h, ci);
   // precios
@@ -466,6 +550,22 @@ function resultHtml(o){
   html += `<p class="as-note">Generado el ${new Date().toLocaleDateString('es-CL')} con datos de órdenes de compra al ${monthLab(S.C.w12[1].toString().slice(0, 4) + '-' + S.C.w12[1].toString().slice(4))}. ${esc(R().TEXTO_BASE)}</p>`;
   return html;
 }
+function linksHtml(l){ return l && l.length ? '<br>' + l.map(x => `<a href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a>`).join(' · ') : ''; }
+function escaleraHtml(o){
+  const e = o.escalera; if(!e) return '';
+  const ec = o.pasos.find(x => x.titulo === 'Economía circular');
+  let h = '<div class="as-sec as-esc"><h3>Orden de opciones para esta compra</h3>';
+  if(ec) h += `<div class="as-op as-op-prev"><div class="as-op-n">Antes</div><div class="as-op-b"><b>Economía circular</b> <span class="as-tag as-t-${esc2(ec.estado)}">${esc(ec.estado)}</span><p>${esc(ec.texto)}</p>${citas(ec.arts)}</div></div>`;
+  e.opciones.forEach(op => {
+    h += `<div class="as-op as-op-${op.k.toLowerCase()}"><div class="as-op-n">Opción ${op.n}</div><div class="as-op-b"><b>${esc(op.titulo)}</b> <span class="as-tag as-t-${op.tag === 'prioridad' ? 'obligatorio' : (op.tag === 'excepcional' ? 'verificar' : 'recomendado')}">${esc(op.tag)}</span><p>${esc(op.texto)}</p>`;
+    if(op.subs) h += '<ul class="as-op-s">' + op.subs.map(s => `<li class="${s.est === 'descartada' ? 'as-off' : ''}"><b>${esc(s.nom)}</b> <span class="as-tag as-t-${s.est === 'descartada' ? 'descartado' : (s.est === 'procede' ? 'recomendado' : (s.est === 'obligatoria' ? 'obligatorio' : 'verificar'))}">${esc(s.est)}</span> ${esc(s.texto)}${linksHtml(s.links)}${s.arts && s.k === 'BT' ? citas(s.arts) : ''}</li>`).join('') + '</ul>';
+    if(op.causales) h += '<ul class="as-op-s">' + op.causales.map(c => `<li><b>${esc(CAUS_NOM(c))}</b> <span class="as-hint">(art. ${esc(c.n)} DS 661)</span></li>`).join('') + '</ul><p class="as-hint">Si ninguna calza con hechos que puedas acreditar, esta opción no corresponde. Elige en el paso 3 la situación que aplique y el Asesor te muestra los requisitos de esa causal.</p>';
+    h += citas(op.arts) + '</div></div>';
+  });
+  return h + '</div>';
+}
+const esc2 = x => String(x).replace(/\s+/g, '-');
+const CAUS_NOM = c => c.t;
 function datosOrg(o, h, ci){
   if(S.od == null) return '';
   let html = '<div class="as-sec"><h3>Lo que muestran las compras de tu organismo</h3>';

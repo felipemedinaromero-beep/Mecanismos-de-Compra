@@ -1,0 +1,1 @@
+(window.AS_PAC=window.AS_PAC||{})[423]={"g":"2026-10-20","n":"I MUNICIPALIDAD DE MEJILLONES","u":["Secoplac"],"c":["[22-08-999] Otros Servicios Generales"],"m":["Procedimiento concursal"],"i":[["Adquisicion de utiles escolares 2026",0,0,0,28955675,"01:28955675",1]]};

@@ -131,6 +131,18 @@ const CAUSALES = {
     'El conocimiento público que generaría la licitación pondría en serio riesgo el objeto y la eficacia de la contratación.'], arts: ['art. 71 N° 7 letra e)']}
 };
 
+/* Bases Tipo de licitación vigentes (chilecompra.cl/bases-tipo, revisadas el 28-10-2026). Uso obligatorio según Dictamen CGR E370752/2023. */
+const BT_FUENTE = 'https://www.chilecompra.cl/bases-tipo/';
+const BASES_TIPO = [
+  {k: 'dc', nom: 'Servicios de data center', act: '17-08-2026', kw: ['data center', 'datacenter', 'centro de datos'], onu: [], pdf: 'http://www.chilecompra.cl/wp-content/uploads/2026/08/Toma-Razon-Resol.-N%C2%B0-29-Contraloria-G-de-la-Republica.pdf', word: 'https://d2wcafjlivmshr.cloudfront.net/2026/BasesTipo-word/BT-Data-Center-Editable.docx'},
+  {k: 'tp', nom: 'Transporte privado de pasajeros y taxi ejecutivo', act: '08-04-2026', kw: ['transporte de pasajeros', 'transporte privado', 'taxi', 'traslado de pasajeros', 'bus de pasajeros', 'transporte de personas'], onu: ['781118'], pdf: 'http://www.chilecompra.cl/wp-content/uploads/2026/08/Toma-de-Razon-Resol.-N-12-Contraloria-G-de-la-Republica.pdf', word: 'https://d2wcafjlivmshr.cloudfront.net/2026/BasesTipo-word/BT-Transporte-de-pasajeros-2026-Editable.docx'},
+  {k: 'vm', nom: 'Adquisición de vehículos motorizados estándar y modificados', act: '23-02-2026', kw: ['vehiculo motorizado', 'automovil', 'camioneta', 'furgon', 'minibus', 'station wagon', 'vehiculos de pasajeros', 'vehiculo de pasajeros', 'ambulancia'], onu: ['2510'], pdf: 'http://www.chilecompra.cl/wp-content/uploads/2026/02/Toma-de-Razon-RES.-N-5-Contraloria-G-de-la-Republica-.pdf', word: 'https://d2wcafjlivmshr.cloudfront.net/2026/BasesTipo-word/BT_Vehiculos_Motorizados_Editable.docx', soloBien: true},
+  {k: 'av', nom: 'Arriendo de vehículos motorizados livianos', act: '22-09-2025', kw: ['arriendo de vehiculo', 'alquiler de vehiculo', 'arriendo de automovil', 'arriendo de camioneta', 'arriendo de flota'], onu: ['781815'], pdf: 'http://www.chilecompra.cl/wp-content/uploads/2025/10/Toma-Razon-CGR-BasesTipo-vehiculos.pdf', word: 'https://d2wcafjlivmshr.cloudfront.net/2025/Bases+Tipo/BasesTipo-arriendo-vehiculos-editable.docx'},
+  {k: 'sg', nom: 'Servicio de seguros generales', act: '22-09-2025', kw: ['seguro', 'poliza', 'polizas'], onu: ['8413'], pdf: 'https://www.chilecompra.cl/wp-content/uploads/2025/10/Toma-Razon-CGR-BasesTipo-seguros-generales.pdf', word: 'https://d2wcafjlivmshr.cloudfront.net/2025/Bases+Tipo/BasesTipo-seguros-generales-editable.docx'},
+  {k: 'cc', nom: 'Servicio de contact center', act: '24-10-2025', kw: ['contact center', 'call center', 'centro de contacto', 'atencion telefonica', 'mesa de ayuda'], onu: [], pdf: 'https://www.chilecompra.cl/wp-content/uploads/2025/10/Bases-Tipo-Contact-Center.pdf', word: 'https://d2wcafjlivmshr.cloudfront.net/2025/Bases+Tipo/Bases-Tipo-Contact-Center_editable.docx'},
+  {k: 'cl', nom: 'Servicio de cloud computing y servicios asociados', act: '29-07-2026', kw: ['cloud', 'computacion en la nube', 'servicios en la nube', 'servicio en la nube', 'hosting en la nube'], onu: [], pdf: 'http://www.chilecompra.cl/wp-content/uploads/2026/07/Toma-Razon-Resol.-N%C2%B0-27-Contraloria-G-de-la-Republica.pdf', word: 'https://d2wcafjlivmshr.cloudfront.net/2026/BasesTipo-word/BT-Cloud-Computing_editable+%281%29.docx'}
+];
+
 /* ----------------------------- utilidades ----------------------------- */
 const R = (x, d) => { const f = Math.pow(10, d || 0); return Math.round(x * f) / f; };
 
@@ -181,16 +193,29 @@ function recomendar(inp){
   const out = {utm, montoUtm: u, tramo: t, tramoNom: TRAMOS[t].nom, pasos: [], alertas: [], alternativas: [], principal: null, causal: null};
   const paso = (titulo, estado, texto, arts, extra) => out.pasos.push(Object.assign({titulo, estado, texto, arts: arts || []}, extra || {}));
   const ffaa = /ffaa|fuerzas armadas|orden y seguridad/i.test(inp.sector || '');
+  const bt = inp.bt || [], btNom = bt.map(b => b.nom).join('; ');
+  const btTxt = 'Existe Base Tipo de ChileCompra para esto (' + btNom + '). Si vas a licitar, debes usarla: su uso es obligatorio cuando existe para el producto o servicio (Dictamen CGR E370752/2023). Publica el PDF sin cambios; si modificas algo fuera de los anexos deja de ser Base Tipo y pasa a ser Base Modelo. Solo puedes apartarte si sus estipulaciones no se ajustan a las características de lo que necesitas, incluidos los aspectos a evaluar (Dictamen CGR E510048/2024), y debes fundarlo en el acto administrativo.';
+  const btArts = [A('Dictamen CGR', 'E370752/2023 y E510048/2024'), ds('art. 38')];
+  const btLinks = bt.reduce((a, b) => a.concat([{t: b.nom + ' (PDF)', u: b.pdf}, {t: 'Word editable', u: b.word}]), []);
 
   // 0. Planificación
   paso('Revisa tu Plan Anual de Compras y la disponibilidad presupuestaria', 'previo',
     'Debes comprar lo que está en tu PAC; si no está, justifica los motivos en el acto que autoriza la compra. Antes de adjudicar necesitas el certificado de disponibilidad presupuestaria.',
     [ley('art. 12'), ds('arts. 5, 27, 166, 169')]);
 
-  // 1. Economía circular
-  if(bien) paso('Consulta la plataforma de economía circular', 'previo',
-    'Antes de adquirir bienes muebles, los organismos del art. 2 N° 1 deben consultar si otra entidad tiene un bien que sirva a tu necesidad. Puedes omitirlo si el bien, por su naturaleza, no puede reutilizarse ni compartirse.',
-    [ds('art. 28'), A('Ley 21.634', 'art. segundo')]);
+  // 1. Economía circular (paso previo, art. 28 DS 661)
+  let ecTxt = null;
+  if(bien){
+    if(inp.consumible){
+      ecTxt = 'Por su naturaleza, este bien (de consumo o de un solo uso) no puede reutilizarse ni compartirse, así que la consulta previa no aplica y puedes seguir con el paso siguiente.';
+      paso('Economía circular', 'no aplica', ecTxt, [ds('art. 28')]);
+    } else {
+      ecTxt = 'Antes de adquirir bienes muebles debes consultar la plataforma de economía circular por si otro organismo tiene uno que sirva a tu necesidad (art. 28). Si no existe o no está disponible, deja constancia con esta frase: "producto no existe o no se encuentra disponible en economía circular", y continúa con el Convenio Marco. Si existe, puedes pedirlo en traspaso en vez de comprar.';
+      paso('Economía circular', 'previo', ecTxt, [ds('art. 28')]);
+    }
+  } else {
+    paso('Economía circular', 'no aplica', 'La consulta previa de economía circular rige solo para la adquisición de bienes muebles; en servicios no corresponde.', [ds('art. 28')]);
+  }
 
   // 2. Convenio Marco
   const cmAplica = !!inp.cm && !ffaa;
@@ -198,19 +223,20 @@ function recomendar(inp){
   const nomCm = inp.cmNombres && inp.cmNombres.length ? inp.cmNombres.join('; ') : 'un convenio vigente';
   const cert = inp.cmCerteza === 'media' ? ' (por la materia del convenio, sin coincidencia exacta con un producto del Catálogo)' : '';
   if(inp.cm){
+    cmEstado = 'obligatorio';
     if(u > 100){
-      cmEstado = 'obligatorio';
-      cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Sobre 100 UTM corresponde comprar por Convenio Marco antes que por cualquier otro procedimiento, salvo que obtengas directamente condiciones más ventajosas objetivas y demostrables (plazo de entrega, garantías, calidad o mejor costo-beneficio), que debes informar a la Dirección de Compras y respaldar.';
+      cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Sobre 100 UTM corresponde comprar por Convenio Marco antes que por cualquier otro procedimiento, salvo que el producto no esté disponible o que obtengas directamente condiciones más ventajosas objetivas y demostrables (plazo de entrega, garantías, calidad o mejor costo-beneficio), que debes informar a la Dirección de Compras y respaldar.';
       if(ffaa) cmTexto += ' Las Fuerzas Armadas y de Orden y Seguridad no están obligadas respecto de los bienes y servicios que determinen sus propias autoridades logísticas.';
     } else {
       cmEstado = 'recomendado';
-      cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Hasta 100 UTM puedes ir por Compra Ágil sin pasar por el Catálogo, pero el precio del convenio sirve de tope de referencia: si es menor que las cotizaciones, compra por Convenio Marco.';
+      cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Es la primera opción: hasta 100 UTM la Compra Ágil no te obliga a consultar el Catálogo, pero el precio del convenio sirve de tope de referencia y, si es menor que las cotizaciones, conviene comprar por Convenio Marco.';
     }
   } else {
     cmEstado = 'descartado';
     cmTexto = 'Lo que necesitas no está en ningún Convenio Marco vigente, por lo que no corresponde ese procedimiento y se sigue con el que aplica según el monto' + (u > 100 ? ' (sobre 100 UTM, la licitación pública, salvo una causal de trato directo o un mecanismo especial)' : '') + '.';
   }
   paso('Convenio Marco', cmEstado, cmTexto, [ley('art. 30 letra d); art. 57'), ds('arts. 29, 85, 89, 92, 96')]);
+  if(bt.length && u > 100) paso('Base Tipo de licitación', 'obligatorio', btTxt, btArts, {links: btLinks});
 
   // 3. Determinar el procedimiento
   const SC = {
@@ -270,8 +296,8 @@ function recomendar(inp){
     pr = {k: 'DCI', nom: 'Diálogo Competitivo de Innovación', porque: 'La necesidad es compleja y requiere conversar con proveedores para precisar la solución.'};
   } else if(sit.has('especial') && bien === false){
     pr = {k: 'SPE', nom: 'Licitación Pública de servicios personales especializados', porque: 'Es el procedimiento general para servicios de alta especialización: preselección por idoneidad técnica y luego ofertas con negociación.', spe: true};
-  } else if(cmAplica && u > 100){
-    pr = {k: 'CM', nom: u > 1000 ? 'Gran Compra por Convenio Marco' : 'Compra por Convenio Marco', porque: 'El producto está en el Catálogo y supera 100 UTM, por lo que la compra por Convenio Marco es obligatoria salvo condiciones más ventajosas demostrables.', gran: u > 1000};
+  } else if(cmAplica){
+    pr = {k: 'CM', nom: u > 1000 ? 'Gran Compra por Convenio Marco' : 'Compra por Convenio Marco', porque: u > 100 ? 'El producto está en el Catálogo y supera 100 UTM, por lo que la compra por Convenio Marco es obligatoria salvo que no esté disponible o existan condiciones más ventajosas demostrables.' : 'El producto está en el Catálogo: es la primera opción. Abajo tienes la segunda, fuera de Convenio Marco, si el producto no está disponible o consigues condiciones más ventajosas.', gran: u > 1000};
   } else if(sit.has('estandar') && u > 100){
     pr = {k: 'SIE', nom: 'Subasta Inversa Electrónica', porque: 'Es un bien o servicio estandarizado de objetiva especificación que no está en Convenio Marco: la subasta busca bajar el precio en rondas electrónicas.', alt: 'LP'};
   } else if(u <= 100){
@@ -286,6 +312,7 @@ function recomendar(inp){
   pr.mec = mec; pr.req = []; pr.plazos = []; pr.arts = mec.arts.slice();
   if(pr.k === 'LP'){
     const p = planLicitacion(u, !!inp.simple); pr.req = p.req; pr.plazos = p.plazos; pr.arts = p.arts;
+    if(bt.length){ pr.req = ['Usa la Base Tipo de ChileCompra: ' + btNom + '. Es obligatoria cuando existe para tu producto o servicio (Dictamen CGR E370752/2023), con la salvedad del Dictamen E510048/2024 si no se ajusta a lo que necesitas.'].concat(pr.req); pr.arts = pr.arts.concat(btArts); pr.links = btLinks; }
   } else if(pr.k === 'CM'){
     pr.req = mec.req.slice();
     if(pr.gran) pr.plazos.push('Plazo para recibir ofertas de los proveedores de la categoría: al menos 10 días hábiles (art. 90). Puedes omitir la Gran Compra en caso de emergencia, urgencia o imprevisto calificado por resolución fundada del jefe superior.');
@@ -311,13 +338,45 @@ function recomendar(inp){
 
   // Alternativas
   const alt = (k, texto) => out.alternativas.push({k, nom: nombreMec(k), texto, arts: MEC_BY[k].arts});
-  if(pr.k !== 'CM' && inp.cm && u <= 100) alt('CM', 'El producto está en Convenio Marco. Si su precio es menor que las cotizaciones de la Compra Ágil, es la opción más eficiente y evita el trámite de cotizar.');
   if(pr.k !== 'LP' && u > 100 && !out.causal && pr.k !== 'CM') alt('LP', 'La licitación pública sigue siendo el camino general si ninguna causal de excepción se puede acreditar.');
   if(pr.k !== 'SIE' && u > 100 && bien && !inp.cm) alt('SIE', 'Si el bien es estandarizado y de objetiva especificación, la subasta inversa puede bajar el precio sin la carga de evaluar bases complejas.');
   if(pr.k !== 'CC' && inp.demanda && inp.demanda.no >= 2) alt('CC', 'Hay ' + inp.demanda.no + ' organismos de tu región comprando este producto. Agregar demanda mediante una compra coordinada puede mejorar precio y reducir costos de transacción.');
   if(pr.k === 'CA' && u > 30 && u <= 100 && bien) alt('LP', 'Si estimas compras repetidas durante el año del mismo producto, una licitación única de suministro evita la fragmentación (art. 16).');
   if(sit.has('especial') && pr.k !== 'SPE') alt('SPE', 'Para servicios de alta especialización, la licitación con preselección (arts. 173 a 175) es el camino general; el trato directo exige acreditar la causal del art. 71 N° 7 letra c).');
   if(sit.has('coordina') && pr.k !== 'CC') alt('CC', 'Marcaste que otros organismos necesitan lo mismo: solicita a la Dirección de Compras que te represente.');
+
+  // Escalera de opciones: Convenio Marco -> fuera de Convenio Marco -> excepcional
+  const esc = {previo: bien ? (inp.consumible ? 'El bien es de consumo: la consulta de economía circular no aplica.' : 'Primero, consulta economía circular. Si no está, "producto no existe o no se encuentra disponible en economía circular".') : 'Servicio: no corresponde la consulta de economía circular.', opciones: []};
+  const enCm = !!inp.cm && !ffaa;
+  if(enCm){
+    esc.opciones.push({n: 1, k: 'CM', tag: 'prioridad', titulo: u > 1000 ? 'Gran Compra por Convenio Marco' : 'Compra por Convenio Marco', texto: cmTexto, cm: true, arts: [ley('art. 30 letra d)'), ds('arts. 29, 89, 90')]});
+  }
+  // fuera de Convenio Marco
+  const fuera = {n: enCm ? 2 : 1, k: 'FUERA', tag: enCm ? 'alternativa' : 'recomendado', titulo: enCm ? 'Fuera de Convenio Marco' : 'Procedimiento según el monto', subs: [], arts: [ley('art. 30 letra d); art. 7'), ds('art. 92')]};
+  fuera.texto = enCm
+    ? 'La norma permite comprar fuera del Convenio Marco si el producto no está disponible o si obtienes condiciones más ventajosas objetivas y demostrables. Debes informarlo a la Dirección de Compras y guardar los antecedentes (art. 92). En ese caso, el procedimiento depende del monto:'
+    : 'El producto no está en Convenio Marco, así que el procedimiento depende del monto:';
+  if(u <= 100){
+    fuera.subs.push({k: 'CA', est: 'procede', nom: 'Compra Ágil', texto: 'Hasta 100 UTM: tres cotizaciones por el Sistema, preferentemente a empresas de menor tamaño y proveedores locales. No necesitas acto administrativo.', arts: [ley('art. 7 letra d) N° 1; art. 56'), ds('arts. 97, 98')]});
+  } else {
+    fuera.subs.push({k: 'CA', est: 'descartada', nom: 'Compra Ágil', texto: 'El monto (' + R(u, 1).toLocaleString('es-CL') + ' UTM) supera el límite de 100 UTM de este procedimiento.', arts: [ley('art. 7 letra d) N° 1'), ds('art. 97')]});
+    const pl = planLicitacion(u, !!inp.simple);
+    fuera.subs.push({k: 'LP', est: 'procede', nom: pl.nom, texto: 'Es la regla general sobre 100 UTM. ' + pl.plazos[0], arts: [ley('art. 7 letra a)'), ds('arts. 36, 46')]});
+    if(bt.length) fuera.subs.push({k: 'BT', est: 'obligatoria', nom: 'Base Tipo de licitación', texto: btTxt, arts: btArts, links: btLinks});
+    if(bien) fuera.subs.push({k: 'SIE', est: sit.has('estandar') ? 'procede' : 'condicional', nom: 'Subasta Inversa Electrónica', texto: sit.has('estandar') ? 'Marcaste que es un bien de especificación objetiva: la subasta baja el precio en rondas electrónicas.' : 'Solo si el bien es estandarizado y de especificación objetiva.', arts: [ley('art. 7 letra d) N° 6'), ds('arts. 101 a 104')]});
+  }
+  esc.opciones.push(fuera);
+  // excepcional: trato directo
+  const aplic = ['urgencia', 'unico', 'desierta', 'confianza', 'impacto', 'compat', 'desprop', 'especial', 'seguridad', 'publicidad', 'confid'].filter(k => {
+    if(k === 'confianza') return u > 1000;
+    if(k === 'impacto') return u < 30;
+    if(k === 'desprop') return !bien && u <= 100;
+    if(k === 'especial' || k === 'confid') return !bien;
+    if(k === 'compat') return true;
+    return true;
+  });
+  esc.opciones.push({n: fuera.n + 1, k: 'TD', tag: 'excepcional', titulo: 'Trato Directo (solo con causal)', texto: 'No reemplaza al procedimiento ordinario: exige una causal del art. 8 bis de la Ley (art. 71 del Reglamento) acreditada en un acto fundado y publicada. Las causales que podrían aplicar a esta compra, por monto y tipo:', causales: aplic.map(k => ({k, n: CAUSALES[k].n, t: CAUSALES[k].t})), arts: [ley('art. 7 letra c); art. 8 bis'), ds('arts. 71 a 84')]});
+  out.escalera = esc;
 
   // Alertas de datos
   const h = inp.hist;
@@ -340,11 +399,37 @@ function recomendar(inp){
     out.alertas.push({nivel: 'medio', t: 'Sobre 1.000 UTM, esta causal exige informe técnico (art. 80) y, en proveedor único y confianza, publicar la intención de contratar con 5 días hábiles de anticipación (art. 78).', arts: [ds('arts. 78, 80')]});
   }
   if(u >= 3 && u < 30 && pr.k === 'CA') out.alertas.push({nivel: 'info', t: 'Con menos de 30 UTM también podrías usar Trato Directo si privilegias empresas de menor tamaño, proveedores locales, descentralización o sustentabilidad (art. 71 N° 6). La Compra Ágil sigue siendo la opción por defecto.', arts: [ds('arts. 71 N° 6, 76')]});
+  if(bt.length && u <= 100) out.alertas.push({nivel: 'info', t: 'Existe Base Tipo para esto (' + btNom + '). Si decides licitar aunque el monto no supere 100 UTM, debes usar esa Base Tipo (Dictamen CGR E370752/2023).', arts: btArts});
   if(u < 3) out.alertas.push({nivel: 'info', t: 'Las contrataciones inferiores a 3 UTM pueden efectuarse fuera del Sistema de Información (art. 116 letra a), aunque conviene usar igualmente el Sistema por trazabilidad.', arts: [ds('art. 116')]});
 
   return out;
 }
 
-root.AsesorReglas = {recomendar, tramoUtm, planLicitacion, TRAMOS, SITUACIONES, MECANISMOS, MEC_BY, CAUSALES, URL_LEY, URL_DS,
+/* Consolidación de la demanda del PAC: pac = {totalClp, n (ítems), meses (cantidad de meses distintos)} */
+function consolidar(inp, pac){
+  const total = pac.totalClp, u = total / inp.utm, out = {totalClp: total, totalUtm: u, tramo: tramoUtm(u), tramoNom: TRAMOS[tramoUtm(u)].nom, texto: [], alertas: [], arts: []};
+  const rec = recomendar(Object.assign({}, inp, {montoClp: total, sit: []}));
+  out.rec = rec;
+  const varias = pac.n >= 2 || pac.meses >= 2;
+  const uTxt = R(u, 1).toLocaleString('es-CL') + ' UTM';
+  if(varias) out.texto.push('Tu PAC planifica este producto en ' + pac.n + ' ítem(s) y ' + pac.meses + ' mes(es) distintos. Juntarlos en una sola compra de ' + uTxt + ' ordena la demanda, mejora el poder de negociación y evita fragmentar (DS 661, art. 16).');
+  else out.texto.push('Tu PAC planifica este producto por ' + uTxt + '.');
+  if(inp.cm){
+    out.texto.push('Como el producto está en Convenio Marco, compra el total por ese mecanismo' + (u > 1000 ? ': sobre 1.000 UTM es Gran Compra (comunicas la intención de compra a todos los proveedores de la categoría, con al menos 10 días hábiles para ofertar; DS 661, art. 90), lo que además abre competencia y mejores precios.' : '.'));
+    out.texto.push('Para repartir las entregas en los meses que planificaste, suscribe un acuerdo complementario con el proveedor adjudicado: fija oportunidad y forma de entrega, precio y forma de pago, especificaciones, vigencia y efectos de los incumplimientos, sin apartarse de las bases del convenio (DS 661, art. 91).');
+    out.texto.push('Con más volumen en una sola orden, pide al proveedor una oferta especial dentro de las bases del convenio (por ejemplo descuento por volumen, despacho o plazos). El precio del Catálogo es el tope de referencia; si obtienes condiciones más ventajosas fuera de él, debes informarlo a la Dirección de Compras (art. 92).');
+    out.arts = [ds('arts. 16, 89, 90, 91, 92')];
+  } else if(u > 100){
+    out.texto.push('Fuera de Convenio Marco corresponde ' + rec.principal.nom + ' por el total, con calendario de entregas parciales en los meses planificados. Una sola licitación de suministro reemplaza varias compras menores.');
+    out.arts = [ds('arts. 16, 36, 46')];
+  } else {
+    out.texto.push('El total no supera 100 UTM: puedes usar una sola Compra Ágil con entregas en los meses planificados.');
+    out.arts = [ds('arts. 16, 97')];
+  }
+  if(varias && inp.montoClp && inp.montoClp / inp.utm <= 100 && u > 100) out.alertas.push({nivel: 'alto', t: 'Cada compra por separado cabría en Compra Ágil (hasta 100 UTM), pero juntas suman ' + uTxt + '. Partirlas para quedar bajo el límite sería fragmentación (DS 661, art. 16; multa de 10 a 100 UTM).'});
+  return out;
+}
+
+root.AsesorReglas = {consolidar, BASES_TIPO, BT_FUENTE, recomendar, tramoUtm, planLicitacion, TRAMOS, SITUACIONES, MECANISMOS, MEC_BY, CAUSALES, URL_LEY, URL_DS,
   TEXTO_BASE: 'Ley N° 19.886 (texto consolidado BCN, última versión del 05-02-2026, con las modificaciones de las leyes 21.634 y 21.806) y Reglamento DS N° 661/2024 de Hacienda (publicado el 12-12-2024).'};
 })(typeof window !== 'undefined' ? window : globalThis);
