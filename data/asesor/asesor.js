@@ -26,8 +26,9 @@ function encState(st){
   const a = [];
   if(st.o) a.push('o.' + st.o);
   if(st.u) a.push('u.' + st.u);
+  if(st.r != null) a.push('r.' + st.r);
   const ls = (st.l || []).filter(l => l.p || l.q || l.m || l.n || l.pu);
-  if(ls.length) a.push('l.' + ls.map(l => [l.p || '', encodeURIComponent((l.q || '').replace(/[*!~+]/g, ' ').trim()), l.t === 'servicio' ? 's' : (l.t === 'bien' ? 'b' : ''), l.n || '', l.pu || '', l.m || ''].join('*')).join('!'));
+  if(ls.length) a.push('l.' + ls.map(l => [l.p || '', encodeURIComponent((l.q || '').replace(/[*!~+]/g, ' ').trim()), l.t === 'servicio' ? 's' : (l.t === 'bien' ? 'b' : ''), l.n || '', l.pu || '', l.m || '', encodeURIComponent(l.um || '')].join('*')).join('!'));
   if(st.mes) a.push('f.' + st.mes);
   if(st.simple) a.push('e.1');
   if(st.nd) a.push('d.' + st.nd);
@@ -39,17 +40,27 @@ function decState(txt){
   const st = {s: [], l: []};
   String(txt || '').split('~').forEach(kv => {
     const i = kv.indexOf('.'); if(i < 1) return; const k = kv.slice(0, i), v = decodeURIComponent(kv.slice(i + 1));
-    if(k === 'o') st.o = v; else if(k === 'u') st.u = v; else if(k === 'p') st.p = v; else if(k === 't') st.t = v === 'servicio' ? 'servicio' : 'bien';
+    if(k === 'o') st.o = v; else if(k === 'u') st.u = v; else if(k === 'r'){ const rr = Number(v); if(Number.isInteger(rr) && rr >= 0 && rr <= 16) st.r = rr; } else if(k === 'p') st.p = v; else if(k === 't') st.t = v === 'servicio' ? 'servicio' : 'bien';
     else if(k === 'm') st.m = Math.max(0, Math.round(Number(v) || 0)); else if(k === 'f') st.mes = v; else if(k === 'e') st.simple = true; else if(k === 'd' && /^\d{4}-\d{2}-\d{2}$/.test(v)) st.nd = v;
     else if(k === 's') st.s = v.split('+').filter(Boolean); else if(k === 'v') st.tab = v;
-    else if(k === 'l') st.l = v.split('!').slice(0, 15).map(x => { const f = x.split('*'); const num = y => Math.max(0, Math.round(Number(y) || 0)); return newLine({p: f[0] || '', q: decodeURIComponent(f[1] || ''), t: f[2] === 's' ? 'servicio' : (f[2] === 'b' ? 'bien' : ''), n: num(f[3]), pu: num(f[4]), m: num(f[5])}); });
+    else if(k === 'l') st.l = v.split('!').slice(0, 1).map(x => { const f = x.split('*'); const num = y => Math.max(0, Math.round(Number(y) || 0)); return newLine({p: f[0] || '', q: decodeURIComponent(f[1] || ''), t: f[2] === 's' ? 'servicio' : (f[2] === 'b' ? 'bien' : ''), n: num(f[3]), pu: num(f[4]), m: num(f[5]), um: decodeURIComponent(f[6] || '')}); });
   });
   if(!st.l.length) st.l = [newLine({p: st.p || '', t: st.t || '', m: st.m || 0})];
   return st;
 }
 /* ------------------------------ líneas del proceso de compra ------------------------------ */
 let LSEQ = 0;
-function newLine(o){ return Object.assign({id: ++LSEQ, p: '', q: '', t: '', n: 0, pu: 0, m: 0}, o || {}); }
+function newLine(o){ return Object.assign({id: ++LSEQ, p: '', q: '', t: '', n: 0, pu: 0, m: 0, um: ''}, o || {}); }
+/* Unidades de medida: las que declaran los compradores en el catálogo. Primero las más usadas según el tipo. */
+const UM_TOP_B = ['unidad','caja','paquete','kilogramo','litro','metro lineal','metro cuadrado','metro cúbico','par','kit','juego','pack','resma','rollo','bolsa','bidón','galón','botella','frasco','saco','docena','tonelada'];
+const UM_TOP_S = ['mes','hora','día','semana','quincena','año','mes/hombre','hora/hombre','día/hombre'];
+const lineUm = l => l.um || (lineTipo(l) === 'servicio' ? 'mes' : 'unidad');
+function umOptions(l){
+  const all = (S.C.ums || []).filter(u => u !== 'unidad no definida'), cur = lineUm(l), serv = lineTipo(l) === 'servicio';
+  const top = (serv ? UM_TOP_S : UM_TOP_B).filter(u => all.includes(u)), rest = all.filter(u => !top.includes(u)).sort((a, b) => a.localeCompare(b, 'es'));
+  const o = u => `<option value="${esc(u)}"${u === cur ? ' selected' : ''}>${esc(u.charAt(0).toUpperCase() + u.slice(1))}</option>`;
+  return `<optgroup label="Más usadas">${top.map(o).join('')}</optgroup><optgroup label="Otras unidades">${rest.map(o).join('')}</optgroup>`;
+}
 const lineTotal = l => (l.n && l.pu) ? Math.round(l.n * l.pu) : (l.m || 0);
 function procTotal(){ return S.st.l.reduce((a, l) => a + lineTotal(l), 0); }
 function autoTipo(code){ const sg = Number(String(code || '').slice(0, 2)); return sg >= SERV_CODE && sg <= 94 ? 'servicio' : 'bien'; }
@@ -139,7 +150,7 @@ const CSS = `
 .as-ln-n b{display:block;font-size:13px;overflow-wrap:anywhere;} .as-ln-n small{display:block;font-size:11.5px;color:var(--text-secondary);font-weight:400;}
 .as-ln-k{flex:none;width:20px;height:20px;border-radius:99px;background:var(--cc-navy);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
 .as-ln-f{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;} .as-ln-f label{font-size:11px;color:var(--text-secondary);font-weight:600;display:flex;flex-direction:column;gap:3px;} .as-ln-f .as-in,.as-ln-f .as-sel{margin-top:0;}
-.as-ln-f .as-in[readonly]{background:var(--cc-mist);} .as-ln-ht{margin:6px 0 0;}
+.as-ln-f .as-span2{grid-column:1/-1;} .as-ln-f .as-in[readonly]{background:var(--cc-mist);} .as-ln-ht{margin:6px 0 0;}
 .as-tot{display:flex;flex-direction:column;gap:2px;font-size:12.5px;} .as-tot b{font-size:20px;color:var(--cc-dark);font-variant-numeric:tabular-nums;} .as-tot small{color:var(--text-secondary);} .as-tot .as-warn{color:#9a5b00;font-weight:600;}
 .as-fin{margin:8px 0 0;} .as-dist{margin:10px 0 4px;} .as-pj-h td{background:var(--cc-mist);}
 .as-chk{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.45;padding:7px 0;border-bottom:1px solid var(--surface-page);cursor:pointer;} .as-chk input{margin-top:3px;accent-color:var(--cc-navy);flex:0 0 auto;}
@@ -197,10 +208,12 @@ function utmNow(){ const k = S.st.mes || S.utmKeys[S.utmKeys.length - 1]; return
 function curUtmKey(){ return S.st.mes || S.utmKeys[S.utmKeys.length - 1]; }
 function orgRegion(){
   if(!S.org) return 0;
+  if(S.st.r != null) return S.st.r;
   if(S.st.u){ const u = S.org[4].find(x => x[0] === S.st.u); if(u) return u[2]; }
   return S.org[3] || 0;
 }
 function regName(r){ return r ? S.O.regs[r] : 'Nacional'; }
+const regEn = r => r ? regName(r) : 'todo el país';
 function qLab(q){ return (2025 + Math.floor(q / 4)) + ' T' + (q % 4 + 1); }
 function histProd(){
   if(!S.od || S.prodIdx == null) return null;
@@ -295,6 +308,7 @@ function ensureCmProv(){
   loadScript(AB + 'cmprov.js' + ver()).catch(() => null).then(() => { S.cmprovLoading = false; S.cmprovTried = true; update(); });
 }
 function unidadTxt(){
+  if(S.st.r != null) return 'la región elegida (' + regName(S.st.r) + ')';
   if(S.org && S.st.u){ const u = S.org[4].find(x => x[0] === S.st.u); if(u) return 'la unidad de compra «' + u[1] + '» (' + regName(u[2]) + ')'; }
   return 'tu organismo (' + regName(orgRegion()) + ')';
 }
@@ -302,11 +316,11 @@ function cmProveedores(c, reg){
   const CT = window.AS_CMCAT, PV = window.AS_CMPROV, cat = c.extra && c.extra.cat; if(!CT || !cat) return null;
   if(PV && PV.n === CT.it.length && cat.ix){
     const cnt = {}; let con = 0;
-    cat.ix.forEach(i => { const m = PV.r[i]; if(!m) return; const set = new Set([].concat(m[reg] || [], m['99'] || [])); if(!set.size) return; con++; set.forEach(p => { cnt[p] = (cnt[p] || 0) + 1; }); });
+    cat.ix.forEach(i => { const m = PV.r[i]; if(!m) return; const set = new Set(reg ? [].concat(m[reg] || [], m['99'] || []) : [].concat(...Object.values(m))); if(!set.size) return; con++; set.forEach(p => { cnt[p] = (cnt[p] || 0) + 1; }); });
     const lst = Object.keys(cnt).map(p => ({n: cnt[p], rut: CT.pl[p][0], nom: CT.pl[p][1]})).sort((a, b) => (b.n - a.n) || a.nom.localeCompare(b.nom, 'es'));
     return {lst, con, total: cat.ix.length, nivel: 'producto'};
   }
-  const pr = CT.pc[cat.k] && (CT.pc[cat.k][reg] || []).concat(CT.pc[cat.k][99] || []);
+  const pr = CT.pc[cat.k] && (reg ? (CT.pc[cat.k][reg] || []).concat(CT.pc[cat.k][99] || []) : [].concat(...Object.values(CT.pc[cat.k])));
   if(!pr) return {lst: [], con: 0, total: cat.n, nivel: 'convenio'};
   const m = {}; pr.forEach(x => { m[x[0]] = (m[x[0]] || 0) + x[1]; });
   return {lst: Object.keys(m).map(p => ({n: m[p], rut: CT.pl[p][0], nom: CT.pl[p][1]})).sort((a, b) => b.n - a.n), con: cat.enReg, total: cat.n, nivel: 'convenio'};
@@ -323,13 +337,13 @@ function cmBloqueHtml(vd){
   h += `<p class="as-hint">El catálogo es donde se emite la orden de compra. La ficha pública resume objeto, vigencia, cotizador, garantías, multas y plazos de entrega del convenio.</p>`;
   h += pz ? `<p><b>Plazo de entrega que fijan las bases${pz.regional ? ' para ' + esc(regName(reg)) : ''}:</b> ${esc(pz.txt)}</p>` : `<p><b>Plazo de entrega:</b> la ficha no fija un plazo único para todo el convenio; está en las bases y en la oferta de cada proveedor dentro de la Tienda.</p>`;
   if(c.extra.cat){
-    h += `<p><b>Proveedores del convenio en la región de ${unidadTxt()}</b>${pv && pv.nivel === 'producto' ? ' que ofrecen productos como el tuyo' : ''}:</p>`;
+    h += `<p><b>Proveedores del convenio en ${esc(regEn(reg))}</b>${pv && pv.nivel === 'producto' ? ' que ofrecen productos como el tuyo' : ''}:</p>`;
     if(!pv || (!pv.lst.length && pv.nivel === 'producto' && !window.AS_CMPROV)) h += '<p class="as-hint">Cargando proveedores…</p>';
-    else if(!pv.lst.length) h += `<p>En las maestras no hay proveedores que ofrezcan estos productos en ${esc(regName(reg))} ni con cobertura nacional. Revisa el catálogo: puede que la oferta haya cambiado desde las maestras del ${esc((window.AS_CMCAT || {}).gen || '')}.</p>`;
+    else if(!pv.lst.length) h += `<p>En las maestras no hay proveedores que ofrezcan estos productos en ${esc(regEn(reg))}${reg ? ' ni con cobertura nacional' : ''}. Revisa el catálogo: puede que la oferta haya cambiado desde las maestras del ${esc((window.AS_CMCAT || {}).gen || '')}.</p>`;
     else {
       const fila = x => `<tr><td>${esc(x.nom)}</td><td>${esc(x.rut)}</td><td class="n">${fmt(x.n)}</td><td>${pz ? esc(pz.corto) : 'ver bases'}</td></tr>`;
       const cab = '<div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th>RUT</th><th class="n">Productos que ofrece</th><th>Plazo máximo de entrega</th></tr>';
-      h += `<p class="as-hint">${pv.lst.length} proveedor(es) con oferta en ${esc(regName(reg))} o con cobertura nacional; ${pv.con} de los ${pv.total} producto(s) del Catálogo que coinciden se ofrecen ahí.</p>` + cab + pv.lst.slice(0, 12).map(fila).join('') + '</table></div>';
+      h += `<p class="as-hint">${pv.lst.length} proveedor(es) con oferta en ${esc(regEn(reg))}${reg ? ' o con cobertura nacional' : ''}; ${pv.con} de los ${pv.total} producto(s) del Catálogo que coinciden se ofrecen ahí.</p>` + cab + pv.lst.slice(0, 12).map(fila).join('') + '</table></div>';
       if(pv.lst.length > 12) h += `<details class="as-det"><summary>Ver los otros ${pv.lst.length - 12} proveedores</summary>${cab}${pv.lst.slice(12, 150).map(fila).join('')}</table></div>${pv.lst.length > 150 ? '<p class="as-hint">Se muestran los primeros 150; el resto está en el catálogo.</p>' : ''}</details>`;
     }
     h += `<p class="as-hint">Fuente: maestras del Catálogo al ${esc((window.AS_CMCAT || {}).gen || '')}. El plazo es el máximo que exigen las bases del convenio, igual para todos los proveedores; el plazo que ofrece cada uno para un producto aparece en su ficha dentro del catálogo y puede ser menor. Verifica stock y precio ahí antes de emitir la orden de compra.</p>`;
@@ -411,11 +425,10 @@ function renderTab(){
       <input class="as-in" id="as-org" type="search" autocomplete="off" placeholder="Nombre del organismo o su código" aria-label="Buscar organismo">
       <div class="as-list" id="as-orgres" hidden></div><div id="as-orgsel"></div><div id="as-orgfin"></div></div>
     <div class="as-card" id="as-c2"><h3><span class="as-n">2</span>¿Qué necesitas comprar?</h3>
-      <div id="as-lines"></div>
       <input class="as-in" id="as-prod" type="search" autocomplete="off" placeholder="Ej.: toallas de papel, guardias de seguridad, 14111703" aria-label="Buscar producto o servicio">
       <div class="as-list" id="as-prodres" hidden></div>
-      <button class="as-btn" id="as-addln" style="margin-top:8px">+ Agregar otro producto al mismo proceso</button>
-      <p class="as-hint">Cada línea es un producto o servicio con su cantidad y precio. Si todos forman parte del mismo proceso de compra, el Asesor suma el total para definir el procedimiento. El tipo (bien o servicio) se asigna solo desde el código del producto. Si no encuentras tu producto, escribe igual una descripción y elige si es bien o servicio: la recomendación por monto y por norma funciona, pero sin datos de precios ni de Convenio Marco.</p></div>
+      <div id="as-lines"></div>
+      <p class="as-hint">Escribe el producto o servicio y elígelo de la lista; después indica la unidad de medida, la cantidad y el precio. El tipo (bien o servicio) se asigna solo desde el código del producto. Si no encuentras tu producto, escribe igual una descripción y elige si es bien o servicio: la recomendación por monto y por norma funciona, pero sin datos de precios ni de Convenio Marco.</p></div>
     <div class="as-card" id="as-c3"><h3><span class="as-n">3</span>¿Cuánto costará?</h3>
       <div class="as-tot" id="as-tot" aria-live="polite"></div>
       <div class="as-eq" id="as-eq" aria-live="polite"></div>
@@ -439,7 +452,6 @@ function wire(){
   oi.addEventListener('focus', () => { if(oi.value) searchOrg(); });
   pi.addEventListener('input', () => { S.prodQ = pi.value; const l = activeLine(); if(!l.p){ l.q = pi.value; } searchProd(); clearTimeout(S.tq); S.tq = setTimeout(() => { paintLines(); update(); }, 250); });
   pi.addEventListener('focus', () => { if(pi.value) searchProd(); });
-  $('as-addln').addEventListener('click', () => { if(S.st.l.length >= 15) return; S.st.l.push(newLine()); activate(S.st.l.length - 1); $('as-prod').value = ''; $('as-prodres').hidden = true; paintLines(); update(); $('as-prod').focus(); });
   const ln = $('as-lines');
   ln.addEventListener('click', e => {
     const b = e.target.closest('[data-a]'); if(!b) return; const i = Number(b.dataset.i), a = b.dataset.a, l = S.st.l[i]; if(!l) return;
@@ -447,7 +459,9 @@ function wire(){
     else if(a === 'chg'){ activate(i); l.p = ''; l.q = ''; l.t = ''; activate(i); $('as-prod').value = ''; $('as-prodres').hidden = true; paintLines(); update(); $('as-prod').focus(); }
     else if(a === 'del'){ S.st.l.splice(i, 1); if(!S.st.l.length) S.st.l.push(newLine()); activate(Math.min(S.li > i ? S.li - 1 : S.li, S.st.l.length - 1)); $('as-prod').value = activeLine().p ? '' : (activeLine().q || ''); paintLines(); loadSegFor(); update(); }
   });
-  ln.addEventListener('change', e => { const t = e.target; if(!t.classList.contains('as-ln-t')) return; const l = S.st.l[Number(t.dataset.i)]; l.t = t.value === (l.p ? autoTipo(l.p) : 'bien') && l.p ? '' : t.value; if(Number(t.dataset.i) === S.li) activate(S.li); paintLines(); update(); });
+  ln.addEventListener('change', e => { const t = e.target;
+    if(t.classList.contains('as-ln-um')){ S.st.l[Number(t.dataset.i)].um = t.value; paintLines(); update(); return; }
+    if(!t.classList.contains('as-ln-t')) return; const l = S.st.l[Number(t.dataset.i)]; l.t = t.value === (l.p ? autoTipo(l.p) : 'bien') && l.p ? '' : t.value; if(Number(t.dataset.i) === S.li) activate(S.li); paintLines(); update(); });
   ln.addEventListener('input', e => {
     const t = e.target, row = t.closest('.as-ln'); if(!row || !/as-ln-(q|pu|m)\b/.test(t.className)) return;
     const l = S.st.l[Number(row.dataset.i)], prev = lineTotal(l), d = t.value.replace(/\D/g, ''), v = d ? Number(d) : 0;
@@ -474,16 +488,29 @@ function copyLink(){
   if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok, () => { msg.textContent = url; });
   else { const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select(); try{ document.execCommand('copy'); ok(); }catch(e){ msg.textContent = url; } t.remove(); }
 }
+const REG_ORDEN = [15, 1, 2, 3, 4, 5, 13, 6, 7, 16, 8, 9, 14, 10, 11, 12];
+function autoRegion(){
+  if(!S.org) return 0;
+  if(S.st.u){ const u = S.org[4].find(x => x[0] === S.st.u); if(u) return u[2]; }
+  return S.org[3] || 0;
+}
+function regOptions(){
+  const cur = orgRegion();
+  return `<option value="0"${cur === 0 ? ' selected' : ''}>Todo el país (sin filtrar por región)</option>` + REG_ORDEN.map(r => `<option value="${r}"${cur === r ? ' selected' : ''}>${esc(S.O.regs[r])}</option>`).join('');
+}
 function paintSelections(){
   // organismo
   const os = $('as-orgsel');
   if(S.orgIdx != null){
     const o = S.O.o[S.orgIdx], opts = o[4].map(u => `<option value="${esc(u[0])}"${S.st.u === u[0] ? ' selected' : ''}>${esc(u[1])} · ${esc(regName(u[2]))}</option>`).join('');
     os.innerHTML = `<div class="as-sel-box"><div><b>${esc(o[1])}</b>${esc(o[2] === 'null' ? 'Sin sector' : o[2])} · ${fmt(o[6])} OC en 12 meses · región principal: ${esc(regName(o[3]))}</div><button class="as-x" id="as-orgx">cambiar</button></div>
-      ${o[4].length > 1 ? `<label class="as-lab" for="as-unit">Unidad de compra (define la región)</label><select class="as-sel" id="as-unit" style="margin-top:0"><option value="">Todas · usar región principal</option>${opts}</select>` : ''}
+      ${o[4].length > 1 ? `<label class="as-lab" for="as-unit">Unidad de compra</label><select class="as-sel" id="as-unit" style="margin-top:0"><option value="">Todas · usar región principal</option>${opts}</select>` : ''}
+      <label class="as-lab" for="as-reg">Región donde vas a comprar</label><select class="as-sel" id="as-reg" style="margin-top:0">${regOptions()}</select>
+      <p class="as-hint">Parte con la región de la unidad de compra. Si la entrega será en otra, cámbiala: los proveedores y la demanda se filtran de inmediato.</p>
       ${S.loadingOrg ? '<div class="as-load">Cargando las compras del organismo…</div>' : ''}`;
-    $('as-orgx').addEventListener('click', () => { S.orgIdx = null; S.org = null; S.od = null; S.st.o = null; S.st.u = null; S.segData = null; $('as-org').value = ''; paintSelections(); update(); $('as-org').focus(); });
-    const un = $('as-unit'); if(un) un.addEventListener('change', () => { S.st.u = un.value || null; update(); loadSegFor(); });
+    $('as-orgx').addEventListener('click', () => { S.orgIdx = null; S.org = null; S.od = null; S.st.o = null; S.st.u = null; S.st.r = null; S.segData = null; $('as-org').value = ''; paintSelections(); update(); $('as-org').focus(); });
+    const un = $('as-unit'); if(un) un.addEventListener('change', () => { S.st.u = un.value || null; S.st.r = null; $('as-reg').innerHTML = regOptions(); update(); loadSegFor(); });
+    $('as-reg').addEventListener('change', e => { const v = Number(e.target.value); S.st.r = v === autoRegion() ? null : v; update(); });
     $('as-org').style.display = 'none';
   } else { os.innerHTML = ''; $('as-org').style.display = ''; }
   // producto y montos (líneas)
@@ -494,27 +521,25 @@ function paintSelections(){
 }
 function paintLines(){
   const box = $('as-lines'); if(!box) return;
-  const L = S.st.l, many = L.length > 1, ai = activeLine();
-  box.innerHTML = L.map((l, i) => {
-    const pi = l.p ? S.prodByCode[l.p] : null, nm = lineName(l), act = i === S.li, tipo = lineTipo(l), auto = l.p ? autoTipo(l.p) : null, calc = !!(l.n && l.pu), tot = lineTotal(l);
-    const meta = pi != null ? `${esc(S.C.rubros[S.C.r[pi]] || '')} · código ${esc(l.p)}${S.C.cm[pi] ? ' · en Convenio Marco' : ''}` : '';
-    const nota = auto ? `Tipo asignado según el código ONU ${esc(l.p)}${l.t && l.t !== auto ? '; lo cambiaste a mano' : ''}.` : (act ? 'Elige un producto de la lista y el tipo se asigna solo. Mientras tanto, indica si es bien o servicio.' : '');
-    return `<div class="as-ln${act ? ' as-act' : ''}" data-i="${i}">
-      <div class="as-ln-h"><button class="as-ln-n" data-a="sel" data-i="${i}" aria-label="Ver el análisis de la línea ${i + 1}">${many ? `<span class="as-ln-k">${i + 1}</span>` : ''}<span><b>${nm ? esc(nm) : 'Sin producto todavía'}</b>${meta ? `<small>${meta}</small>` : ''}</span></button>
-        ${pi != null ? `<button class="as-x" data-a="chg" data-i="${i}">cambiar</button>` : ''}${many ? `<button class="as-x" data-a="del" data-i="${i}" aria-label="Quitar la línea ${i + 1}">quitar</button>` : ''}</div>
-      <div class="as-ln-f">
-        <label>Tipo<select class="as-sel as-ln-t" data-i="${i}"><option value="bien"${tipo === 'bien' ? ' selected' : ''}>Bien</option><option value="servicio"${tipo === 'servicio' ? ' selected' : ''}>Servicio</option></select></label>
-        <label>Cantidad<input class="as-in as-ln-q" inputmode="numeric" autocomplete="off" placeholder="Ej.: 20" value="${l.n ? fmt(l.n) : ''}"></label>
-        <label>Precio unitario con IVA<input class="as-in as-ln-pu" inputmode="numeric" autocomplete="off" placeholder="$" value="${l.pu ? fmt(l.pu) : ''}"></label>
-        <label>Total de la línea con IVA<input class="as-in as-ln-m" inputmode="numeric" autocomplete="off" placeholder="$"${calc ? ' readonly' : ''} value="${tot ? fmt(tot) : ''}"></label>
-      </div>${nota ? `<p class="as-hint as-ln-ht">${nota}</p>` : ''}</div>`;
-  }).join('');
-  const pr = $('as-prod'); if(pr){ const show = !ai.p; pr.style.display = show ? '' : 'none'; if(!show) $('as-prodres').hidden = true; }
+  const l = S.st.l[0]; S.li = 0;
+  const pi = l.p ? S.prodByCode[l.p] : null, nm = lineName(l), tipo = lineTipo(l), auto = l.p ? autoTipo(l.p) : null, calc = !!(l.n && l.pu), tot = lineTotal(l), um = lineUm(l);
+  const meta = pi != null ? `${esc(S.C.rubros[S.C.r[pi]] || '')} · código ${esc(l.p)}${S.C.cm[pi] ? ' · en Convenio Marco' : ''}` : '';
+  const nota = auto ? `Tipo asignado según el código ONU ${esc(l.p)}${l.t && l.t !== auto ? '; lo cambiaste a mano' : ''}.` : 'Elige un producto de la lista y el tipo se asigna solo. Mientras tanto, indica si es bien o servicio.';
+  box.innerHTML = `<div class="as-ln" data-i="0">
+    ${pi != null ? `<div class="as-ln-h"><div class="as-ln-n"><span><b>${esc(nm)}</b>${meta ? `<small>${meta}</small>` : ''}</span></div><button class="as-x" data-a="chg" data-i="0">cambiar</button></div>` : ''}
+    <div class="as-ln-f">
+      <label>Tipo<select class="as-sel as-ln-t" data-i="0"><option value="bien"${tipo === 'bien' ? ' selected' : ''}>Bien</option><option value="servicio"${tipo === 'servicio' ? ' selected' : ''}>Servicio</option></select></label>
+      <label>Unidad de medida<select class="as-sel as-ln-um" data-i="0">${umOptions(l)}</select></label>
+      <label>Cantidad (${esc(um)})<input class="as-in as-ln-q" inputmode="numeric" autocomplete="off" placeholder="Ej.: 20" value="${l.n ? fmt(l.n) : ''}"></label>
+      <label>Precio por ${esc(um)} con IVA<input class="as-in as-ln-pu" inputmode="numeric" autocomplete="off" placeholder="$" value="${l.pu ? fmt(l.pu) : ''}"></label>
+      <label class="as-span2">Total con IVA<input class="as-in as-ln-m" inputmode="numeric" autocomplete="off" placeholder="$"${calc ? ' readonly' : ''} value="${tot ? fmt(tot) : ''}"></label>
+    </div><p class="as-hint as-ln-ht">${nota}</p></div>`;
+  const pr = $('as-prod'); if(pr){ const show = !l.p; pr.style.display = show ? '' : 'none'; if(!show) $('as-prodres').hidden = true; }
   paintTot();
 }
 function paintTot(){
   const el = $('as-tot'); if(!el) return; const L = S.st.l, t = procTotal(), sin = L.map((l, i) => (l.p || l.q) && !lineTotal(l) ? i + 1 : 0).filter(Boolean);
-  el.innerHTML = t ? `<span>Total del proceso, IVA incluido</span><b>${clp(t)}</b>${L.length > 1 ? `<small>${L.length} líneas sumadas</small>` : ''}` : '<span>Ingresa cantidad y precio unitario, o directamente el total, en cada línea del paso 2.</span>';
+  el.innerHTML = t ? `<span>Total del proceso, IVA incluido</span><b>${clp(t)}</b>${L.length > 1 ? `<small>${L.length} líneas sumadas</small>` : ''}` : '<span>Ingresa cantidad y precio unitario, o directamente el total, en el paso 2.</span>';
   if(sin.length && t) el.insertAdjacentHTML('beforeend', `<small class="as-warn">Falta el monto de la línea ${sin.join(', ')}.</small>`);
   const c3 = $('as-c3'); if(c3) c3.classList.toggle('as-done', !!t);
 }
@@ -564,7 +589,7 @@ function searchProd(){
   box.querySelectorAll('.as-opt').forEach(b => b.addEventListener('click', () => chooseProd(Number(b.dataset.i))));
 }
 function chooseOrg(i){
-  S.orgIdx = i; S.org = S.O.o[i]; S.st.o = S.org[0]; S.st.u = null; S.od = null; $('as-orgres').hidden = true; S.loadingOrg = true; paintSelections(); update();
+  S.orgIdx = i; S.org = S.O.o[i]; S.st.o = S.org[0]; S.st.u = null; S.st.r = null; S.od = null; $('as-orgres').hidden = true; S.loadingOrg = true; paintSelections(); update();
   loadOrg(i).then(d => { if(S.orgIdx !== i) return; S.od = d; S.loadingOrg = false; paintSelections(); loadSegFor(); update(); }).catch(e => { S.loadingOrg = false; paintSelections(); const r = $('as-res'); if(r) r.innerHTML = '<div class="as-err">' + esc(e.message) + '</div>'; });
 }
 function chooseProd(i){
@@ -810,7 +835,7 @@ function resultHtml(o){
   const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
   let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div>${(o.escalera && o.escalera.ecOpcion) ? `<h2>Primero, economía circular</h2><p>Es un bien mueble: antes de comprar, consulta si otro organismo tiene uno disponible (DS 661, art. 28). Si no existe o no está disponible, deja constancia de que el producto no está disponible en economía circular y sigue con: <b>${esc(p.nom)}</b>.</p>` : `<h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>`}
-    <div class="as-chips"><span class="as-chip">${esc(prodName)}</span>${st_.l.length > 1 ? `<span class="as-chip">Línea ${S.li + 1} de ${st_.l.length}</span>` : ''}<span class="as-chip">${dec(o.montoUtm, 1)} UTM${st_.l.length > 1 ? ' en total' : ''}</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div></div>`;
+    <div class="as-chips"><span class="as-chip">${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip">${fmt(activeLine().n)} ${esc(lineUm(activeLine()))}</span>` : ''}<span class="as-chip">${dec(o.montoUtm, 1)} UTM${st_.l.length > 1 ? ' en total' : ''}</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div></div>`;
   html += `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
   html += procesoHtml(o);
   html += vereditoHtml(S.vd || veredictoCm(), o);
@@ -895,18 +920,22 @@ function preciosHtml(h){
   if(S.prodIdx == null) return '';
   const pp = S.C.p[S.prodIdx]; if(!pp || !pp.length) return '';
   let html = '<div class="as-sec"><h3>Precio de referencia</h3><p>Precio unitario neto pagado por todos los organismos en compras que no son Convenio Marco (últimos 12 meses). La banda azul cubre del percentil 25 al 75 y la marca oscura es la mediana.</p>';
-  pp.forEach(x => {
-    const um = S.C.ums[x[0]], p25 = x[2], p50 = x[3], p75 = x[4];
+  const ln = activeLine(), umSel = lineUm(ln), pu = ln.pu ? ln.pu / 1.19 : 0;
+  const pps = pp.slice().sort((a, b) => (S.C.ums[b[0]] === umSel ? 1e12 : 0) + b[1] - ((S.C.ums[a[0]] === umSel ? 1e12 : 0) + a[1]));
+  if(!pp.some(x => S.C.ums[x[0]] === umSel)) html += `<p class="as-hint">No hay precios de referencia por ${esc(umSel)}. Se muestran las unidades en que se ha comprado este producto.</p>`;
+  pps.forEach(x => {
+    const um = S.C.ums[x[0]], p25 = x[2], p50 = x[3], p75 = x[4], mia = um === umSel;
     let orgp = null;
     if(h && h.row && h.row[6] && h.row[6][0] === x[0]){ const z = h.row[6]; const ratio = z[1] / p50; if(ratio > .05 && ratio < 20) orgp = {v: z[1], n: z[3], ratio}; }
     const lo = Math.min(p25, orgp ? orgp.v : p25) * .6, hi = Math.max(p75, orgp ? orgp.v : p75) * 1.25;
     const pos = v => Math.max(0, Math.min(100, 100 * (v - lo) / (hi - lo)));
-    html += `<p><b>Por ${esc(um)}</b> · ${fmt(x[1])} compras · mediana ${clp(p50)}, rango central ${clp(p25)} a ${clp(p75)}</p>
+    html += `<p><b>Por ${esc(um)}${mia ? ' (tu unidad)' : ''}</b> · ${fmt(x[1])} compras · mediana ${clp(p50)}, rango central ${clp(p25)} a ${clp(p75)}</p>
       <div class="as-price" aria-hidden="true"><div class="as-pr-line"></div><div class="as-pr-band" style="left:${pos(p25)}%;width:${pos(p75) - pos(p25)}%"></div><div class="as-pr-med" style="left:${pos(p50)}%"></div>${orgp ? `<div class="as-pr-org" style="left:${pos(orgp.v)}%"></div>` : ''}
       <span class="as-pr-l" style="left:${pos(p25)}%">${clp(p25)}</span><span class="as-pr-l" style="left:${Math.min(96, pos(p75))}%">${clp(p75)}</span></div>`;
+    if(mia && pu) html += `<p>Tu precio de ${clp(Math.round(pu))} neto por ${esc(um)} (${clp(ln.pu)} con IVA) está ${pu > p75 ? 'sobre el rango central' : (pu < p25 ? 'bajo el rango central' : 'dentro del rango central')}${p50 ? ' y ' + (Math.abs(pu / p50 - 1) < .05 ? 'cerca de la mediana' : Math.round(Math.abs(pu / p50 - 1) * 100) + ' % ' + (pu > p50 ? 'sobre' : 'bajo') + ' la mediana') : ''}.</p>`;
     if(orgp) html += `<p>Tu organismo pagó en promedio <b>${clp(Math.round(orgp.v))}</b> por ${esc(um)} en ${orgp.n} compras: ${orgp.ratio > 1.25 ? Math.round((orgp.ratio - 1) * 100) + ' % sobre la mediana nacional' : (orgp.ratio < .8 ? Math.round((1 - orgp.ratio) * 100) + ' % bajo la mediana nacional' : 'cerca de la mediana nacional')} (marca rosada). Es un promedio ponderado: un par de compras grandes puede distorsionarlo.</p>`;
   });
-  return html + '<p class="as-hint">Referencia para negociar y para fundar el presupuesto estimado (DS 661, art. 41 N° 3: precios conforme al mercado). La unidad de medida declarada por los compradores varía; compara solo dentro de la misma unidad.</p></div>';
+  return html + '<p class="as-hint">Referencia para negociar y para fundar el presupuesto estimado (DS 661, art. 41 N° 3: precios conforme al mercado). La unidad de medida declarada por los compradores varía; compara solo dentro de la misma unidad.' + (pu ? ' Tu precio se compara neto de IVA (19 %).' : '') + '</p></div>';
 }
 function cmHtml(ci){
   const est = x => !ci.hayVig ? '' : (x.v && x.v.vigente ? `<br><span class="as-hint">Vigente hasta ${esc(x.v.hasta)} · ${esc(x.id)}${x.v.cot ? '<br>Forma de compra: ' + esc(x.v.cot) : ''}</span>` : (x.v && x.v.hasta ? `<br><span class="as-hint">Vigencia indicada en la ficha: ${esc(x.v.hasta)} (ya pasó; revisa si fue prorrogada) · ${esc(x.id)}</span>` : `<br><span class="as-hint">No figura entre los 18 convenios vigentes (probablemente reemplazado) · ${esc(x.id)}</span>`));
@@ -921,10 +950,10 @@ function provHtml(){
   const P = S.segData;
   if(!P) return '<div class="as-sec"><h3>Proveedores de tu región</h3><div class="as-load">Cargando proveedores…</div></div>';
   const rp = P.rp[key], nat = P.rp['0|' + S.prodIdx];
-  let html = `<div class="as-sec"><h3>Proveedores de ${esc(regName(reg))} que han vendido este producto</h3>`;
+  let html = `<div class="as-sec"><h3>Proveedores de ${esc(regEn(reg))} que han vendido este producto</h3>`;
   const tabla = (lst) => '<div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th class="n">OC</th><th class="n">Vendido 12 meses</th></tr>' + lst.map(x => { const pv = P.pl[x[0]]; return `<tr><td>${pv[0] ? `<a href="#proveedores=${encodeURIComponent(pv[0])}" target="_blank" rel="noopener">${esc(pv[1])}</a>` : esc(pv[1])}<br><span class="as-hint">${esc(pv[0])}</span></td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td></tr>`; }).join('') + '</table></div>';
   if(rp){
-    html += `<p>${fmt(rp[0])} proveedores con ventas de este producto a organismos de la región (se muestran los ${rp.length - 1} con mayor venta). La región se toma de la unidad de compra que elegiste.</p>` + tabla(rp.slice(1));
+    html += `<p>${fmt(rp[0])} proveedores con ventas de este producto a organismos ${reg ? 'de la región' : 'del país'} (se muestran los ${rp.length - 1} con mayor venta). La región es la que elegiste en el paso 1.</p>` + tabla(rp.slice(1));
     html += `<p class="as-hint">Con 100 UTM o menos, la Compra Ágil debe dirigirse primero a empresas de menor tamaño y proveedores locales (Ley art. 56; DS art. 97). Un proveedor local es una empresa de menor tamaño con domicilio principal en la región donde se entrega el bien o servicio (DS art. 4 N° 25). El tamaño de cada empresa está en su ficha.</p>`;
   } else html += '<p>No hay proveedores de esta región con ventas registradas de este producto en 12 meses.</p>';
   if(reg && nat) html += '<details class="as-det"><summary>Ver proveedores a nivel nacional</summary>' + tabla(nat.slice(1)) + '</details>';
@@ -935,7 +964,7 @@ function demandaHtml(){
   const reg = orgRegion(), d = S.segData.dm[reg + '|' + S.prodIdx];
   if(!d) return '<div class="as-sec"><h3>Demanda que podrías consolidar</h3><p>No encontré otros organismos de tu región con compras relevantes de este producto en 12 meses.</p></div>';
   const lst = d.slice(3).filter(x => x[0] >= 0 && S.O.o[x[0]] && S.O.o[x[0]][0] !== (S.org && S.org[0]));
-  return `<div class="as-sec"><h3>Demanda que podrías consolidar</h3><p>${fmt(d[0])} organismos de ${esc(regName(reg))} compraron este producto por ${mm(d[1])} en los últimos 12 meses.${d[2] ? ' Ya existen compras coordinadas de este producto por ' + mm(d[2]) + '.' : ''} Agregar demanda mediante Compra Coordinada puede mejorar el precio y reducir los costos de transacción de todos.</p>
+  return `<div class="as-sec"><h3>Demanda que podrías consolidar</h3><p>${fmt(d[0])} organismos de ${esc(regEn(reg))} compraron este producto por ${mm(d[1])} en los últimos 12 meses.${d[2] ? ' Ya existen compras coordinadas de este producto por ' + mm(d[2]) + '.' : ''} Agregar demanda mediante Compra Coordinada puede mejorar el precio y reducir los costos de transacción de todos.</p>
    <div class="as-tw"><table class="as-t"><tr><th>Organismo</th><th class="n">OC</th><th class="n">Monto 12 meses</th></tr>${lst.map(x => `<tr><td>${esc(S.O.o[x[0]][1])}</td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td></tr>`).join('')}</table></div>
    ${citas([{n: 'DS 661/2024', t: 'art. 4 N° 7 (definición de Compra Coordinada); art. 35 (representación por la Dirección de Compras)'}])}</div>`;
 }
@@ -958,7 +987,7 @@ function renderDiag(){
       for(let i = 0; i < S.orgNorm.length; i++){ if(toks.every(t => S.orgNorm[i].includes(t))) res.push(i); }
       res.sort((a, b) => S.O.o[b][6] - S.O.o[a][6]); b2.hidden = false;
       b2.innerHTML = res.slice(0, 12).map(i => `<button class="as-opt" data-i="${i}"><b>${esc(S.O.o[i][1])}</b><small>${esc(S.O.o[i][2] === 'null' ? 'Sin sector' : S.O.o[i][2])} · ${fmt(S.O.o[i][6])} OC en 12 meses</small></button>`).join('');
-      b2.querySelectorAll('.as-opt').forEach(b => b.addEventListener('click', () => { const i = Number(b.dataset.i); S.orgIdx = i; S.org = S.O.o[i]; S.st.o = S.org[0]; S.st.u = null; S.od = null; syncUrl(); el.innerHTML = '<div class="as-load">Cargando…</div>'; loadOrg(i).then(d => { S.od = d; renderDiag(); }); }));
+      b2.querySelectorAll('.as-opt').forEach(b => b.addEventListener('click', () => { const i = Number(b.dataset.i); S.orgIdx = i; S.org = S.O.o[i]; S.st.o = S.org[0]; S.st.u = null; S.st.r = null; S.od = null; syncUrl(); el.innerHTML = '<div class="as-load">Cargando…</div>'; loadOrg(i).then(d => { S.od = d; renderDiag(); }); }));
     });
     return;
   }
@@ -983,7 +1012,7 @@ function renderDiag(){
    <div class="as-sec"><h3>Posible fragmentación</h3>${frag ? `<div class="as-tw"><table class="as-t"><tr><th>Producto</th><th>Trimestre</th><th class="n">Compras</th><th class="n">Suma (UTM)</th></tr>${frag}</table></div><p class="as-hint">Productos con tres o más compras en un trimestre por Compra Ágil, Trato Directo o Cotización que, sumadas, superan 100 UTM. Es una alerta para revisar la planificación; no presume infracción.</p>` : '<p>No se detectan trimestres con este patrón.</p>'}${citas([{n: 'DS 661/2024', t: 'art. 16'}])}</div>
    <div class="as-sec"><h3>Compras fuera de Convenio Marco en productos con cobertura</h3>${fcm ? `<div class="as-tw"><table class="as-t"><tr><th>Producto</th><th>Mecanismo</th><th class="n">Monto 12 meses</th></tr>${fcm}</table></div><p class="as-hint">Si hubo condiciones más ventajosas objetivas, debes tener los antecedentes e informar a la Dirección de Compras (DS 661, art. 92). La cobertura se deduce de las órdenes de compra de Convenio Marco; verifica contra el Catálogo vigente.</p>` : '<p>Sin compras de este tipo.</p>'}${citas([{n: 'Ley 19.886', t: 'art. 30 letra d)'}, {n: 'DS 661/2024', t: 'arts. 29, 89, 92'}])}</div>
    <p class="as-note">${esc(R().TEXTO_BASE)}</p>`;
-  $('as-dx').addEventListener('click', () => { S.orgIdx = null; S.org = null; S.od = null; S.st.o = null; S.st.u = null; syncUrl(); renderDiag(); });
+  $('as-dx').addEventListener('click', () => { S.orgIdx = null; S.org = null; S.od = null; S.st.o = null; S.st.u = null; S.st.r = null; syncUrl(); renderDiag(); });
   $('as-dcopy').addEventListener('click', () => { navigator.clipboard && navigator.clipboard.writeText(shareUrl()); $('as-dcopy').textContent = 'Enlace copiado'; });
   $('as-dprint').addEventListener('click', () => window.print());
 }
