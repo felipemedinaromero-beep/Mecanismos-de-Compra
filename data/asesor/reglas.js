@@ -298,7 +298,7 @@ function recomendar(inp){
     pr = {k: 'SPE', nom: 'Licitación Pública de servicios personales especializados', porque: 'Es el procedimiento general para servicios de alta especialización: preselección por idoneidad técnica y luego ofertas con negociación.', spe: true};
   } else if(cmAplica){
     pr = {k: 'CM', nom: u > 1000 ? 'Gran Compra por Convenio Marco' : 'Compra por Convenio Marco', porque: u > 100 ? 'El producto está en el Catálogo y supera 100 UTM, por lo que la compra por Convenio Marco es obligatoria salvo que no esté disponible o existan condiciones más ventajosas demostrables.' : 'El producto está en el Catálogo: es la primera opción. Abajo tienes la segunda, fuera de Convenio Marco, si el producto no está disponible o consigues condiciones más ventajosas.', gran: u > 1000};
-  } else if(sit.has('estandar') && u > 100){
+  } else if(sit.has('estandar') && u > 100 && !inp.cm){
     pr = {k: 'SIE', nom: 'Subasta Inversa Electrónica', porque: 'Es un bien o servicio estandarizado de objetiva especificación que no está en Convenio Marco: la subasta busca bajar el precio en rondas electrónicas.', alt: 'LP'};
   } else if(u <= 100){
     pr = {k: 'CA', nom: 'Compra Ágil', porque: 'Hasta 100 UTM la Ley contempla Compra Ágil: tres cotizaciones por el Sistema, preferentemente a empresas de menor tamaño y proveedores locales, sin acto administrativo.'};
@@ -366,7 +366,10 @@ function recomendar(inp){
     const pl = planLicitacion(u, !!inp.simple);
     fuera.subs.push({k: 'LP', est: 'procede', nom: pl.nom, texto: 'Es la regla general sobre 100 UTM. ' + pl.plazos[0], arts: [ley('art. 7 letra a)'), ds('arts. 36, 46')]});
     if(bt.length) fuera.subs.push({k: 'BT', est: 'obligatoria', nom: 'Base Tipo de licitación', texto: btTxt, arts: btArts, links: btLinks});
-    if(bien) fuera.subs.push({k: 'SIE', est: sit.has('estandar') ? 'procede' : 'condicional', nom: 'Subasta Inversa Electrónica', texto: sit.has('estandar') ? 'Marcaste que es un bien de especificación objetiva: la subasta baja el precio en rondas electrónicas.' : 'Solo si el bien es estandarizado y de especificación objetiva.', arts: [ley('art. 7 letra d) N° 6'), ds('arts. 101 a 104')]});
+    if(bien){
+      if(inp.cm) fuera.subs.push({k: 'SIE', est: 'descartada', nom: 'Subasta Inversa Electrónica', texto: 'No procede: el producto está en Convenio Marco vigente y la subasta inversa solo se usa para bienes y servicios estandarizados que no están disponibles en él.' + (inp.cmCerteza === 'media' ? ' La coincidencia con el convenio es por su materia; solo si compruebas que el producto exacto no está en el Catálogo podría reevaluarse.' : ''), arts: [ley('art. 7 letra d) N° 6'), ds('arts. 101 a 104')]});
+      else fuera.subs.push({k: 'SIE', est: sit.has('estandar') ? 'procede' : 'condicional', nom: 'Subasta Inversa Electrónica', texto: sit.has('estandar') ? 'Marcaste que es un bien de especificación objetiva: la subasta baja el precio en rondas electrónicas.' : 'Solo si el bien es estandarizado y de especificación objetiva.', arts: [ley('art. 7 letra d) N° 6'), ds('arts. 101 a 104')]});
+    }
   }
   esc.opciones.push(fuera);
   // excepcional: trato directo

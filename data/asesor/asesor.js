@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r3' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r4' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -121,6 +121,7 @@ const CSS = `
 .as-lab{display:block;font-size:11.5px;color:var(--text-secondary);margin:10px 0 4px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
 .as-vd{border-radius:14px;padding:14px 16px;margin:0 0 12px;border:1px solid;} .as-vd h3{margin:4px 0 6px;font-size:16px;} .as-vd p{margin:6px 0;font-size:13px;line-height:1.55;} .as-vd-b{margin-right:6px;display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.7);}
 .as-vd-ok{background:#EAF6EC;border-color:#9BD0A6;color:#143A1C;} .as-vd-prob{background:#FFF6E5;border-color:#E8C26A;color:#5B3F00;} .as-vd-no{background:#F1F3F8;border-color:#C5CBD9;color:#1D2640;}
+.as-cmb{margin:10px 0 6px;padding:10px 12px;border-left:3px solid var(--cc-navy);background:rgba(0,70,119,.05);border-radius:0 10px 10px 0;} .as-cmb h4{margin:0 0 6px;font-size:13.5px;} .as-cmb p{margin:6px 0;font-size:13px;line-height:1.55;} .as-cmb-l{display:flex;flex-wrap:wrap;gap:8px;} .as-cmb td.n,.as-cmb th.n{text-align:right;} .as-cmb td:nth-child(2){white-space:nowrap;}
 .as-vd-l{margin:6px 0 8px 18px;padding:0;font-size:13px;line-height:1.5;} .as-vd-l li{margin-bottom:8px;}
 .as-list[hidden]{display:none !important;}
 .as-list{display:grid;gap:5px;margin-top:8px;max-height:280px;overflow:auto;}
@@ -247,10 +248,10 @@ function buscarCatalogo(q, reg, parcial){
   if(!S.ctIdx){ S.ctIdx = CT.it.map(it => new Set(toks(it[1] + ' ' + it[2] + ' ' + it[3] + ' ' + it[4]))); S.ctHead = CT.it.map(it => new Set(toks(it[1]).slice(0, 3))); }
   const qt = [...new Set(toks(q))]; if(!qt.length) return [];
   const need = parcial ? 1 : (qt.length >= 3 ? qt.length - 1 : qt.length), g = {};
-  CT.it.forEach((it, i) => { const set = S.ctIdx[i]; let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0 && (parcial ? S.ctHead[i].has(qt[0]) : qt.some(t => S.ctHead[i].has(t)))){ const k = it[0]; (g[k] = g[k] || []).push({it, n}); } });
+  CT.it.forEach((it, i) => { const set = S.ctIdx[i]; let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0 && (parcial ? S.ctHead[i].has(qt[0]) : qt.some(t => S.ctHead[i].has(t)))){ const k = it[0]; (g[k] = g[k] || []).push({it, n, i}); } });
   return Object.keys(g).map(k => { const lst = g[k].sort((a, b) => b.n - a.n); const id = CT.cms[k][0]; const best = lst[0].it; const enReg = lst.filter(x => x.it[9] === 0 || ((x.it[9] >> reg) & 1)).length; const pr = CT.pc[k] && (CT.pc[k][reg] || CT.pc[k][99]);
     const ps = lst.map(x => x.it[7]).filter(x => x).sort((a, b) => a - b);
-    return {id, n: lst.length, enReg, nProvReg: pr ? pr.length : 0, ej: lst.slice(0, 3).map(x => x.it[1]), tipo: best[2], pmin: ps[0] || 0, pmed: ps.length ? ps[Math.floor(ps.length / 2)] : 0, pmax: ps[ps.length - 1] || 0}; }).sort((a, b) => b.n - a.n);
+    return {id, k: Number(k), ix: lst.map(x => x.i), n: lst.length, enReg, nProvReg: pr ? pr.length : 0, ej: lst.slice(0, 3).map(x => x.it[1]), tipo: best[2], pmin: ps[0] || 0, pmed: ps.length ? ps[Math.floor(ps.length / 2)] : 0, pmax: ps[ps.length - 1] || 0}; }).sort((a, b) => b.n - a.n);
 }
 function veredictoCm(){
   const V = window.AS_CMV, ci = cmInfo(), q = consultaTexto();
@@ -287,6 +288,56 @@ function veredictoCm(){
   return res;
 }
 function rank(n){ return {catalogo: 4, oc: 3, tema: 2, familia: 1}[n] || 0; }
+/* Proveedores del convenio en la región de la unidad de compra (o del organismo), con el plazo de entrega que fijan las bases. */
+function ensureCmProv(){
+  if(window.AS_CMPROV || S.cmprovLoading || S.cmprovTried) return;
+  S.cmprovLoading = true;
+  loadScript(AB + 'cmprov.js' + ver()).catch(() => null).then(() => { S.cmprovLoading = false; S.cmprovTried = true; update(); });
+}
+function unidadTxt(){
+  if(S.org && S.st.u){ const u = S.org[4].find(x => x[0] === S.st.u); if(u) return 'la unidad de compra «' + u[1] + '» (' + regName(u[2]) + ')'; }
+  return 'tu organismo (' + regName(orgRegion()) + ')';
+}
+function cmProveedores(c, reg){
+  const CT = window.AS_CMCAT, PV = window.AS_CMPROV, cat = c.extra && c.extra.cat; if(!CT || !cat) return null;
+  if(PV && PV.n === CT.it.length && cat.ix){
+    const cnt = {}; let con = 0;
+    cat.ix.forEach(i => { const m = PV.r[i]; if(!m) return; const set = new Set([].concat(m[reg] || [], m['99'] || [])); if(!set.size) return; con++; set.forEach(p => { cnt[p] = (cnt[p] || 0) + 1; }); });
+    const lst = Object.keys(cnt).map(p => ({n: cnt[p], rut: CT.pl[p][0], nom: CT.pl[p][1]})).sort((a, b) => (b.n - a.n) || a.nom.localeCompare(b.nom, 'es'));
+    return {lst, con, total: cat.ix.length, nivel: 'producto'};
+  }
+  const pr = CT.pc[cat.k] && (CT.pc[cat.k][reg] || []).concat(CT.pc[cat.k][99] || []);
+  if(!pr) return {lst: [], con: 0, total: cat.n, nivel: 'convenio'};
+  const m = {}; pr.forEach(x => { m[x[0]] = (m[x[0]] || 0) + x[1]; });
+  return {lst: Object.keys(m).map(p => ({n: m[p], rut: CT.pl[p][0], nom: CT.pl[p][1]})).sort((a, b) => b.n - a.n), con: cat.enReg, total: cat.n, nivel: 'convenio'};
+}
+function cmPlazo(id, reg){
+  const V = window.AS_CMV, z = V && V.plz && V.plz[id]; if(!z) return null;
+  const r = z.r && z.r[reg];
+  return {txt: r ? r[0] : z.g, corto: r ? r[1] : z.c, regional: !!r};
+}
+function cmBloqueHtml(vd){
+  const V = window.AS_CMV, c = vd.cms[0]; if(!V || !c) return '';
+  const v = c.v || {}, reg = orgRegion(), pz = cmPlazo(c.id, reg), pv = cmProveedores(c, reg);
+  let h = `<div class="as-cmb"><h4>Para comprar en ${esc(v.nombre || c.id)}</h4><p class="as-cmb-l">${v.url ? `<a class="as-btn as-main" href="${esc(v.url)}" target="_blank" rel="noopener">Entrar al catálogo del convenio</a>` : ''}<a class="as-btn" href="${esc(V.fuente)}" target="_blank" rel="noopener">Ver la ficha pública (busca ${esc(c.id)})</a></p>`;
+  h += `<p class="as-hint">El catálogo es donde se emite la orden de compra. La ficha pública resume objeto, vigencia, cotizador, garantías, multas y plazos de entrega del convenio.</p>`;
+  h += pz ? `<p><b>Plazo de entrega que fijan las bases${pz.regional ? ' para ' + esc(regName(reg)) : ''}:</b> ${esc(pz.txt)}</p>` : `<p><b>Plazo de entrega:</b> la ficha no fija un plazo único para todo el convenio; está en las bases y en la oferta de cada proveedor dentro de la Tienda.</p>`;
+  if(c.extra.cat){
+    h += `<p><b>Proveedores del convenio en la región de ${unidadTxt()}</b>${pv && pv.nivel === 'producto' ? ' que ofrecen productos como el tuyo' : ''}:</p>`;
+    if(!pv || (!pv.lst.length && pv.nivel === 'producto' && !window.AS_CMPROV)) h += '<p class="as-hint">Cargando proveedores…</p>';
+    else if(!pv.lst.length) h += `<p>En las maestras no hay proveedores que ofrezcan estos productos en ${esc(regName(reg))} ni con cobertura nacional. Revisa el catálogo: puede que la oferta haya cambiado desde las maestras del ${esc((window.AS_CMCAT || {}).gen || '')}.</p>`;
+    else {
+      const fila = x => `<tr><td>${esc(x.nom)}</td><td>${esc(x.rut)}</td><td class="n">${fmt(x.n)}</td><td>${pz ? esc(pz.corto) : 'ver bases'}</td></tr>`;
+      const cab = '<div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th>RUT</th><th class="n">Productos que ofrece</th><th>Plazo máximo de entrega</th></tr>';
+      h += `<p class="as-hint">${pv.lst.length} proveedor(es) con oferta en ${esc(regName(reg))} o con cobertura nacional; ${pv.con} de los ${pv.total} producto(s) del Catálogo que coinciden se ofrecen ahí.</p>` + cab + pv.lst.slice(0, 12).map(fila).join('') + '</table></div>';
+      if(pv.lst.length > 12) h += `<details class="as-det"><summary>Ver los otros ${pv.lst.length - 12} proveedores</summary>${cab}${pv.lst.slice(12, 150).map(fila).join('')}</table></div>${pv.lst.length > 150 ? '<p class="as-hint">Se muestran los primeros 150; el resto está en el catálogo.</p>' : ''}</details>`;
+    }
+    h += `<p class="as-hint">Fuente: maestras del Catálogo al ${esc((window.AS_CMCAT || {}).gen || '')}. El plazo es el máximo que exigen las bases del convenio, igual para todos los proveedores; el plazo que ofrece cada uno para un producto aparece en su ficha dentro del catálogo y puede ser menor. Verifica stock y precio ahí antes de emitir la orden de compra.</p>`;
+  } else {
+    h += `<p><b>Proveedores:</b> este convenio no tiene maestra de productos cargada en el Asesor. Los proveedores adjudicados, su cobertura por región y sus condiciones se ven en el catálogo del convenio.</p>`;
+  }
+  return h + '</div>';
+}
 function vereditoHtml(vd, o){
   const V = window.AS_CMV, p = o.principal, u = o.montoUtm;
   if(vd.nivel === 'ninguno') return '<div class="as-vd as-vd-no"><div class="as-vd-h"><span class="as-vd-b">CONVENIO MARCO</span><h3>Indica qué necesitas comprar</h3></div><p>Escribe lo que necesitas en el paso 2 (por ejemplo “papel higiénico” o “notebook”). El Asesor lo cruza con los Convenios Marco y con las compras del Estado, y te dice si está en un convenio o qué procedimiento corresponde.</p></div>';
@@ -297,6 +348,7 @@ function vereditoHtml(vd, o){
   if(si){
     h += '<ul class="as-vd-l">' + vd.cms.slice(0, 3).map(c => { const v = c.v || {};
       return `<li><b>${esc(v.nombre || c.id)}</b> <span class="as-hint">(${esc(c.id)}${v.hasta ? ' · vigente hasta ' + esc(v.hasta) : ''})</span>${v.cot ? `<br>Forma de compra: ${esc(v.cot)}.` : ''}${c.extra.cat ? `<br>${c.extra.cat.n} producto(s) del Catálogo coinciden; ${c.extra.cat.enReg} se ofrecen en tu región (${c.extra.cat.nProvReg} proveedor(es) del convenio con presencia ahí). Precio en tienda: mediana $${fmt(c.extra.cat.pmed)}, rango $${fmt(c.extra.cat.pmin)} a $${fmt(c.extra.cat.pmax)}.` : ''}<br><span class="as-hint">${esc(c.motivos[0])}</span></li>`; }).join('') + '</ul>';
+    h += cmBloqueHtml(vd);
     h += u > 100
       ? `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM la primera opción es comprar por Convenio Marco${u > 1000 ? ' mediante Gran Compra' : ''}. Puedes salir de él solo si el producto no está disponible o si obtienes condiciones más ventajosas objetivas y demostrables, que debes informar a la Dirección de Compras (DS 661, arts. 89 y 92). La segunda opción, fuera de convenio, está en el cuadro de abajo.${alta ? '' : ' La coincidencia es por la materia del convenio: si el producto exacto no estuviera en el Catálogo, pasa a la segunda opción.'}</p>`
       : `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM la primera opción es el Convenio Marco; su precio sirve de tope de referencia. La segunda, fuera de convenio, es la Compra Ágil (DS 661, arts. 92 y 97).</p>`;
@@ -551,6 +603,9 @@ function update(){
   const out = compute(); S.out = out;
   res.innerHTML = resultHtml(out);
   wireResult();
+  if(S.vd && S.vd.cms.length && S.vd.cms.some(c => c.extra && c.extra.cat)) ensureCmProv();
+  const bx = $('as-sits'), cmSi = !!(S.inp && S.inp.cm);
+  if(bx){ const ce = bx.querySelector('input[value=estandar]'); if(ce){ ce.disabled = cmSi; const sm = ce.parentNode.querySelector('small'); if(sm) sm.textContent = cmSi ? 'No aplica: el producto está en Convenio Marco' : 'Subasta Inversa Electrónica'; ce.parentNode.style.opacity = cmSi ? '.55' : ''; } }
 }
 function ensurePac(){
   if(S.orgIdx == null || S.pacOrg === S.orgIdx || S.pacLoading === S.orgIdx) return;
