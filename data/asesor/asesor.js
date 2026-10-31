@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r14' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r15' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -290,6 +290,7 @@ table.as-t th{background:#F2F6FD;}
 .as-rc-prd b{min-width:0;overflow-wrap:anywhere;} .as-rc-pid{font-size:11.5px;font-weight:800;padding:1px 8px;border-radius:99px;background:rgba(208,255,102,.2);color:var(--cc-lime);white-space:nowrap;font-variant-numeric:tabular-nums;} .as-rc-pr{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;}
 .as-rc-go2{margin-left:8px;background:transparent !important;color:#fff !important;border:1px solid rgba(255,255,255,.55);} .as-rc-go2:hover{background:rgba(255,255,255,.16) !important;}
 @media (max-width:700px){ .as-rc-prd li{grid-template-columns:1fr;} .as-rc-go2{margin:8px 0 0;} }
+/* upd29 */ .as-ecn{margin:10px 0 0;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.12);border-left:3px solid #FFB020;font-size:13.5px;line-height:1.5;}
 @media print{ #as-res{display:flex;flex-direction:column;} #as-res .as-reco{order:-1;} .as-pan[hidden]{display:block!important;} .as-rtabs{display:none!important;} .as-side{max-height:none;overflow:visible;position:static;} header.cc-header,.back-link,.as-noprint,.as-tabs,.as-side .as-card:not(.as-print-sum){display:none!important;} .as-grid{display:block;} .as-reco{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .as-sec,.as-card{box-shadow:none;break-inside:avoid;} body{background:#fff;} }
 `;
 
@@ -1066,7 +1067,7 @@ function heroCmHtml(o){
   const p = o.principal; if(!p || p.k !== 'CM') return '';
   const vd = S.vd || veredictoCm(); if(!['catalogo', 'oc', 'familia', 'tema'].includes(vd.nivel) || !vd.cms.length) return '';
   const V = window.AS_CMV, c = vd.cms[0], v = c.v || {}, reg = orgRegion(), pv = cmProveedores(c, reg), alta = vd.nivel === 'catalogo' || vd.nivel === 'oc', ec = !!(o.escalera && o.escalera.ecOpcion), f = cmForma(v);
-  let h = `<div class="as-rc"><div class="as-rc-h"><span class="as-rc-k">${ec ? 'Después, Convenio Marco' : 'Dónde comprar: Convenio Marco'}</span><b>${esc(v.nombre || c.id)}</b><span class="as-rc-id" title="ID de licitación del convenio: identifica su ficha pública">Ficha ID ${esc(c.id)}</span></div>`;
+  let h = `<div class="as-rc"><div class="as-rc-h"><span class="as-rc-k">Dónde comprar: Convenio Marco</span><b>${esc(v.nombre || c.id)}</b><span class="as-rc-id" title="ID de licitación del convenio: identifica su ficha pública">Ficha ID ${esc(c.id)}</span></div>`;
   h += `<p class="as-rc-fm as-rc-fm-${f.k}"><span class="as-rc-bg">${esc(f.badge)}</span><span>${esc(f.t || 'Convenio vigente')}${v.hasta ? ' · vigente hasta ' + esc(v.hasta) : ''}</span></p>`;
   if(f.k === 'cot' && c.extra.cat) h += '<p class="as-rc-s as-rc-cotn">Se compra por cotizador: publicas tu requerimiento en la Tienda y los proveedores del convenio envían su oferta.</p>';
   if(c.extra.cat){
@@ -1088,7 +1089,7 @@ function heroCmHtml(o){
 function resultHtml(o){
   const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
-  let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div>${(o.escalera && o.escalera.ecOpcion) ? `<h2>Primero, economía circular</h2><p>Es un bien mueble: antes de comprar, consulta si otro organismo tiene uno disponible (DS 661, art. 28). Si no existe o no está disponible, deja constancia de que el producto no está disponible en economía circular y sigue con: <b>${esc(p.nom)}</b>.</p>` : `<h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>`}
+  let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>${(o.escalera && o.escalera.ecOpcion) ? `<p class="as-ecn"><b>Economía circular:</b> es un bien mueble y el Asesor no puede comprobar si hay uno disponible en otro organismo. Antes de comprar, consúltalo en la plataforma (DS 661, art. 28). Si no existe o no está disponible, deja constancia de «producto no disponible en economía circular» y sigue con este procedimiento.</p>` : ''}
     <p class="as-chipcap">Esta recomendación se basa en lo que le pediste al Asesor:</p>
     <div class="as-chips"><span class="as-chip as-lb"><small>Producto o servicio</small>${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip as-lb"><small>Cantidad${st_.l.length > 1 ? ' (línea activa)' : ''}</small>${fmt(activeLine().n)} ${esc(umPlural(lineUm(activeLine()), activeLine().n))}</span>` : ''}<span class="as-chip as-lb"><small>Monto${st_.l.length > 1 ? ' total del proceso' : ' total'}, IVA incluido</small>${S.st.m ? clp(S.st.m) + ' · ' : ''}${dec(o.montoUtm, 1)} UTM</span><span class="as-chip as-lb"><small>Tramo de monto</small>${esc(o.tramoNom)}</span><span class="as-chip as-lb"><small>Región de la compra</small>${esc(regName(orgRegion()))}</span></div>${heroCmHtml(o)}</div>`;
   const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
@@ -1141,7 +1142,7 @@ function escaleraHtml(o){
   const e = o.escalera; if(!e) return '';
   const ec = o.pasos.find(x => x.titulo === 'Economía circular');
   let h = '<div class="as-sec as-esc"><h3>Orden de opciones para esta compra</h3>';
-  if(ec && !e.ecOpcion) h += `<div class="as-op as-op-prev"><div class="as-op-n">Antes</div><div class="as-op-b"><b>Economía circular</b> <span class="as-tag as-t-${esc2(ec.estado)}">${esc(ec.estado)}</span><p>${esc(ec.texto)}</p>${citas(ec.arts)}</div></div>`;
+  if(ec) h += `<div class="as-op as-op-prev"><div class="as-op-n">Antes</div><div class="as-op-b"><b>Economía circular</b> <span class="as-tag as-t-${esc2(ec.estado)}">${esc(ec.estado)}</span><p>${esc(ec.texto)}</p>${ec.estado === 'previo' ? `<p class="as-hint">Consulta la plataforma: <a href="${window.AS_CMV ? window.AS_CMV.eco : '#'}" rel="noopener">Economía Circular de Mercado Público</a>.</p>` : ''}${citas(ec.arts)}</div></div>`;
   e.opciones.forEach(op => {
     h += `<div class="as-op as-op-${op.k.toLowerCase()}"><div class="as-op-n">Opción ${op.n}</div><div class="as-op-b"><b>${esc(op.titulo)}</b> <span class="as-tag as-t-${op.tag === 'prioridad' || op.tag === 'primera opción' ? 'obligatorio' : (op.tag === 'excepcional' ? 'verificar' : 'recomendado')}">${esc(op.tag)}</span><p>${esc(op.texto)}</p>`;
     if(op.k === 'EC') h += `<p class="as-hint">Consulta la plataforma: <a href="${window.AS_CMV ? window.AS_CMV.eco : '#'}" rel="noopener">Economía Circular de Mercado Público</a>.</p>`;
