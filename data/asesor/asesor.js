@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r4' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r5' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -212,6 +212,52 @@ table.as-t a{color:var(--cc-navy);text-decoration:none;} table.as-t a:hover{text
 .as-err{color:#B3261E;font-size:13px;padding:10px;}
 .as-disc{background:#FFF6E5;border:1px solid #E8C26A;border-radius:12px;padding:10px 14px;font-size:12px;line-height:1.55;color:#5B3F00;margin-bottom:12px;}
 .as-load{font-size:12.5px;color:var(--cc-navy);padding:8px 0;}
+/* ===== upd18: diseño visual ===== */
+.as-tabs{display:inline-flex;gap:4px;margin:6px 0 18px;padding:5px;border:0;border-radius:99px;background:#E4ECFA;max-width:100%;}
+.as-tab,.as-rtab{border:0;border-radius:99px;padding:9px 20px;font-weight:700;color:var(--cc-navy);background:none;}
+.as-tab:hover,.as-rtab:hover{background:rgba(0,50,162,.09);color:var(--cc-navy);}
+.as-tab[aria-selected=true],.as-rtab[aria-selected=true]{background:var(--cc-navy);color:#fff;box-shadow:0 4px 12px rgba(0,50,162,.28);border:0;}
+.as-rtabs{display:flex;width:100%;margin:16px 0 16px;}
+.as-rtab{padding:8px 16px;}
+.as-rtab .as-bdg{background:#E5383B;}
+details.as-disc2{background:#FFF9EB;border:1px solid #EBD79A;border-radius:14px;margin:0 0 14px;}
+details.as-disc2>summary{cursor:pointer;list-style:none;padding:10px 16px;font-size:12.5px;font-weight:700;color:#7A5200;}
+details.as-disc2>summary::-webkit-details-marker{display:none;} details.as-disc2>summary::after{content:' +';} details.as-disc2[open]>summary::after{content:' −';}
+details.as-disc2>div{padding:0 16px 12px;font-size:12px;line-height:1.55;color:#5B3F00;}
+.as-side{background:linear-gradient(165deg,#DCE7FF 0%,#EAF1FF 58%,#F1F9DD 100%);border:1px solid rgba(0,50,162,.09);border-radius:26px;padding:12px 12px 14px;gap:12px;}
+.as-card{background:rgba(255,255,255,.94);border:1px solid rgba(0,50,162,.07);border-radius:18px;box-shadow:0 2px 10px rgba(0,35,59,.06);}
+.as-card h3{font-size:14.5px;}
+.as-n{width:28px;height:28px;font-size:13px;box-shadow:0 0 0 4px rgba(0,50,162,.13);}
+.as-done .as-n{background:var(--cc-green);box-shadow:0 0 0 4px rgba(76,154,42,.18);}
+.as-in{border:1.5px solid #C7D3E8;border-radius:14px;padding:11px 14px;transition:border-color .15s,box-shadow .15s;}
+.as-in:focus,.as-in:focus-visible{outline:0;border-color:var(--cc-navy);box-shadow:0 0 0 4px rgba(0,50,162,.14);}
+.as-sel{border:1.5px solid #D3DDEC;border-radius:12px;}
+.as-ln{border-radius:14px;border-color:#D3DDEC;background:#F8FAFE;}
+.as-sel-box{background:#E4ECFA;border-radius:14px;}
+.as-btn{border-width:1.5px;}
+.as-empty{border:0;border-radius:24px;padding:34px 28px;background:radial-gradient(circle at 90% 0,rgba(208,255,102,.45) 0,rgba(208,255,102,0) 45%),linear-gradient(135deg,#E4ECFA 0%,#F4F8FF 100%);color:var(--cc-dark);}
+.as-em-ico{display:inline-flex;width:64px;height:64px;border-radius:50%;background:var(--cc-lime);color:var(--cc-dark);align-items:center;justify-content:center;margin-bottom:12px;box-shadow:0 0 0 7px rgba(208,255,102,.35);}
+.as-em-ico svg{width:32px;height:32px;}
+.as-empty .as-em-t{display:block;font-size:20px;font-weight:800;color:var(--cc-dark);margin-bottom:6px;}
+.as-empty p{margin:0 auto 18px;max-width:62ch;color:var(--text-secondary);}
+.as-em-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;text-align:left;}
+.as-em-steps li{background:rgba(255,255,255,.8);border:1px solid rgba(0,50,162,.08);border-radius:16px;padding:12px 14px;font-size:12px;line-height:1.45;color:var(--text-secondary);}
+.as-em-steps li b{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--cc-dark);margin-bottom:4px;}
+.as-em-steps li b i{font-style:normal;width:22px;height:22px;border-radius:50%;background:var(--cc-navy);color:#fff;font-size:11.5px;display:inline-flex;align-items:center;justify-content:center;}
+@media(max-width:700px){.as-em-steps{grid-template-columns:1fr;}}
+.as-reco{border-radius:22px;padding:22px 24px;background:radial-gradient(circle at 94% 6%,rgba(208,255,102,.26) 0,rgba(208,255,102,0) 40%),linear-gradient(120deg,#00233B 0%,#0032A2 62%,#005AF8 100%);box-shadow:0 14px 32px rgba(0,35,59,.24);}
+.as-sec{background:linear-gradient(180deg,#EAF1FF 0,#fff 56px);border:1px solid rgba(0,50,162,.08);border-radius:20px;box-shadow:0 2px 12px rgba(0,35,59,.05);padding:16px 20px;}
+.as-sec h3{display:flex;align-items:center;gap:9px;font-size:13px;letter-spacing:.05em;}
+.as-sec h3::before{content:'';width:9px;height:9px;border-radius:50%;background:var(--cc-green);flex:0 0 auto;}
+.as-k{background:#EAF1FF;border-radius:12px;}
+.as-vd,.as-cmb,.as-al{border-radius:16px;}
+.as-op{border-top-color:#E4ECFA;}
+.as-steps li{border-radius:14px;border-color:#D9E3F3;background:#F8FAFE;}
+.as-mec{border-radius:16px;border-color:#D9E3F3;}
+.as-tw{border-radius:14px;}
+table.as-t th{background:#F2F6FD;}
+.as-grid>*{min-width:0;}
+@media(max-width:900px){.as-grid{grid-template-columns:minmax(0,1fr);} .as-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;} .as-tab{flex:0 0 auto;white-space:nowrap;padding:9px 16px;}}
 @media print{ .as-pan[hidden]{display:block!important;} .as-rtabs{display:none!important;} .as-side{max-height:none;overflow:visible;position:static;} header.cc-header,.back-link,.as-noprint,.as-tabs,.as-side .as-card:not(.as-print-sum){display:none!important;} .as-grid{display:block;} .as-reco{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .as-sec,.as-card{box-shadow:none;break-inside:avoid;} body{background:#fff;} }
 `;
 
@@ -422,7 +468,7 @@ function compute(){
 /* ------------------------------ interfaz base ------------------------------ */
 function shell(){
   S.host.innerHTML = `<style>${CSS}</style><div class="as-wrap">
-  <div class="as-disc">Orientación basada en la Ley N° 19.886 (texto consolidado de la BCN al 05-02-2026, con las leyes 21.634 y 21.806) y el Reglamento DS N° 661/2024. Cruza esa norma con las órdenes de compra de los últimos 12 meses (nov-2025 a oct-2026). No reemplaza el análisis de cada caso, las instrucciones obligatorias ni las directivas de la Dirección de Compras. El texto de la Ley que revisé figura vigente hasta el 31-10-2026: verifica en la BCN si hay modificaciones posteriores.</div>
+  <details class="as-disc2"><summary>Base normativa y alcance de esta orientación</summary><div>Orientación basada en la Ley N° 19.886 (texto consolidado de la BCN al 05-02-2026, con las leyes 21.634 y 21.806) y el Reglamento DS N° 661/2024. Cruza esa norma con las órdenes de compra de los últimos 12 meses (nov-2025 a oct-2026). No reemplaza el análisis de cada caso, las instrucciones obligatorias ni las directivas de la Dirección de Compras. El texto de la Ley que revisé figura vigente hasta el 31-10-2026: verifica en la BCN si hay modificaciones posteriores.</div></details>
   <div class="as-tabs" role="tablist">
     <button class="as-tab" role="tab" data-tab="asesor">Asesor de compra</button>
     <button class="as-tab" role="tab" data-tab="diag">Diagnóstico del organismo</button>
@@ -729,7 +775,7 @@ function update(){
   syncUrl();
   ensurePac(); ensureRef(); ensureOc(); ensureProc(); ensurePacx();
   if(S.orgIdx == null || !S.st.m){
-    res.innerHTML = `<div class="as-empty"><b>Tu recomendación aparecerá aquí.</b><br>Elige el organismo (paso 1) e indica el monto estimado (paso 3). Mientras más completes, más datos reales verás: precios de referencia, Convenios Marco, proveedores de tu región y compras de otros organismos que podrías consolidar.</div>`;
+    res.innerHTML = `<div class="as-empty"><span class="as-em-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></span><span class="as-em-t">Tu recomendación aparecerá aquí</span><p>Completa los pasos de la izquierda. Mientras más datos des, más información real verás: precios de referencia, Convenios Marco, proveedores de tu región y compras de otros organismos que podrías consolidar.</p><ol class="as-em-steps"><li><b><i>1</i>Organismo</b>Busca por nombre o código para traer tu historial y tu región.</li><li><b><i>2</i>Producto</b>Elige el bien o servicio de la lista y su cantidad y precio.</li><li><b><i>3</i>Monto</b>Se calcula solo y se compara con los umbrales en UTM.</li></ol></div>`;
     return;
   }
   const out = compute(); S.out = out;
