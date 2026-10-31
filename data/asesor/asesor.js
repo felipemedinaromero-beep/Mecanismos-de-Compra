@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r13' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r14' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -1359,6 +1359,8 @@ function guiaHtml(){
 /* ------------------------------ arranque ------------------------------ */
 function init(host, payload){
   S.host = host; S.st = decState(payload); S.tab = S.st.tab || 'asesor';
+  /* upd28: cada entrada parte de lo que dice la URL; no arrastra el organismo, el producto ni los procesos de la visita anterior */
+  S.org = null; S.od = null; S.orgIdx = null; S.prodIdx = null; S.segData = null; S.loadingOrg = false; S.procQ = null; S.procFor = null; S.procLoading = null; S.proc = null; S.pacOrg = null; S.pac = null; S.rtab = ''; S.li = 0; S.pacLn = {};
   host.innerHTML = '<div class="as-load">Cargando el Asesor de compras…</div>';
   return ensure().then(() => {
     shell();
