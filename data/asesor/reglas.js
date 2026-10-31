@@ -218,7 +218,7 @@ function recomendar(inp){
   }
 
   // 2. Convenio Marco
-  const cmAplica = !!inp.cm && !ffaa;
+  const cmAplica = !!inp.cm;
   let cmTexto, cmEstado;
   const nomCm = inp.cmNombres && inp.cmNombres.length ? inp.cmNombres.join('; ') : 'un convenio vigente';
   const cert = inp.cmCerteza === 'media' ? ' (por la materia del convenio, sin coincidencia exacta con un producto del Catálogo)' : '';
@@ -226,7 +226,6 @@ function recomendar(inp){
     cmEstado = 'obligatorio';
     if(u > 100){
       cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Sobre 100 UTM corresponde comprar por Convenio Marco antes que por cualquier otro procedimiento, salvo que el producto no esté disponible o que obtengas directamente condiciones más ventajosas objetivas y demostrables (plazo de entrega, garantías, calidad o mejor costo-beneficio), que debes informar a la Dirección de Compras y respaldar.';
-      if(ffaa) cmTexto += ' Las Fuerzas Armadas y de Orden y Seguridad no están obligadas respecto de los bienes y servicios que determinen sus propias autoridades logísticas.';
     } else {
       cmEstado = 'recomendado';
       cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Es la primera opción: hasta 100 UTM la Compra Ágil no te obliga a consultar el Catálogo, pero el precio del convenio sirve de tope de referencia y, si es menor que las cotizaciones, conviene comprar por Convenio Marco.';
@@ -235,6 +234,7 @@ function recomendar(inp){
     cmEstado = 'descartado';
     cmTexto = 'Lo que necesitas no está en ningún Convenio Marco vigente, por lo que no corresponde ese procedimiento y se sigue con el que aplica según el monto' + (u > 100 ? ' (sobre 100 UTM, la licitación pública, salvo una causal de trato directo o un mecanismo especial)' : '') + '.';
   }
+  if(ffaa && inp.cm) cmTexto += ' Nota: respecto de los bienes y servicios que determine su autoridad logística, la ley no hace obligatoria la suscripción de Convenio Marco para las Fuerzas Armadas y de Orden y Seguridad (Ley 19.886, art. 30; DS 661, art. 96).';
   paso('Convenio Marco', cmEstado, cmTexto, [ley('art. 30 letra d); art. 57'), ds('arts. 29, 85, 89, 92, 96')]);
   if(bt.length && u > 100) paso('Base Tipo de licitación', 'obligatorio', btTxt, btArts, {links: btLinks});
 
@@ -347,7 +347,7 @@ function recomendar(inp){
 
   // Escalera de opciones: Convenio Marco -> fuera de Convenio Marco -> excepcional
   const esc = {previo: bien ? ((inp.consumible || inp.noMueble) ? (inp.noMueble ? 'No es un bien mueble: la consulta de economía circular no aplica.' : 'El bien es de consumo: la consulta de economía circular no aplica.') : 'Antes de comprar, consulta economía circular (el Asesor no puede comprobar la disponibilidad). Si no está, deja constancia: "producto no disponible en economía circular", y sigue con el procedimiento que corresponde.') : 'Servicio: no corresponde la consulta de economía circular.', opciones: []};
-  const enCm = !!inp.cm && !ffaa;
+  const enCm = !!inp.cm;
   const ecOp = bien && !inp.consumible && !inp.noMueble, off = 0;
   esc.ecOpcion = ecOp;
   /* upd29: la economía circular es un paso previo que el Asesor no puede verificar; no es una opción numerada */
