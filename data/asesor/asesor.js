@@ -119,6 +119,11 @@ const CSS = `
 .as-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px;border-bottom:1px solid var(--border);}
 .as-tab{font:inherit;font-size:13px;font-weight:700;padding:9px 16px;border:0;border-bottom:3px solid transparent;background:none;color:var(--text-secondary);cursor:pointer;}
 .as-tab[aria-selected=true]{color:var(--cc-navy);border-bottom-color:var(--cc-navy);} .as-tab:hover{color:var(--cc-navy);}
+.as-rtabs{margin:16px 0 12px;gap:2px 4px;}
+.as-rtab{font:inherit;font-size:13px;font-weight:700;padding:9px 14px;border:0;border-bottom:3px solid transparent;background:none;color:var(--text-secondary);cursor:pointer;text-align:left;}
+.as-rtab[aria-selected=true]{color:var(--cc-navy);border-bottom-color:var(--cc-navy);} .as-rtab:hover{color:var(--cc-navy);}
+.as-rtab .as-bdg{display:inline-block;min-width:18px;padding:0 6px;margin-left:6px;border-radius:9px;background:#B3261E;color:#fff;font-size:11px;line-height:18px;text-align:center;}
+.as-pan[hidden]{display:none;}
 .as-grid{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:18px;align-items:start;}
 @media(max-width:900px){.as-grid{grid-template-columns:1fr;}}
 .as-side{position:sticky;top:10px;display:grid;gap:12px;align-content:start;max-height:calc(100vh - 20px);overflow-y:auto;overscroll-behavior:contain;padding:2px 6px 12px 2px;scrollbar-width:thin;} @media(max-width:900px){.as-side{position:static;max-height:none;overflow:visible;padding:0;}}
@@ -200,7 +205,7 @@ table.as-t a{color:var(--cc-navy);text-decoration:none;} table.as-t a:hover{text
 .as-err{color:#B3261E;font-size:13px;padding:10px;}
 .as-disc{background:#FFF6E5;border:1px solid #E8C26A;border-radius:12px;padding:10px 14px;font-size:12px;line-height:1.55;color:#5B3F00;margin-bottom:12px;}
 .as-load{font-size:12.5px;color:var(--cc-navy);padding:8px 0;}
-@media print{ .as-side{max-height:none;overflow:visible;position:static;} header.cc-header,.back-link,.as-noprint,.as-tabs,.as-side .as-card:not(.as-print-sum){display:none!important;} .as-grid{display:block;} .as-reco{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .as-sec,.as-card{box-shadow:none;break-inside:avoid;} body{background:#fff;} }
+@media print{ .as-pan[hidden]{display:block!important;} .as-rtabs{display:none!important;} .as-side{max-height:none;overflow:visible;position:static;} header.cc-header,.back-link,.as-noprint,.as-tabs,.as-side .as-card:not(.as-print-sum){display:none!important;} .as-grid{display:block;} .as-reco{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .as-sec,.as-card{box-shadow:none;break-inside:avoid;} body{background:#fff;} }
 `;
 
 /* ------------------------------ datos derivados ------------------------------ */
@@ -721,6 +726,7 @@ function pacConsHtml(o){
 }
 function wireResult(){
   const st = () => pacState(activeLine());
+  S.host.querySelectorAll('.as-rtab').forEach(b => b.addEventListener('click', () => { S.rtab = b.dataset.rt; S.host.querySelectorAll('.as-rtab').forEach(x => x.setAttribute('aria-selected', x === b ? 'true' : 'false')); S.host.querySelectorAll('.as-pan').forEach(x => { x.hidden = x.dataset.rp !== S.rtab; }); }));
   S.host.querySelectorAll('.as-pk').forEach(c => c.addEventListener('change', () => { const k = Number(c.dataset.k), s_ = st(); if(c.checked) s_.sel.add(k); else s_.sel.delete(k); update(); }));
   S.host.querySelectorAll('.as-pj').forEach(c => c.addEventListener('change', () => { const s_ = st(); c.dataset.ks.split(',').forEach(k => { if(c.checked) s_.sel.add(Number(k)); else s_.sel.delete(Number(k)); }); update(); }));
   const pe = $('as-pend'); if(pe) pe.addEventListener('change', () => { S.pendOnly = pe.checked; update(); });
@@ -839,36 +845,36 @@ function resultHtml(o){
   html += `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
   html += procesoHtml(o);
   html += vereditoHtml(S.vd || veredictoCm(), o);
-  html += escaleraHtml(o);
-  html += refHtml(o);
-  html += pacConsHtml(o);
+  /* Todo lo que sigue va en pestañas bajo la tarjeta de Convenio Marco. */
+  const secs = [], h3t = x => (x.match(/<h3>([\s\S]*?)<\/h3>/) || [, ''])[1].replace(/<[^>]+>/g, '');
+  const add = (k, label, x, bdg) => { if(x) secs.push({k, label, x, bdg}); };
+  { const x = escaleraHtml(o); add('esc', 'Orden de opciones para esta compra', x); }
+  { const x = refHtml(o); add('ref', h3t(x), x); }
+  { const x = pacConsHtml(o); add('pacc', 'Tu PAC 2026 y la consolidación', x); }
+  if(o.alertas.length) add('alertas', 'Alertas', '<div class="as-sec"><h3>Alertas</h3>' + o.alertas.map(a => `<div class="as-al as-al-${a.nivel}"><b>${a.nivel === 'alto' ? 'Atención' : (a.nivel === 'medio' ? 'Revisa' : 'Para tener presente')}</b>${esc(a.t)}${a.accion ? `<span class="as-acc">${esc(a.accion)}</span>` : ''}${a.arts ? citas(a.arts).replace('as-cite', 'as-cite" style="color:inherit;opacity:.85') : ''}</div>`).join('') + '</div>', o.alertas.length);
+  { // detalle del procedimiento
+    let x = `<div class="as-sec"><h3>Cómo se hace: ${esc(p.nom)}</h3>`;
+    if(p.mec && p.mec.cuando) x += `<p>${esc(p.mec.cuando)}</p>`;
+    if(p.plazos.length) x += '<p><b>Plazos</b></p><ul>' + p.plazos.map(y => `<li>${esc(y)}</li>`).join('') + '</ul>';
+    if(p.req.length) x += '<p><b>Qué debes cumplir</b></p><ul>' + p.req.map(y => `<li>${esc(y)}</li>`).join('') + '</ul>';
+    if(p.links && p.links.length) x += '<p><b>Base Tipo</b>' + linksHtml(p.links) + '</p>';
+    if(p.vigencia) x += `<p class="as-cite">${esc(p.vigencia)}</p>`;
+    add('como', 'Cómo se hace: ' + p.nom, x + citas(p.arts) + '</div>');
+  }
+  add('pasos', 'Orden de la decisión', '<div class="as-sec"><h3>Orden de la decisión</h3><ol class="as-steps">' + o.pasos.map(x => `<li><div><b>${esc(x.titulo)}</b><span class="as-tag as-t-${x.estado}">${x.estado}</span><p>${esc(x.texto)}</p>${linksHtml(x.links)}${citas(x.arts)}</div></li>`).join('') + '</ol></div>');
+  add('datos', 'Compras de tu organismo', datosOrg(o, h, ci));
+  add('precios', 'Precio de referencia', preciosHtml(h));
+  if(ci.lista.length) add('cm', 'Convenios Marco del producto', cmHtml(ci));
+  add('prov', 'Proveedores de tu región', provHtml());
+  add('dem', 'Demanda que podrías consolidar', demandaHtml());
+  add('pac', 'Antes de publicar: PAC y presupuesto', pacHtml());
+  if(o.alternativas.length) add('alt', 'Otras vías', '<div class="as-sec"><h3>Otras vías que puedes evaluar</h3>' + o.alternativas.map(a => `<p><b>${esc(a.nom)}.</b> ${esc(a.texto)}</p>${citas(a.arts)}`).join('') + '</div>');
   if(S.od == null) html += '<div class="as-load">Cargando las compras del organismo para cruzarlas con la recomendación…</div>';
-  // alertas
-  if(o.alertas.length) html += '<div class="as-sec"><h3>Alertas</h3>' + o.alertas.map(a => `<div class="as-al as-al-${a.nivel}"><b>${a.nivel === 'alto' ? 'Atención' : (a.nivel === 'medio' ? 'Revisa' : 'Para tener presente')}</b>${esc(a.t)}${a.accion ? `<span class="as-acc">${esc(a.accion)}</span>` : ''}${a.arts ? citas(a.arts).replace('as-cite', 'as-cite" style="color:inherit;opacity:.85') : ''}</div>`).join('') + '</div>';
-  // detalle del procedimiento
-  html += `<div class="as-sec"><h3>Cómo se hace: ${esc(p.nom)}</h3>`;
-  if(p.mec && p.mec.cuando) html += `<p>${esc(p.mec.cuando)}</p>`;
-  if(p.plazos.length) html += '<p><b>Plazos</b></p><ul>' + p.plazos.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';
-  if(p.req.length) html += '<p><b>Qué debes cumplir</b></p><ul>' + p.req.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';
-  if(p.links && p.links.length) html += '<p><b>Base Tipo</b>' + linksHtml(p.links) + '</p>';
-  if(p.vigencia) html += `<p class="as-cite">${esc(p.vigencia)}</p>`;
-  html += citas(p.arts) + '</div>';
-  // orden de verificación
-  html += '<div class="as-sec"><h3>Orden de la decisión</h3><ol class="as-steps">' + o.pasos.map(x => `<li><div><b>${esc(x.titulo)}</b><span class="as-tag as-t-${x.estado}">${x.estado}</span><p>${esc(x.texto)}</p>${linksHtml(x.links)}${citas(x.arts)}</div></li>`).join('') + '</ol></div>';
-  // datos del organismo
-  html += datosOrg(o, h, ci);
-  // precios
-  html += preciosHtml(h);
-  // convenio marco
-  if(ci.lista.length) html += cmHtml(ci);
-  // proveedores región
-  html += provHtml();
-  // demanda
-  html += demandaHtml();
-  // PAC y presupuesto
-  html += pacHtml();
-  // alternativas
-  if(o.alternativas.length) html += '<div class="as-sec"><h3>Otras vías que puedes evaluar</h3>' + o.alternativas.map(a => `<p><b>${esc(a.nom)}.</b> ${esc(a.texto)}</p>${citas(a.arts)}`).join('') + '</div>';
+  if(secs.length){
+    const sel = secs.some(z => z.k === S.rtab) ? S.rtab : secs[0].k;
+    html += '<div class="as-tabs as-rtabs" role="tablist" aria-label="Más información de esta compra">' + secs.map(z => `<button class="as-rtab" role="tab" data-rt="${z.k}" aria-selected="${z.k === sel}">${esc(z.label)}${z.bdg ? `<span class="as-bdg">${z.bdg}</span>` : ''}</button>`).join('') + '</div>';
+    html += secs.map(z => `<div class="as-pan" role="tabpanel" data-rp="${z.k}"${z.k === sel ? '' : ' hidden'}>${z.x}</div>`).join('');
+  }
   html += `<p class="as-note">Generado el ${new Date().toLocaleDateString('es-CL')} con datos de órdenes de compra al ${monthLab(S.C.w12[1].toString().slice(0, 4) + '-' + S.C.w12[1].toString().slice(4))}. ${esc(R().TEXTO_BASE)}</p>`;
   return html;
 }

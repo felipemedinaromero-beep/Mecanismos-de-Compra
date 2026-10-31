@@ -3498,7 +3498,7 @@ function renderAsesorPage(payload){
   const h = document.getElementById('asesorHost');
   const go = () => window.AsesorCompras && window.AsesorCompras.init(h, payload || '');
   if(window.AsesorCompras) return go();
-  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r5';
+  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r6';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el asesor. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -3519,7 +3519,7 @@ function renderProveedoresPage(key){
   const h = document.getElementById('provHost');
   const go = () => window.ProvFicha && window.ProvFicha.init(h, key);
   if(window.ProvFicha) return go();
-  const sc = document.createElement('script'); sc.src = 'data/prov/proveedores.js?v=' + (DATA.generado || '') + '-r5';
+  const sc = document.createElement('script'); sc.src = 'data/prov/proveedores.js?v=' + (DATA.generado || '') + '-r6';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar la página de proveedores. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -3529,7 +3529,7 @@ function procInit(){
   const h = document.getElementById('procSearchHost'); if(!h) return;
   const go = () => window.ProcBuscador && window.ProcBuscador.init(h);
   if(window.ProcBuscador) return go();
-  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r5';
+  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r6';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el buscador de procesos. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
