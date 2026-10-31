@@ -373,15 +373,59 @@ function recomendar(inp){
   }
   esc.opciones.push(fuera);
   // excepcional: trato directo
-  const aplic = ['urgencia', 'unico', 'desierta', 'confianza', 'impacto', 'compat', 'desprop', 'especial', 'seguridad', 'publicidad', 'confid'].filter(k => {
-    if(k === 'confianza') return u > 1000;
-    if(k === 'impacto') return u < 30;
-    if(k === 'desprop') return !bien && u <= 100;
-    if(k === 'especial' || k === 'confid') return !bien;
-    if(k === 'compat') return true;
-    return true;
-  });
-  esc.opciones.push({n: fuera.n + 1, k: 'TD', tag: 'excepcional', titulo: 'Trato Directo (solo con causal)', texto: 'No reemplaza al procedimiento ordinario: exige una causal del art. 8 bis de la Ley (art. 71 del Reglamento) acreditada en un acto fundado y publicada. Las causales que podrían aplicar a esta compra, por monto y tipo:', causales: aplic.map(k => ({k, n: CAUSALES[k].n, t: CAUSALES[k].t})), arts: [ley('art. 7 letra c); art. 8 bis'), ds('arts. 71 a 84')]});
+  /* Cada causal se evalúa con lo que se pidió: monto, bien o servicio, Convenio Marco, cuántos proveedores vendieron el producto y palabras del producto.
+     aplica = lo que ingresaste la respalda; depende = solo si ocurre un hecho que la entidad debe acreditar; descartada = no calza (se explica por qué). */
+  const nProv = (inp.nProv == null ? null : inp.nProv), txt = ' ' + (inp.txt || '') + ' ', seg = inp.seg || '', tieneHist = !!(inp.hist && inp.hist.totalUtm > 0);
+  const kw = re => re.test(txt), enCm_ = !!inp.cm;
+  const uF = R(u, 1).toLocaleString('es-CL');
+  const ev = [];
+  const E = (k, estado, motivo) => ev.push({k, estado, motivo});
+  // N° 1 proveedor único
+  if(enCm_) E('unico', 'descartada', 'El producto está en un Convenio Marco vigente, con varios proveedores: no hay proveedor único (art. 72).');
+  else if(nProv != null && nProv >= 2) E('unico', 'descartada', nProv + ' proveedores distintos vendieron este producto al Estado en los últimos 12 meses; solo aplicaría si ninguno de ellos puede sustituir al tuyo (art. 72).');
+  else if(nProv === 1) E('unico', 'aplica', 'Solo 1 proveedor vendió este producto al Estado en los últimos 12 meses. Además debes acreditar que no hay sustituto ni alternativa equivalente (art. 72).');
+  else E('unico', 'depende', 'Solo si acreditas que un único proveedor ofrece este bien o servicio, sin sustituto razonable (art. 72). No hay ventas registradas del producto que lo confirmen.');
+  // N° 2 licitación sin interesados
+  if(enCm_) E('desierta', 'descartada', 'Con Convenio Marco vigente no corresponde licitar: primero se compra por el convenio.');
+  else E('desierta', 'depende', 'Solo si ya hiciste una licitación pública y una privada que quedaron sin ofertas o con ofertas inadmisibles (art. 73).');
+  // N° 3 emergencia, urgencia o imprevisto
+  E('urgencia', 'depende', 'Solo ante una necesidad impostergable que no puedes imputar a falta de planificación (arts. 74 y 83).');
+  // N° 4 servicios confidenciales
+  if(bien) E('confid', 'descartada', 'Es una causal para servicios; esta compra es de un bien.');
+  else if(kw(/reservad|secret|inteligencia|defensa|seguridad nacional|confidencial/)) E('confid', 'depende', 'Solo si una ley declara el servicio confidencial o su difusión afecta la seguridad o el interés nacional.');
+  else E('confid', 'descartada', 'Exige que una ley determine la confidencialidad o la seguridad e interés nacional; nada de lo que pediste lo indica.');
+  // N° 5 magnitud, importancia y confianza
+  if(u <= 1000) E('confianza', 'descartada', 'Solo para contrataciones sobre 1.000 UTM (art. 75 letra d); esta compra es de ' + uF + ' UTM.');
+  else if(enCm_) E('confianza', 'descartada', 'Existe Convenio Marco con varios proveedores: no hay un único proveedor de confianza sin competidores.');
+  else E('confianza', 'depende', 'Sobre 1.000 UTM, solo si acreditas un único proveedor con experiencia comprobada y que nadie más ofrece las mismas garantías' + (nProv != null && nProv >= 2 ? ' (' + nProv + ' proveedores vendieron este producto en 12 meses: deberás explicar por qué ninguno sirve)' : '') + ' (art. 75).');
+  // N° 6 menos de 30 UTM con alto impacto social
+  if(u >= 30) E('impacto', 'descartada', 'Solo para adquisiciones inferiores a 30 UTM; esta compra es de ' + uF + ' UTM.');
+  else E('impacto', 'depende', 'Menos de 30 UTM: solo si la compra privilegia empresas de menor tamaño, proveedores locales, descentralización o sustentabilidad (art. 76).');
+  // N° 7 letra a) compatibilidad con tecnología ya adquirida
+  if(tieneHist || ['41', '42', '43', '45', '46', '49', '73'].includes(seg) || kw(/accesorio|repuesto|mantencion|mantenimiento|soporte|licencia|insumo|compatible|actualizacion|upgrade/)) E('compat', 'depende', 'Solo si es un accesorio o servicio que debe ser compatible con equipamiento o un contrato que ya tienes' + (tieneHist ? ' (tu organismo ya compró este producto)' : '') + ' y solo un proveedor puede entregarlo.');
+  else E('compat', 'descartada', 'Exige tecnología o equipamiento ya adquirido con el que la compra deba ser compatible; no hay indicios en lo que pediste.');
+  // N° 7 letra b) costo desproporcionado
+  if(bien) E('desprop', 'descartada', 'Solo para servicios; esta compra es de un bien.');
+  else if(u > 100) E('desprop', 'descartada', 'Solo para servicios de hasta 100 UTM; esta compra es de ' + uF + ' UTM.');
+  else E('desprop', 'depende', 'Servicio de hasta 100 UTM: solo si un proceso competitivo costaría más que el propio servicio.');
+  // N° 7 letra c) alta especialización
+  if(bien) E('especial', 'descartada', 'Solo para servicios; esta compra es de un bien.');
+  else if(['80', '86'].includes(seg) || kw(/asesor|consultor|capacitaci|arquitect|diseno|juridic|estrateg|estudio|auditor|especializ|investigaci|peritaje|traduc/)) E('especial', 'depende', 'Solo si el servicio exige un alto grado de especialización comprobada. El camino general para estos servicios es la licitación con preselección (arts. 173 a 176).');
+  else E('especial', 'descartada', 'El servicio que pediste no parece exigir alta especialización comprobada.');
+  // N° 7 letra d) seguridad e integridad de autoridades
+  if(kw(/seguridad|vigilan|escolta|guardia|blindaj|autoridad/)) E('seguridad', 'depende', 'Solo si está en juego la seguridad e integridad personal de autoridades.');
+  else E('seguridad', 'descartada', 'Solo cuando está en juego la seguridad personal de autoridades; nada de lo que pediste lo indica.');
+  // N° 7 letra e) riesgo por conocimiento público
+  if(kw(/reservad|terreno|inmueble|expropia/)) E('publicidad', 'depende', 'Solo si dar a conocer la licitación pondría en riesgo el objeto del contrato.');
+  else E('publicidad', 'descartada', 'Solo si el conocimiento público del proceso pone en riesgo el contrato; nada de lo que pediste lo indica.');
+  // Lo que marcó el comprador en el paso 3 (si es coherente con el monto y el tipo) pasa a "aplica"
+  ev.forEach(x => { if(causalesOk.includes(x.k) && x.estado !== 'aplica'){ x.estado = 'aplica'; x.motivo = 'La marcaste en el paso 3. ' + x.motivo.replace(/^Solo /, 'Recuerda que solo procede ').replace(/^Menos de 30 UTM: s/, 'S'); } });
+  const ord = {aplica: 0, depende: 1, descartada: 2};
+  ev.sort((p, q) => ord[p.estado] - ord[q.estado]);
+  const conN = k => ({k, n: CAUSALES[k].n, t: CAUSALES[k].t});
+  const vivas = ev.filter(x => x.estado !== 'descartada').map(x => Object.assign(conN(x.k), {estado: x.estado, motivo: x.motivo}));
+  const descartadas = ev.filter(x => x.estado === 'descartada').map(x => Object.assign(conN(x.k), {estado: x.estado, motivo: x.motivo}));
+  esc.opciones.push({n: fuera.n + 1, k: 'TD', tag: 'excepcional', titulo: 'Trato Directo (solo con causal)', texto: 'No reemplaza al procedimiento ordinario: exige una causal del art. 8 bis de la Ley (art. 71 del Reglamento) acreditada en un acto fundado y publicado. Cruzando el monto, el tipo de contratación' + (enCm_ ? ', el Convenio Marco' : '') + ' y los proveedores que venden el producto, estas son las causales que podrían calzar y las que descarté:', causales: vivas, descartadas, arts: [ley('art. 7 letra c); art. 8 bis'), ds('arts. 71 a 84')]});
   out.escalera = esc;
 
   // Alertas de datos

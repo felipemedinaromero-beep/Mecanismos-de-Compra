@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r8' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r10' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -275,6 +275,10 @@ table.as-t th{background:#F2F6FD;}
 .as-rc-pv ul{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px 14px;}
 .as-rc-pv li{font-size:12.5px;color:#fff;padding:5px 10px;border-radius:9px;background:rgba(255,255,255,.1);min-width:0;overflow-wrap:anywhere;} .as-rc-pv li small{color:#BFD3EA;margin-left:4px;}
 .as-rc-go-w{margin:12px 0 0 !important;} .as-rc-go{display:inline-flex;align-items:center;padding:8px 16px;border-radius:99px;background:var(--cc-lime);color:var(--cc-dark) !important;font-size:12.5px;font-weight:800;text-decoration:none;} .as-rc-go:hover{background:#fff;}
+/* upd23: datos de la compra rotulados en el recuadro azul */
+.as-reco .as-chipcap{margin:14px 0 6px;font-size:12px;font-weight:700;color:#D7E6F7;}
+.as-chip.as-lb{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;border-radius:12px;padding:6px 12px;line-height:1.3;}
+.as-chip.as-lb small{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--cc-lime);font-weight:800;}
 @media print{ .as-pan[hidden]{display:block!important;} .as-rtabs{display:none!important;} .as-side{max-height:none;overflow:visible;position:static;} header.cc-header,.back-link,.as-noprint,.as-tabs,.as-side .as-card:not(.as-print-sum){display:none!important;} .as-grid{display:block;} .as-reco{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .as-sec,.as-card{box-shadow:none;break-inside:avoid;} body{background:#fff;} }
 `;
 
@@ -473,13 +477,19 @@ function btDetect(){
     return !!code && b.onu.some(o => code.startsWith(o));
   });
 }
+/* Proveedores distintos que vendieron este producto al Estado en los últimos 12 meses (todo el país); null si aún no se cargan los datos del segmento. */
+function nProvNacional(){
+  if(S.prodIdx == null || !S.segData || !S.segData.rp) return null;
+  const x = S.segData.rp['0|' + S.prodIdx]; return x ? x[0] : null;
+}
 function compute(){
   const R_ = R(), ci = cmInfo(), h = histProd(), vd = veredictoCm(), cmSi = ['catalogo', 'oc', 'familia', 'tema'].includes(vd.nivel);
   S.vd = vd;
   const dm = S.prodIdx != null && S.segData ? S.segData.dm[orgRegion() + '|' + S.prodIdx] : null;
   const consumible = esConsumible();
   const noMueble = esNoMueble();
-  const inp = {bt: btDetect(), consumible, noMueble, montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
+  const nProvN = nProvNacional();
+  const inp = {nProv: nProvN, seg: S.prodIdx != null ? S.C.c[S.prodIdx].slice(0, 2) : '', txt: norm(consultaTexto()), bt: btDetect(), consumible, noMueble, montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
     sector: S.org ? S.org[2] : '', demanda: dm ? {no: dm[0], mm: dm[1]} : null,
     hist: h ? {noCmUtm: h.noCmUtm, totalUtm: h.totalUtm} : null, fueraCm: fueraCmMM()};
   S.inp = inp;
@@ -1012,6 +1022,12 @@ function refHtml(o){
   h += '<div class="as-tw"><table class="as-t"><tr><th>Orden de compra</th><th>Fecha</th><th>Título</th><th>Organismo</th><th class="n">Monto</th><th>Proveedor</th></tr>' + rows.map(x => `<tr><td><a href="${link(x[0], 'c')}" rel="noopener">${esc(x[0])}</a></td><td>${esc(x[1])}</td><td>${esc(sentence(x[2]))}</td><td>${esc(x[3])}</td><td class="n">${x[4] ? pesos(x[4]) : '—'}</td><td>${esc(x[5] || '—')}</td></tr>`).join('') + '</table></div>';
   return h + `<p class="as-hint">Se muestran las 5 compras con monto más cercano al tuyo (${pesos(monto)}), entre una muestra de las más recientes desde enero de 2025, con montos variados. Sirven para calibrar el precio y ver qué proveedores responden; la ficha en Mercado Público muestra el detalle.</p></div>`;
 }
+/* «5 mes» -> «5 meses»: pluraliza la unidad de medida cuando la cantidad no es 1 (solo palabras simples o del tipo mes/hombre). */
+function umPlural(u, n){
+  if(Number(n) === 1 || /\s/.test(u)) return u;
+  const pl = w => /[aeiouáéíóú]$/i.test(w) ? w + 's' : (/z$/i.test(w) ? w.slice(0, -1) + 'ces' : w + 'es');
+  return u.split('/').map((w, i) => i === 0 ? pl(w) : w).join('/');
+}
 function heroCmHtml(o){
   const p = o.principal; if(!p || p.k !== 'CM') return '';
   const vd = S.vd || veredictoCm(); if(!['catalogo', 'oc', 'familia', 'tema'].includes(vd.nivel) || !vd.cms.length) return '';
@@ -1036,7 +1052,8 @@ function resultHtml(o){
   const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
   let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div>${(o.escalera && o.escalera.ecOpcion) ? `<h2>Primero, economía circular</h2><p>Es un bien mueble: antes de comprar, consulta si otro organismo tiene uno disponible (DS 661, art. 28). Si no existe o no está disponible, deja constancia de que el producto no está disponible en economía circular y sigue con: <b>${esc(p.nom)}</b>.</p>` : `<h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>`}
-    <div class="as-chips"><span class="as-chip">${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip">${fmt(activeLine().n)} ${esc(lineUm(activeLine()))}</span>` : ''}<span class="as-chip">${dec(o.montoUtm, 1)} UTM${st_.l.length > 1 ? ' en total' : ''}</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div>${heroCmHtml(o)}</div>`;
+    <p class="as-chipcap">Esta recomendación se basa en lo que le pediste al Asesor:</p>
+    <div class="as-chips"><span class="as-chip as-lb"><small>Producto o servicio</small>${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip as-lb"><small>Cantidad${st_.l.length > 1 ? ' (línea activa)' : ''}</small>${fmt(activeLine().n)} ${esc(umPlural(lineUm(activeLine()), activeLine().n))}</span>` : ''}<span class="as-chip as-lb"><small>Monto${st_.l.length > 1 ? ' total del proceso' : ' total'}, IVA incluido</small>${S.st.m ? clp(S.st.m) + ' · ' : ''}${dec(o.montoUtm, 1)} UTM</span><span class="as-chip as-lb"><small>Tramo de monto</small>${esc(o.tramoNom)}</span><span class="as-chip as-lb"><small>Región de la compra</small>${esc(regName(orgRegion()))}</span></div>${heroCmHtml(o)}</div>`;
   const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
   const vdHtml = procesoHtml(o) + vereditoHtml(S.vd || veredictoCm(), o);
   /* Todo lo que sigue va en pestañas bajo la tarjeta de Convenio Marco. */
@@ -1092,7 +1109,12 @@ function escaleraHtml(o){
     h += `<div class="as-op as-op-${op.k.toLowerCase()}"><div class="as-op-n">Opción ${op.n}</div><div class="as-op-b"><b>${esc(op.titulo)}</b> <span class="as-tag as-t-${op.tag === 'prioridad' || op.tag === 'primera opción' ? 'obligatorio' : (op.tag === 'excepcional' ? 'verificar' : 'recomendado')}">${esc(op.tag)}</span><p>${esc(op.texto)}</p>`;
     if(op.k === 'EC') h += `<p class="as-hint">Consulta la plataforma: <a href="${window.AS_CMV ? window.AS_CMV.eco : '#'}" rel="noopener">Economía Circular de Mercado Público</a>.</p>`;
     if(op.subs) h += '<ul class="as-op-s">' + op.subs.map(s => `<li class="${s.est === 'descartada' ? 'as-off' : ''}"><b>${esc(s.nom)}</b> <span class="as-tag as-t-${s.est === 'descartada' ? 'descartado' : (s.est === 'procede' ? 'recomendado' : (s.est === 'obligatoria' ? 'obligatorio' : 'verificar'))}">${esc(s.est)}</span> ${esc(s.texto)}${linksHtml(s.links)}${s.arts && s.k === 'BT' ? citas(s.arts) : ''}</li>`).join('') + '</ul>';
-    if(op.causales) h += '<ul class="as-op-s">' + op.causales.map(c => `<li><b>${esc(CAUS_NOM(c))}</b> <span class="as-hint">(art. ${esc(c.n)} DS 661)</span></li>`).join('') + '</ul><p class="as-hint">Si ninguna calza con hechos que puedas acreditar, esta opción no corresponde. Elige en el paso 3 la situación que aplique y el Asesor te muestra los requisitos de esa causal.</p>';
+    if(op.causales){
+      const tagC = c => c.estado === 'aplica' ? '<span class="as-tag as-t-recomendado">puede aplicar</span>' : '<span class="as-tag as-t-verificar">depende de un hecho</span>';
+      h += '<ul class="as-op-s">' + op.causales.map(c => `<li><b>${esc(CAUS_NOM(c))}</b> <span class="as-hint">(art. ${esc(c.n)} DS 661)</span> ${tagC(c)}<br>${esc(c.motivo || '')}</li>`).join('') + '</ul>';
+      if(op.descartadas && op.descartadas.length) h += `<details class="as-det"><summary>Causales que descarté para esta compra (${op.descartadas.length})</summary><ul class="as-op-s">${op.descartadas.map(c => `<li class="as-off"><b>${esc(CAUS_NOM(c))}</b> <span class="as-hint">(art. ${esc(c.n)} DS 661)</span><br>${esc(c.motivo || '')}</li>`).join('')}</ul></details>`;
+      h += '<p class="as-hint">Si ninguna calza con hechos que puedas acreditar, esta opción no corresponde. Si una de las descartadas sí se da en tu caso, márcala en el paso 3 y el Asesor te muestra sus requisitos. Los proveedores se cuentan con las órdenes de compra de los últimos 12 meses.</p>';
+    }
     h += citas(op.arts) + '</div></div>';
   });
   return h + '</div>';
