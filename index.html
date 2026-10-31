@@ -404,6 +404,14 @@
   .mc-btn { margin-top:auto; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:10px 18px; border-radius:99px; background:var(--mc); color:var(--mi,#fff); font-size:12.5px; font-weight:700; text-decoration:none; }
   .mc-btn:hover { filter:brightness(1.1); }
   .mc-btn:focus-visible, .mc-more summary:focus-visible { outline:2px solid var(--cc-blue); outline-offset:2px; border-radius:6px; }
+
+  /* upd20: botón fijo para volver al inicio en todas las vistas */
+  .home-fab { position:fixed; right:18px; bottom:18px; z-index:70; display:none; align-items:center; gap:8px; padding:11px 18px 11px 14px; border-radius:99px; background:var(--cc-navy); color:#fff; font:inherit; font-size:13.5px; font-weight:700; text-decoration:none; box-shadow:0 8px 24px rgba(0,35,59,.35); border:2px solid #fff; cursor:pointer; }
+  .home-fab:hover { background:var(--cc-dark); }
+  .home-fab:focus-visible { outline:3px solid var(--cc-lightblue); outline-offset:2px; }
+  .home-fab svg { width:18px; height:18px; flex:0 0 auto; }
+  @media (max-width:600px){ .home-fab { right:12px; bottom:12px; padding:10px 14px 10px 12px; } }
+  @media print { .home-fab { display:none !important; } }
   .sticky-ribbon { position:fixed; top:0; left:0; right:0; z-index:60; display:flex; justify-content:center; flex-wrap:wrap; gap:6px 28px; padding:8px 18px; background:var(--cc-dark); color:#fff; font-size:12px; transform:translateY(-110%); transition:transform .2s ease; box-shadow:0 4px 16px rgba(0,35,59,.25); }
   .sticky-ribbon.show { transform:translateY(0); }
   .sticky-ribbon span { opacity:.75; margin-right:6px; }
@@ -507,7 +515,7 @@
   <div class="kpis" id="kpiRow"></div>
   <div id="dlMainResumen"></div>
 
-  <a class="asesor-hero" href="#asesor" target="_blank" rel="noopener">
+  <a class="asesor-hero" href="#asesor" rel="noopener">
     <span class="ah-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></span>
     <div class="ah-body">
       <span class="ah-tag">Herramienta destacada</span>
@@ -552,7 +560,7 @@
     <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Mecanismos nuevos de la Ley 21.634</h2>
     <p class="block-note">Procedimientos incorporados por la Ley 21.634 y el DS 661/2024, vigentes desde el <b>12 de junio de 2025</b>. Compra Ágil y Contratación por Cotización ya tienen su ficha arriba. Diálogos Competitivos y Contratos para la Innovación no tienen ninguna OC en los datos de <span id="pendPeriodo"></span>; Economía Circular se mide con un reporte de ChileCompra y no con OC.</p>
     <div class="pend-grid">
-      <a class="pend-card pend-card-link" href="#subasta-inversa" target="_blank" rel="noopener" title="Abrir las subastas identificadas">
+      <a class="pend-card pend-card-link" href="#subasta-inversa" rel="noopener" title="Abrir las subastas identificadas">
         <div class="pend-card-head"><span class="pend-card-title">Subasta Inversa Electrónica</span><span class="pend-badge ok">2 subastas · 1 OC</span></div>
         <p class="pend-card-desc">Procedimiento abierto para bienes y servicios estandarizados, donde los proveedores compiten ofreciendo precios cada vez más bajos, mediante un módulo dedicado en Mercado Público.</p>
         <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
@@ -568,23 +576,23 @@
         <p class="pend-card-desc">Procedimiento orientado a la adquisición de soluciones innovadoras para desafíos públicos, en el marco de la Compra Pública de Innovación (CPI).</p>
         <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
       </div>
-      <a class="pend-card pend-card-link" href="#economia-circular" target="_blank" rel="noopener" title="Abrir los datos de Economía Circular">
+      <a class="pend-card pend-card-link" href="#economia-circular" rel="noopener" title="Abrir los datos de Economía Circular">
         <div class="pend-card-head"><span class="pend-card-title">Economía Circular</span><span class="pend-badge ok">1.182 reservas</span></div>
         <p class="pend-card-desc">Organismos que publican productos para que otros organismos los reserven. No son Órdenes de Compra: los datos vienen de un reporte propio de ChileCompra y tienen su vista aparte.</p>
         <p class="pend-card-meta">Datos al <b>26/10/2026</b> · reporte Power BI de ChileCompra</p>
         <span class="pend-card-cta">Ver datos →</span>
       </a>
     </div>
-    <details class="note-fold"><summary>Cómo se buscaron estos procedimientos en los datos</summary><div>Se buscó en los 22 meses de OC (ene-2025 a oct-2026; octubre parcial) el sufijo "SIE" en el código de licitación, la glosa y el nombre de la OC, y las menciones de "subasta inversa", "diálogo competitivo" e "innovación" en Tipo, DescripcionTipoOC y ProcedenciaOC. Solo apareció una OC de subasta (5240-235-SE25, subasta 6153-1-SIE25, Carabineros); la subasta 6153-5-SIE25 se agregó por indicación del equipo y no tiene OC en los datos abiertos. Esto vale para los organismos y el período de este panel y no permite concluir que los demás mecanismos no se hayan usado en otro lugar del país. Para confirmarlo a nivel nacional conviene revisar <a href="https://www.chilecompra.cl/subasta-inversa-electronica/" target="_blank" rel="noopener">chilecompra.cl</a> o consultar al Centro de Ayuda de Mercado Público.</div></details>
+    <details class="note-fold"><summary>Cómo se buscaron estos procedimientos en los datos</summary><div>Se buscó en los 22 meses de OC (ene-2025 a oct-2026; octubre parcial) el sufijo "SIE" en el código de licitación, la glosa y el nombre de la OC, y las menciones de "subasta inversa", "diálogo competitivo" e "innovación" en Tipo, DescripcionTipoOC y ProcedenciaOC. Solo apareció una OC de subasta (5240-235-SE25, subasta 6153-1-SIE25, Carabineros); la subasta 6153-5-SIE25 se agregó por indicación del equipo y no tiene OC en los datos abiertos. Esto vale para los organismos y el período de este panel y no permite concluir que los demás mecanismos no se hayan usado en otro lugar del país. Para confirmarlo a nivel nacional conviene revisar <a href="https://www.chilecompra.cl/subasta-inversa-electronica/" rel="noopener">chilecompra.cl</a> o consultar al Centro de Ayuda de Mercado Público.</div></details>
   </section>
 
   <section class="block block-tools" id="toolsSection">
     <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Herramientas de análisis</h2>
     <p class="block-note">Parte desde un organismo, un rubro, un proveedor o el plan de compras. Cada herramienta abre en una pestaña nueva y permite acotar por período, mecanismo, región, proveedor y monto.</p>
     <div class="tool-groups">
-      <div class="tool-group g-nav"><h3>Explorar transacciones</h3><div class="tool-grid"><a class="tool-card" href="#comprador" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 3 9 21 9"/><line x1="9" y1="21" x2="9" y2="10"/><line x1="15" y1="21" x2="15" y2="10"/></svg></span><span class="tc-txt"><b>Explorar por comprador</b><span>Elige un organismo y su unidad de compra; filtra por rubro, producto o palabra.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#rubro" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.82 0l4.6-4.6a2 2 0 0 0 0-2.82z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span class="tc-txt"><b>Explorar por rubro de compra</b><span>Busca licitaciones, tratos directos y compras ágiles por palabra y mira quién compró.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#proveedores" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01"/><path d="M15 11h.01"/></svg></span><span class="tc-txt"><b>Proveedores</b><span>Ficha por nombre o RUT: ventas, mecanismos, Convenios Marco y compradores.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#nuevos" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span><span class="tc-txt"><b>Organismos nuevos incorporados</b><span>Actividad de los organismos del listado de incorporación.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
-      <div class="tool-group g-plan"><h3>Plan de compras y presupuesto</h3><div class="tool-grid"><a class="tool-card" href="#pac" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="tc-txt"><b>Plan Anual de Compras (PAC) 2025 y 2026</b><span>Lo que se planificó comprar: montos, comparación entre años y ficha por organismo.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#pac26" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="tc-txt"><b>Buscador PAC 2026</b><span>PAC 2026 por organismo, OC enlazadas, cumplimiento y buscador de oportunidades.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#presupuesto" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="tc-txt"><b>Presupuesto 2026 · PAC · Ejecutado</b><span>Presupuesto 2026, lo planificado en el PAC y lo ejecutado con OC.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
-      <div class="tool-group g-more"><h3>Otras miradas</h3><div class="tool-grid"><a class="tool-card" href="#gore" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 2 9 22 9 12 3"/><line x1="9" y1="21" x2="9" y2="13"/><line x1="15" y1="21" x2="15" y2="13"/></svg></span><span class="tc-txt"><b>Gobiernos Regionales</b><span>Los 16 GORE: procedimientos, montos, proveedores y licitaciones.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#cfmp" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span class="tc-txt"><b>Compras Fuera de Mercado Público</b><span>Compras fuera del Sistema (Art. 21 Ley 19.886 y Art. 115 Reglamento).</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#comparacion" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span><span class="tc-txt"><b>Comparación año a año</b><span>Compara 2025 y 2026 mes a mes y por mecanismo.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
+      <div class="tool-group g-nav"><h3>Explorar transacciones</h3><div class="tool-grid"><a class="tool-card" href="#comprador" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 3 9 21 9"/><line x1="9" y1="21" x2="9" y2="10"/><line x1="15" y1="21" x2="15" y2="10"/></svg></span><span class="tc-txt"><b>Explorar por comprador</b><span>Elige un organismo y su unidad de compra; filtra por rubro, producto o palabra.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#rubro" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.82 0l4.6-4.6a2 2 0 0 0 0-2.82z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span class="tc-txt"><b>Explorar por rubro de compra</b><span>Busca licitaciones, tratos directos y compras ágiles por palabra y mira quién compró.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#proveedores" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01"/><path d="M15 11h.01"/></svg></span><span class="tc-txt"><b>Proveedores</b><span>Ficha por nombre o RUT: ventas, mecanismos, Convenios Marco y compradores.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#nuevos" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span><span class="tc-txt"><b>Organismos nuevos incorporados</b><span>Actividad de los organismos del listado de incorporación.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
+      <div class="tool-group g-plan"><h3>Plan de compras y presupuesto</h3><div class="tool-grid"><a class="tool-card" href="#pac" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="tc-txt"><b>Plan Anual de Compras (PAC) 2025 y 2026</b><span>Lo que se planificó comprar: montos, comparación entre años y ficha por organismo.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#pac26" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="tc-txt"><b>Buscador PAC 2026</b><span>PAC 2026 por organismo, OC enlazadas, cumplimiento y buscador de oportunidades.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#presupuesto" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="tc-txt"><b>Presupuesto 2026 · PAC · Ejecutado</b><span>Presupuesto 2026, lo planificado en el PAC y lo ejecutado con OC.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
+      <div class="tool-group g-more"><h3>Otras miradas</h3><div class="tool-grid"><a class="tool-card" href="#gore" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 2 9 22 9 12 3"/><line x1="9" y1="21" x2="9" y2="13"/><line x1="15" y1="21" x2="15" y2="13"/></svg></span><span class="tc-txt"><b>Gobiernos Regionales</b><span>Los 16 GORE: procedimientos, montos, proveedores y licitaciones.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#cfmp" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span class="tc-txt"><b>Compras Fuera de Mercado Público</b><span>Compras fuera del Sistema (Art. 21 Ley 19.886 y Art. 115 Reglamento).</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#comparacion" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span><span class="tc-txt"><b>Comparación año a año</b><span>Compara 2025 y 2026 mes a mes y por mecanismo.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
     </div>
   </section>
 
@@ -639,6 +647,8 @@
 <div id="pac26View" class="wrap" style="display:none;"></div>
 <div id="proveedoresView" class="wrap" style="display:none;"></div>
 <div id="asesorView" class="wrap" style="display:none;"></div>
+<a id="homeFab" class="home-fab" href="#" onclick="goHome(event)" title="Volver al inicio (panel de mecanismos)" aria-label="Volver al inicio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-6h4v6"/></svg>Inicio</a>
+
 <div id="presView" class="wrap" style="display:none;"></div>
 
 <script src="data/data.js"></script>
@@ -774,10 +784,10 @@ function renderSubastaPage(){
   const montoUsd = ocs.reduce((s,p)=>s+(p.montoUsd||0),0);
   const fmt2 = n => Number(n).toLocaleString('es-CL',{maximumFractionDigits:2});
   const filas = procs.map(p => `<tr>
-      <td><a href="${esc(sieLink(p.sie))}" target="_blank" rel="noopener" title="Abrir la subasta en Mercado Público">${esc(p.sie)}</a></td>
+      <td><a href="${esc(sieLink(p.sie))}" rel="noopener" title="Abrir la subasta en Mercado Público">${esc(p.sie)}</a></td>
       <td>${esc(p.nombre)}</td>
       <td>${esc(p.org)}${p.unidad?'<br><span style="font-size:11px;color:var(--text-secondary);">'+esc(p.unidad)+'</span>':''}</td>
-      <td>${p.oc ? '<a href="'+esc(mpLink(p.oc))+'" target="_blank" rel="noopener" title="Abrir la OC en Mercado Público">'+esc(p.oc)+'</a>' : '<span style="color:var(--text-secondary);">Sin OC en datos abiertos</span>'}</td>
+      <td>${p.oc ? '<a href="'+esc(mpLink(p.oc))+'" rel="noopener" title="Abrir la OC en Mercado Público">'+esc(p.oc)+'</a>' : '<span style="color:var(--text-secondary);">Sin OC en datos abiertos</span>'}</td>
       <td>${p.oc ? esc(sieFmtFecha(p.fechaEnvio)) : ''}</td>
       <td>${esc(p.proveedor||'')}${p.rutProveedor?'<br><span style="font-size:11px;color:var(--text-secondary);">'+esc(p.rutProveedor)+'</span>':''}</td>
       <td class="num">${p.oc ? '$'+fmt2(p.monto)+' '+esc(p.moneda) : ''}</td>
@@ -803,7 +813,7 @@ function renderSubastaPage(){
       <div class="note-box" style="margin:12px 0 0;">
         <p style="margin:0 0 6px;"><b>6153-1-SIE25</b> (lubricantes, Carabineros): su OC <b>5240-235-SE25</b> se emitió como "Sin emisión automática / Orden de Compra para informar", con la glosa de que la plataforma de SIE aún no permite emitir OC. Por ese tipo de OC el panel la clasifica en "Otro / Sin clasificar" y no en un mecanismo propio.</p>
         <p style="margin:0 0 6px;"><b>6153-5-SIE25</b> (neumáticos, Carabineros): se incluye porque fue informada como subasta de Carabineros, pero ninguna OC de ${esc(DATA.periodo)} la menciona, por lo que no se le asocia ninguna OC. Puede que la OC aún no exista, no esté en estado Recepción Conforme o Aceptada, o no cite el código.</p>
-        <p style="margin:0;">El enlace de cada subasta usa el formato estándar de ficha de licitación de Mercado Público, que carga con JavaScript, por lo que no se pudo comprobar desde fuera que abra la ficha de una SIE. Si no abre, la información general del procedimiento está en <a href="${SIE_INFO_URL}" target="_blank" rel="noopener">chilecompra.cl</a>.</p>
+        <p style="margin:0;">El enlace de cada subasta usa el formato estándar de ficha de licitación de Mercado Público, que carga con JavaScript, por lo que no se pudo comprobar desde fuera que abra la ficha de una SIE. Si no abre, la información general del procedimiento está en <a href="${SIE_INFO_URL}" rel="noopener">chilecompra.cl</a>.</p>
       </div>
     </section>`;
   document.getElementById('dlSubasta').innerHTML = dlBtn('subastaInversa', 'subasta_inversa_electronica.csv', 'Descargar subastas (Excel)');
@@ -1672,7 +1682,7 @@ function renderMain(homeRange){
         <p class="cita">${esc(meta.cita)}</p>
         <p>Monto nominal: $${fmt(clpEntry?clpEntry.monto:0)} CLP${otras.length? ' + ' + montosTxt(otras) : ''}.</p>
       </details>
-      <a class="mc-btn" href="#detalle=${encodeURIComponent(m)}" target="_blank" rel="noopener">Ver detalle transaccional
+      <a class="mc-btn" href="#detalle=${encodeURIComponent(m)}" rel="noopener">Ver detalle transaccional
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
       </a>
     </article>`;
@@ -1731,12 +1741,12 @@ function miniBarChart(porMesUsd, color, valueKey, fmtValFn){
 
 // ---------- Cards ----------
 document.getElementById('footerBox').innerHTML = `
-  <p><b>Fuente:</b> Datos Abiertos ChileCompra — Descarga masiva por URL de Órdenes de Compra (<a href="https://datos-abiertos.chilecompra.cl/descargas" target="_blank" rel="noopener">datos-abiertos.chilecompra.cl/descargas</a>), archivos mensuales <code>oc-da/[año]-[mes].zip</code>, todos los organismos del Estado. Período: ${DATA.periodo}. Generado el ${DATA.generado}.${Object.keys(DATA.parcial||{}).map(m=>' El mes '+m+' es parcial: incluye OC hasta el '+DATA.parcial[m].split('-').reverse().join('-')+' (el archivo de datos abiertos llega con un día de rezago).').join('')}</p>
+  <p><b>Fuente:</b> Datos Abiertos ChileCompra — Descarga masiva por URL de Órdenes de Compra (<a href="https://datos-abiertos.chilecompra.cl/descargas" rel="noopener">datos-abiertos.chilecompra.cl/descargas</a>), archivos mensuales <code>oc-da/[año]-[mes].zip</code>, todos los organismos del Estado. Período: ${DATA.periodo}. Generado el ${DATA.generado}.${Object.keys(DATA.parcial||{}).map(m=>' El mes '+m+' es parcial: incluye OC hasta el '+DATA.parcial[m].split('-').reverse().join('-')+' (el archivo de datos abiertos llega con un día de rezago).').join('')}</p>
   <p><b>Metodología:</b> cada fila de los archivos fuente corresponde a una línea de ítem de Orden de Compra; las cifras de esta vista se calculan a nivel de Orden de Compra (deduplicadas por código de OC), incluyendo solo aquellas en estado <b>Recepción Conforme</b> o <b>Aceptada</b> (se excluyen "Enviada a Proveedor", "En Proceso" y "Solicitud de Cancelación", que en conjunto representan cerca de un 1,5% de las OC del período). El mecanismo de contratación se determina así: (1) si EsCompraAgil = "Sí" → Compra Ágil; (2) si EsTratoDirecto = "Sí" → Trato o Contratación Directa; (3) si DescripcionTipoOC es "Convenio Marco", "Compra Coordinada" o "Proveniente de compra por Cotización" → esa categoría; (4) si DescripcionTipoOC = "Sin emisión automática", se usa el campo ProcedenciaOC para distinguir Convenio Marco, Licitación Pública o Licitación Privada; (5) el resto (p. ej. "Orden de Compra para informar") se agrupa como "Otro / Sin clasificar".</p>
   <p><b>Conversión a USD:</b> ${DATA.fuenteUsd}. Cada OC en CLP se convierte usando el dólar observado vigente el día en que fue enviada (fines de semana y feriados toman el valor del último día hábil publicado); las OC ya denominadas en USD se suman directamente. La tabla siguiente muestra el promedio mensual resultante, solo como referencia — no es la tasa aplicada a cada OC. Promedios mensuales (CLP por USD): ${Object.entries(DATA.usdRates).map(([mes,r])=>`${mes} $${r.toLocaleString('es-CL',{minimumFractionDigits:2,maximumFractionDigits:2})}`).join(' · ')}. Los montos originalmente en UF (CLF) y EUR — una fracción menor del total — no se convierten y se listan aparte como referencia en cada ficha.</p>
   <p><b>Normativa:</b> Ley N° 19.886 de Bases sobre Contratos Administrativos de Suministro y Prestación de Servicios, modificada por la Ley N° 21.634 (vigente desde dic-2024), y su Reglamento (Decreto N° 661 de 2024, Hacienda). Ver definiciones y citas por mecanismo en cada tarjeta.</p>
   <p>Panel independiente del explorador de fichas de Convenio Marco; ambos comparten la paleta institucional pero cubren fuentes de datos distintas (este panel abarca todos los mecanismos de compra, a nivel de Orden de Compra completa; el explorador de Convenio Marco procesa transacciones mensuales agregadas de los 18 convenios de la Tienda ChileCompra).</p>
-  <p><b>Enlaces a fichas:</b> en el detalle de cada mecanismo, los organismos compradores enlazan a su ficha en <a href="https://datos-abiertos.chilecompra.cl/" target="_blank" rel="noopener">Datos Abiertos ChileCompra</a> (<code>ficha-organismo/{código}</code>), usando el mismo <code>CodigoOrganismoPublico</code> de la fuente. Los proveedores enlazan a su ficha (<code>organismos-proveedores/{rut}</code>) usando el RUT más frecuente asociado a su código de proveedor en las OC del período; en un número muy reducido de casos (menos del 0,02% de los proveedores) el proveedor factura desde más de un RUT y el enlace puede no corresponder al mismo.</p>
+  <p><b>Enlaces a fichas:</b> en el detalle de cada mecanismo, los organismos compradores enlazan a su ficha en <a href="https://datos-abiertos.chilecompra.cl/" rel="noopener">Datos Abiertos ChileCompra</a> (<code>ficha-organismo/{código}</code>), usando el mismo <code>CodigoOrganismoPublico</code> de la fuente. Los proveedores enlazan a su ficha (<code>organismos-proveedores/{rut}</code>) usando el RUT más frecuente asociado a su código de proveedor en las OC del período; en un número muy reducido de casos (menos del 0,02% de los proveedores) el proveedor factura desde más de un RUT y el enlace puede no corresponder al mismo.</p>
 `;
 
 // ---------- Encabezados de tabla ordenables (flecha junto al nombre de columna) ----------
@@ -1966,7 +1976,7 @@ function mecxPaint(m, range){
   }
 }
 
-// ---------- Detail page (opens via #detalle=<mecanismo>, target="_blank") ----------
+// ---------- Detail page (opens via #detalle=<mecanismo>,) ----------
 function goHome(e){
   if(e) e.preventDefault();
   history.pushState(null, '', location.pathname + location.search);
@@ -2401,7 +2411,7 @@ function renderDetailPage(m){
       const shown = sortByKeyDir(md.topProveedores, topProvGet, topProvSort).slice(0,15);
       document.getElementById('topProvTbody').innerHTML = shown.map(p=>{
         const nombreCell = p.rut
-          ? `<a href="https://datos-abiertos.chilecompra.cl/organismos-proveedores/${encodeURIComponent(p.rut)}" target="_blank" rel="noopener" title="Ver ficha del proveedor en Datos Abiertos ChileCompra">${esc(p.nombre)}</a>`
+          ? `<a href="https://datos-abiertos.chilecompra.cl/organismos-proveedores/${encodeURIComponent(p.rut)}" rel="noopener" title="Ver ficha del proveedor en Datos Abiertos ChileCompra">${esc(p.nombre)}</a>`
           : esc(p.nombre);
         return `<tr><td>${nombreCell}</td><td class="num">${fmt(p.nOc)}</td><td class="num">${fmtUsd(p.montoUsd)}</td></tr>`;
       }).join('') || '<tr><td colspan="3">Sin datos</td></tr>';
@@ -2415,7 +2425,7 @@ function renderDetailPage(m){
       const shown = sortByKeyDir(md.topOrganismos, topOrgGet, topOrgSort).slice(0,15);
       document.getElementById('topOrgTbody').innerHTML = shown.map(o=>{
         const nombreCell = o.codigo
-          ? `<a href="https://datos-abiertos.chilecompra.cl/ficha-organismo/${encodeURIComponent(o.codigo)}" target="_blank" rel="noopener" title="Ver ficha del organismo en Datos Abiertos ChileCompra">${esc(o.nombre)}</a>`
+          ? `<a href="https://datos-abiertos.chilecompra.cl/ficha-organismo/${encodeURIComponent(o.codigo)}" rel="noopener" title="Ver ficha del organismo en Datos Abiertos ChileCompra">${esc(o.nombre)}</a>`
           : esc(o.nombre);
         return `<tr><td>${nombreCell}</td><td class="num">${fmt(o.nOc)}</td><td class="num">${fmtUsd(o.montoUsd)}</td></tr>`;
       }).join('') || '<tr><td colspan="3">Sin datos</td></tr>';
@@ -2456,7 +2466,7 @@ function renderDetailPage(m){
       const rows = sortByKeyDir((md.causalOrg||[]).filter(r=>r.causal===sel), causalOrgGet, causalOrgSort);
       tbody.innerHTML = rows.map(r=>{
         const nombreCell = r.codigo
-          ? `<a href="https://datos-abiertos.chilecompra.cl/ficha-organismo/${encodeURIComponent(r.codigo)}" target="_blank" rel="noopener">${esc(r.nombre)}</a>`
+          ? `<a href="https://datos-abiertos.chilecompra.cl/ficha-organismo/${encodeURIComponent(r.codigo)}" rel="noopener">${esc(r.nombre)}</a>`
           : esc(r.nombre);
         return `<tr><td>${nombreCell}</td><td class="num">${fmt(r.nOc)}</td><td class="num">${fmtUsd(r.montoUsd)}</td></tr>`;
       }).join('') || '<tr><td colspan="3">Sin datos para esta causal</td></tr>';
@@ -2523,7 +2533,7 @@ function renderDetailPage(m){
       const filtered = all.length !== raw.length;
       const shown = sortByKeyDir(all, orgOcGet, orgOcSort).slice(0,200);
       document.getElementById('orgOcDetalleTbody').innerHTML = shown.map(o=>
-        `<tr><td>${cpFmtFecha(o[1])}</td><td><a href="${mpLink(o[0])}" target="_blank" rel="noopener" title="Ver ficha de la OC en Mercado Público (incluye botón de descarga PDF)">${esc(o[0])}</a></td><td>${esc(o[8]||'—')}</td><td>${esc(o[3])}</td><td>${esc(o[5])}</td><td>${esc(o[7]||'')}</td><td class="num">${fmtUsd(o[6])}</td></tr>`
+        `<tr><td>${cpFmtFecha(o[1])}</td><td><a href="${mpLink(o[0])}" rel="noopener" title="Ver ficha de la OC en Mercado Público (incluye botón de descarga PDF)">${esc(o[0])}</a></td><td>${esc(o[8]||'—')}</td><td>${esc(o[3])}</td><td>${esc(o[5])}</td><td>${esc(o[7]||'')}</td><td class="num">${fmtUsd(o[6])}</td></tr>`
       ).join('') || '<tr><td colspan="7">Sin órdenes de compra para este filtro</td></tr>';
       document.getElementById('orgOcDetalleCapNote').textContent = all.length>200
         ? ('Mostrando 200 de ' + fmt(all.length) + ' órdenes de compra' + (filtered ? ' con los filtros aplicados' : '') + ', según el orden elegido arriba. El Excel incluye todas.')
@@ -2684,7 +2694,7 @@ function renderDetailPage(m){
       const orgRows = orgs.map(o => `<tr class="cc-rep-org${o.cod === orgSel ? ' sel' : ''}" data-org="${esc(o.cod)}" style="cursor:pointer;" title="Clic para ver solo las OC de este organismo"><td>${esc(o.nombre)}</td><td title="${esc([...o.ruts].sort().join(', '))}">${esc(rutTxt(o.ruts))}</td><td class="num">${ccOcLink('proc:'+cur.codigo+':'+o.cod, o.n, 'Proceso '+cur.codigo+' · '+o.nombre, [cur], o.cod)}</td><td class="num">${fmtUsd(o.usd)}</td><td class="num">${totUsd > 0 ? (100 * o.usd / totUsd).toFixed(1).replace('.', ',') : '0'}%</td><td class="num">${fmt(o.prov.size)}</td></tr>`).join('');
       const ocRows = lista.slice(0, lim).map(i => {
         const prods = ccProductosOc(i).join('; '), cod = ccV(T, c.cod, i), u = ccV(T, c.usd, i);
-        return `<tr><td>${esc(ccV(T, c.org, i))}</td><td>${esc(ccV(T, c.rutU, i))}</td><td><a href="${esc(mpLink(cod))}" target="_blank" rel="noopener">${esc(cod)}</a></td><td>${esc(fFecha(ccV(T, c.fe, i)))}</td><td>${esc(ccV(T, c.prov, i))}</td><td>${esc(ccV(T, c.rutP, i))}</td><td class="num">${fmtUsd(u)}</td><td title="${esc(prods)}" style="white-space:normal;min-width:260px;max-width:420px;">${esc(prods.length > 220 ? prods.slice(0, 217) + '…' : prods)}</td></tr>`;
+        return `<tr><td>${esc(ccV(T, c.org, i))}</td><td>${esc(ccV(T, c.rutU, i))}</td><td><a href="${esc(mpLink(cod))}" rel="noopener">${esc(cod)}</a></td><td>${esc(fFecha(ccV(T, c.fe, i)))}</td><td>${esc(ccV(T, c.prov, i))}</td><td>${esc(ccV(T, c.rutP, i))}</td><td class="num">${fmtUsd(u)}</td><td title="${esc(prods)}" style="white-space:normal;min-width:260px;max-width:420px;">${esc(prods.length > 220 ? prods.slice(0, 217) + '…' : prods)}</td></tr>`;
       }).join('');
       const nombreOrg = orgSel ? (st.get(orgSel) || {}).nombre : '';
       out.innerHTML = `
@@ -2949,7 +2959,7 @@ function renderBarList(container, items, fmtVal, color, hrefFn, isActiveFn, onCl
     const pct = Math.max(2, 100*it.value/max);
     const href = hrefFn ? hrefFn(it) : null;
     const nameHtml = href
-      ? `<a href="${href}" target="_blank" rel="noopener">${esc(it.label)}</a>`
+      ? `<a href="${href}" rel="noopener">${esc(it.label)}</a>`
       : esc(it.label);
     const active = isActiveFn && isActiveFn(it);
     const rowStyle = active ? 'cursor:default; background:rgba(11,120,204,0.08); border-radius:6px;' : (clickable ? 'cursor:pointer;' : 'cursor:default;');
@@ -3251,7 +3261,7 @@ function updateCompradorResults(){
     const rut = CP.provRuts[provIdxTx];
     const nombre = CP.provNames[provIdxTx];
     const nombreCell = rut
-      ? `<a href="https://datos-abiertos.chilecompra.cl/organismos-proveedores/${encodeURIComponent(rut)}" target="_blank" rel="noopener">${esc(nombre)}</a>`
+      ? `<a href="https://datos-abiertos.chilecompra.cl/organismos-proveedores/${encodeURIComponent(rut)}" rel="noopener">${esc(nombre)}</a>`
       : esc(nombre);
     const rubroCell = rIdx!=null ? esc(CP.rubroNames[rIdx]) : '';
     const claseCell = (clsIdx!=null && clsIdx>=0) ? `<span title="${esc(CP_FAM[CP_CLS[clsIdx][1]][1])}">${esc(CP_CLS[clsIdx][2])}</span>` : '';
@@ -3259,7 +3269,7 @@ function updateCompradorResults(){
     const unidadCell = hasUnidad ? `<td>${esc(unidadLabel(unitIdx))}</td>` : '';
     const fechaCell = diaIdx ? cpFmtFecha(diaIdx) : '';
     const procesoCell = (procIdxTx!=null && procIdxTx>=0 && CP.procesoCodes) ? esc(CP.procesoCodes[procIdxTx]) : '';
-    const ocCell = codigoOc ? `<a href="${esc(mpLink(codigoOc))}" target="_blank" rel="noopener">${esc(codigoOc)}</a>` : '';
+    const ocCell = codigoOc ? `<a href="${esc(mpLink(codigoOc))}" rel="noopener">${esc(codigoOc)}</a>` : '';
     return `<tr><td>${ocCell}</td><td>${fechaCell}</td><td>${esc(CP_MESES[mIdx])}</td><td>${esc(CP_MECS[mcIdx])}</td><td>${rubroCell}</td><td>${claseCell}</td><td>${prodCell}</td>${unidadCell}<td>${nombreCell}</td><td>${procesoCell}</td><td class="num">${fmtUsd(monto)}</td></tr>`;
   }).join('');
   const nCols = 10 + (hasUnidad ? 1 : 0);
@@ -3352,7 +3362,7 @@ function updateCompradorResults(){
       <div>
         <h1 style="font-size:20px; margin:0 0 4px;">${esc(org.nombre)}</h1>
         <p style="margin:0 0 4px; font-size:12px; color:var(--text-secondary); font-weight:600;">${esc(sectorRegionTxt)}</p>
-        <span class="cita">Filtro activo: ${esc(filtroTxt)} · <a href="https://datos-abiertos.chilecompra.cl/ficha-organismo/${encodeURIComponent(codigo)}" target="_blank" rel="noopener">Ver ficha del organismo</a></span>
+        <span class="cita">Filtro activo: ${esc(filtroTxt)} · <a href="https://datos-abiertos.chilecompra.cl/ficha-organismo/${encodeURIComponent(codigo)}" rel="noopener">Ver ficha del organismo</a></span>
       </div>
     </div>
     <div class="kpis" style="margin:0 0 1.25rem;">
@@ -3779,7 +3789,7 @@ function renderAsesorPage(payload){
   const h = document.getElementById('asesorHost');
   const go = () => window.AsesorCompras && window.AsesorCompras.init(h, payload || '');
   if(window.AsesorCompras) return go();
-  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r8';
+  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r9';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el asesor. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -3908,12 +3918,12 @@ function updateRubroResults(){
       if(unitSet){
         const ocFilenameU = 'detalle_oc_'+slug(CP_UNI[o.unidad]||'unidad').slice(0,40)+'_'+rubroSlug+'.csv';
         const ocLinkU = `<a href="javascript:void(0)" onclick="downloadRubroOcDetalle('${rubroSel}', '${o.codigo}', '${ocFilenameU}', 'u:${o.unidad}')" title="Descargar el detalle de estas OC (CSV)">${fmt(o.nOc)}</a>`;
-        return `<tr><td>${esc(CP_UNI[o.unidad]||'')}</td><td><a href="#comprador=${encodeURIComponent(o.codigo)}&unidad=${o.unidadParam}" target="_blank" rel="noopener" title="Ver esta unidad en el explorador por comprador">${esc(o.nombre)}</a></td><td>${esc((CP.organismos[o.codigo]||{}).sector || 'Sin sector asignado')}</td><td class="num">${ocLinkU}</td><td class="num">${fmtUsd(o.montoUsd)}</td></tr>`;
+        return `<tr><td>${esc(CP_UNI[o.unidad]||'')}</td><td><a href="#comprador=${encodeURIComponent(o.codigo)}&unidad=${o.unidadParam}" rel="noopener" title="Ver esta unidad en el explorador por comprador">${esc(o.nombre)}</a></td><td>${esc((CP.organismos[o.codigo]||{}).sector || 'Sin sector asignado')}</td><td class="num">${ocLinkU}</td><td class="num">${fmtUsd(o.montoUsd)}</td></tr>`;
       }
       const sectorCell = esc((CP.organismos[o.codigo]||{}).sector || 'Sin sector asignado');
       const ocFilename = 'detalle_oc_'+slug(o.nombre).slice(0,50)+'_'+rubroSlug+'.csv';
       const ocLink = `<a href="javascript:void(0)" onclick="downloadRubroOcDetalle('${rubroSel}', '${o.codigo}', '${ocFilename}')" title="Descargar el detalle de estas OC (CSV)">${fmt(o.nOc)}</a>`;
-      return `<tr><td><a href="#comprador=${encodeURIComponent(o.codigo)}" target="_blank" rel="noopener">${esc(o.nombre)}</a></td><td>${esc(rubroNombre)}</td><td>${sectorCell}</td><td class="num">${ocLink}</td><td class="num">${fmtUsd(o.montoUsd)}</td></tr>`;
+      return `<tr><td><a href="#comprador=${encodeURIComponent(o.codigo)}" rel="noopener">${esc(o.nombre)}</a></td><td>${esc(rubroNombre)}</td><td>${sectorCell}</td><td class="num">${ocLink}</td><td class="num">${fmtUsd(o.montoUsd)}</td></tr>`;
     }).join('');
 
     let capNote = '';
@@ -4118,7 +4128,7 @@ function nwMonHtml(){
   const trT = conTr.reduce((s,r)=>s+r.tf.usd,0), trClp = conTr.reduce((s,r)=>s+r.tf.clp,0), ejT = conTr.reduce((s,r)=>s+r.ejec,0), dispT = conTr.reduce((s,r)=>s+Math.max(0,r.disp),0), nSobre = conTr.filter(r=>r.disp<0).length, ejSin = sinTr.reduce((s,r)=>s+r.ejec,0);
   const bar = r => { if(r.pctEj==null) return '—'; const c = r.pctEj>=100 ? 'var(--cc-red,#c0392b)' : r.pctEj>=thr.eje ? 'var(--cc-orange,#d68910)' : cssvar('--cc-blue'); return `<div style="display:flex;align-items:center;gap:6px;min-width:120px;"><div style="flex:1;height:8px;background:rgba(0,0,0,.08);border-radius:4px;overflow:hidden;"><div style="width:${Math.min(100,r.pctEj).toFixed(0)}%;height:100%;background:${c};"></div></div><b style="font-size:11.5px;">${r.pctEj.toLocaleString('es-CL',{maximumFractionDigits:0})}%</b></div>`; };
   const trTable = `<div class="table-wrap pac-tw" style="max-height:none;"><table class="dt"><thead><tr><th>Organismo</th><th>Transfiere (decreto)</th><th class="num">Transferido 2026 (CLP)</th><th class="num">Transferido 2026 (US$)</th><th class="num">Ejecutado 2026 (US$)</th><th class="num">Disponible (US$)</th><th>% ejecutado</th></tr></thead><tbody>
-    ${out.slice().sort((a,b)=>b.tf.usd-a.tf.usd || b.ejec-a.ejec).map(r=>`<tr><td>${r.codigo ? `<a href="#comprador=${encodeURIComponent(r.codigo)}" target="_blank" rel="noopener">${esc(r.razon)}</a>` : esc(r.razon)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.rut)} · ${esc(r.cond)}</span></td><td style="font-size:11.5px;">${r.tf.L.length ? r.tf.L.map(t=>esc(t.e)+'<br><span style="color:var(--text-secondary);">decreto '+esc(t.d)+(t.y26?'':' · no es 2026')+'</span>').join('<hr style="border:0;border-top:1px solid rgba(0,0,0,.08);margin:3px 0;">') : '<span style="color:var(--text-secondary);">Sin transferencia en el extracto</span>'}</td><td class="num">${r.tf.t26.length ? '$'+fmt(r.tf.clp) : '—'}</td><td class="num">${r.tf.t26.length ? fmtUsd(r.tf.usd) : '—'}</td><td class="num">${r.ejec ? fmtUsd(r.ejec)+'<br><span style="font-size:10.5px;color:var(--text-secondary);">'+fmt(r.ocEj)+' OC</span>' : '—'}</td><td class="num" style="${r.disp!=null && r.disp<0 ? 'color:var(--cc-red,#c0392b);font-weight:600;' : ''}">${r.disp!=null ? (r.disp<0 ? '−'+fmtUsd(-r.disp) : fmtUsd(r.disp)) : '—'}</td><td>${bar(r)}</td></tr>`).join('')}
+    ${out.slice().sort((a,b)=>b.tf.usd-a.tf.usd || b.ejec-a.ejec).map(r=>`<tr><td>${r.codigo ? `<a href="#comprador=${encodeURIComponent(r.codigo)}" rel="noopener">${esc(r.razon)}</a>` : esc(r.razon)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.rut)} · ${esc(r.cond)}</span></td><td style="font-size:11.5px;">${r.tf.L.length ? r.tf.L.map(t=>esc(t.e)+'<br><span style="color:var(--text-secondary);">decreto '+esc(t.d)+(t.y26?'':' · no es 2026')+'</span>').join('<hr style="border:0;border-top:1px solid rgba(0,0,0,.08);margin:3px 0;">') : '<span style="color:var(--text-secondary);">Sin transferencia en el extracto</span>'}</td><td class="num">${r.tf.t26.length ? '$'+fmt(r.tf.clp) : '—'}</td><td class="num">${r.tf.t26.length ? fmtUsd(r.tf.usd) : '—'}</td><td class="num">${r.ejec ? fmtUsd(r.ejec)+'<br><span style="font-size:10.5px;color:var(--text-secondary);">'+fmt(r.ocEj)+' OC</span>' : '—'}</td><td class="num" style="${r.disp!=null && r.disp<0 ? 'color:var(--cc-red,#c0392b);font-weight:600;' : ''}">${r.disp!=null ? (r.disp<0 ? '−'+fmtUsd(-r.disp) : fmtUsd(r.disp)) : '—'}</td><td>${bar(r)}</td></tr>`).join('')}
     <tr style="font-weight:700;"><td colspan="2">Total organismos con transferencia 2026 (${fmt(conTr.length)})</td><td class="num">$${fmt(trClp)}</td><td class="num">${fmtUsd(trT)}</td><td class="num">${fmtUsd(ejT)}</td><td class="num">${fmtUsd(dispT)}<br><span style="font-size:10.5px;font-weight:400;">sin sobrejecuciones</span></td><td>${trT>0 ? (100*ejT/trT).toLocaleString('es-CL',{maximumFractionDigits:0})+'%' : '—'}</td></tr>
     </tbody></table></div>
     <p class="block-note" style="margin:6px 0 0;">Transferido: transferencias con fecha de decreto en 2026 del Registro de personas jurídicas receptoras de fondos públicos (Ley 19.862), extracción del ${esc(NUEVOS_TRANSF.extraccion)}; en CLP, convertidas a US$ con el dólar promedio del mes del decreto. Ejecutado: OC de ene a oct 2026 del organismo (octubre parcial), en US$. La extracción trae solo la última transferencia de cada organismo, de modo que lo transferido puede estar subestimado. «Disponible» es una aproximación: el organismo puede comprar con otros recursos y no todo lo transferido se destina a compras en Mercado Público. Los decretos de 2025 no se cuentan como transferencias 2026${conTr.length<out.length ? ' (se ven en la columna «Transfiere»)' : ''}.</p>`;
@@ -4159,14 +4169,14 @@ function nwMonHtml(){
       <div class="filter-field" style="align-self:flex-end;"><button type="button" class="dl-btn" style="font-size:12px;padding:7px 14px;" onclick="nwThrSet()">Aplicar umbrales</button> <button type="button" class="dl-btn" style="font-weight:500;" onclick="nwThrReset()">Restablecer</button></div>
     </div>
     <div class="table-wrap pac-tw" style="max-height:none;"><table class="dt"><thead><tr><th>Organismo</th><th>Semáforo</th><th class="num">Alertas</th><th class="num">Compras ${esc(lastLbl)}</th><th class="num">Promedio mensual previo</th><th class="num">Acumulado 12 meses</th><th>Mayor mes</th><th class="num">Meses con compras</th><th>Evolución mensual</th></tr></thead><tbody>
-      ${out.slice().sort((a,b)=>({alta:0,media:1,ok:2,sinc:3}[a.sem]-{alta:0,media:1,ok:2,sinc:3}[b.sem]) || b.acc-a.acc).map(r=>`<tr><td>${r.codigo ? `<a href="#comprador=${encodeURIComponent(r.codigo)}" target="_blank" rel="noopener">${esc(r.razon)}</a>` : esc(r.razon)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.rut)} · ${esc(r.cond)}</span></td><td>${badge(r.sem)}</td><td class="num">${r.nAlta||r.nMedia ? `${r.nAlta} alta${r.nAlta===1?'':'s'} · ${r.nMedia} media${r.nMedia===1?'':'s'}` : '—'}</td>
+      ${out.slice().sort((a,b)=>({alta:0,media:1,ok:2,sinc:3}[a.sem]-{alta:0,media:1,ok:2,sinc:3}[b.sem]) || b.acc-a.acc).map(r=>`<tr><td>${r.codigo ? `<a href="#comprador=${encodeURIComponent(r.codigo)}" rel="noopener">${esc(r.razon)}</a>` : esc(r.razon)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.rut)} · ${esc(r.cond)}</span></td><td>${badge(r.sem)}</td><td class="num">${r.nAlta||r.nMedia ? `${r.nAlta} alta${r.nAlta===1?'':'s'} · ${r.nMedia} media${r.nMedia===1?'':'s'}` : '—'}</td>
         <td class="num">${r.totOc ? `${fmt(r.lastOc)} OC<br><span style="font-size:10.5px;color:var(--text-secondary);">${fmtUsd(r.lastM)}</span>` : '—'}</td><td class="num">${r.prevMean ? fmtUsd(r.prevMean) : '—'}</td><td class="num">${r.totOc ? fmtUsd(r.acc) : '—'}</td><td>${r.mxI>=0 ? `${esc(mlab(r.mxI))}<br><span style="font-size:10.5px;color:var(--text-secondary);">${fmtUsd(r.mx)}</span>` : '—'}</td><td class="num">${fmt(r.nMeses)}</td><td>${r.totOc ? nwSpark(r.m) : ''}</td></tr>`).join('')}
     </tbody></table></div>
     <h4 style="font-size:13px;margin:14px 0 4px;color:var(--cc-dark);">Transferido en 2026, ejecutado y disponible</h4>
     ${trTable}
     <h4 style="font-size:13px;margin:14px 0 4px;color:var(--cc-dark);">Alertas (${fmt(alerts.length)})</h4>
     <div class="table-wrap pac-tw" style="max-height:420px;"><table class="dt"><thead><tr><th>Gravedad</th><th>Organismo</th><th>Indicador</th><th>Mes</th><th class="num">Monto (USD)</th><th>Detalle</th></tr></thead><tbody>
-      ${alerts.map(a=>`<tr><td>${badge(a.sev)}</td><td>${esc(a.razon)}</td><td>${esc(a.tipo)}</td><td>${esc(mlab(a.mes))}</td><td class="num">${a.valor ? fmtUsd(a.valor) : '—'}</td><td style="max-width:420px;">${a.oc ? `<a href="${esc(mpLink(a.oc))}" target="_blank" rel="noopener">${esc(a.detalle)}</a>` : esc(a.detalle)}</td></tr>`).join('') || '<tr><td colspan="6" style="padding:12px;">Sin alertas con los umbrales actuales.</td></tr>'}
+      ${alerts.map(a=>`<tr><td>${badge(a.sev)}</td><td>${esc(a.razon)}</td><td>${esc(a.tipo)}</td><td>${esc(mlab(a.mes))}</td><td class="num">${a.valor ? fmtUsd(a.valor) : '—'}</td><td style="max-width:420px;">${a.oc ? `<a href="${esc(mpLink(a.oc))}" rel="noopener">${esc(a.detalle)}</a>` : esc(a.detalle)}</td></tr>`).join('') || '<tr><td colspan="6" style="padding:12px;">Sin alertas con los umbrales actuales.</td></tr>'}
     </tbody></table></div>
     <h4 style="font-size:13px;margin:14px 0 4px;color:var(--cc-dark);">Monto mensual por organismo (miles de US$)</h4>
     <p class="block-note" style="margin-top:0;">Cada celda es el monto del mes; el color es relativo al mes de mayor monto de cada organismo. Pasa el cursor para ver las OC y el monto exacto.</p>
@@ -4237,7 +4247,7 @@ function nuevosWebHtml(mesRange, nRange){
   const cm = {}; rows.forEach(r=>{ const k = r.causal; (cm[k] = cm[k] || {causal:k, art:r.art, n:0, nOc:0, m:0, cond:r.cond}).n++; cm[k].nOc += r.nOc; cm[k].m += r.montoUsd; });
   const causales = Object.values(cm).sort((a,b)=>b.n-a.n);
   const viaRow = (v,lab) => { const g = c => (v.find(x=>x[1]===c)||[0,0,0])[2], vv = g('Voluntario elegible')+g('Voluntario no elegible'), K = c => 'via|'+lab+'|'+c; return `<tr><td>${lab}</td><td class="num">${nl(K('Obligado'),g('Obligado'))}</td><td class="num">${nl(K('Voluntario elegible'),g('Voluntario elegible'))}</td><td class="num">${nl(K('Voluntario no elegible'),g('Voluntario no elegible'))}</td><td class="num">${nl(K('*'),sum(v))}</td><td class="num">${nl(K('V'),vv,pct(vv, sum(v)))}</td></tr>`; };
-  const nwPac = r => r.pac ? (r.pac.con ? `<a href="#pac26=${encodeURIComponent(r.pac.key)}" target="_blank" rel="noopener">Sí</a> · ${fmt(r.pac.proy)} proy. · ${pacM(r.pac.plan)}` : 'No') : '—';
+  const nwPac = r => r.pac ? (r.pac.con ? `<a href="#pac26=${encodeURIComponent(r.pac.key)}" rel="noopener">Sí</a> · ${fmt(r.pac.proy)} proy. · ${pacM(r.pac.plan)}` : 'No') : '—';
   const hasDet = rows.some(r=>r.det);
   const mecUsed = CP_MECS.map((n,i)=>i).filter(i=>rows.some(r=>r.mec.some(m=>m.n===CP_MECS[i])));
   const mecCell = (r,i) => { const m = r.mec.find(x=>x.n===CP_MECS[i]); return m ? `${fmt(m.nOc)} OC<br><span style="font-size:10.5px;color:var(--text-secondary);">${fmtUsd(m.montoUsd)} · ${pct(m.montoUsd, r.montoUsd)}</span>` : '—'; };
@@ -4248,7 +4258,7 @@ function nuevosWebHtml(mesRange, nRange){
         <tr style="font-weight:700;"><td>Total</td>${mecUsed.map(i=>{ const a = conOC.reduce((t,r)=>{ const m = r.mec.find(x=>x.n===CP_MECS[i]); return {n:t.n+(m?m.nOc:0), u:t.u+(m?m.montoUsd:0)}; },{n:0,u:0}); return `<td class="num">${fmt(a.n)} OC<br><span style="font-size:10.5px;font-weight:400;">${fmtUsd(a.u)} · ${pct(a.u, monto)}</span></td>`; }).join('')}<td class="num">${fmt(nOc)} OC<br><span style="font-size:10.5px;font-weight:400;">${fmtUsd(monto)}</span></td></tr>
       </tbody></table></div>` : '';
   const tbl = rows.map((r,i)=>`<tr class="nw-row" style="cursor:pointer;" onclick="nwSelect(${i})" title="Haz clic para ver la clasificación y el detalle de compras del organismo">
-      <td>${r.codigo ? `<a href="#comprador=${encodeURIComponent(r.codigo)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(r.razon)}</a>` : esc(r.razon)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.rut)} · ${esc(r.tipo||'tipo no informado')}${r.region ? ' · '+esc(r.region) : ''}</span></td>
+      <td>${r.codigo ? `<a href="#comprador=${encodeURIComponent(r.codigo)}" rel="noopener" onclick="event.stopPropagation()">${esc(r.razon)}</a>` : esc(r.razon)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.rut)} · ${esc(r.tipo||'tipo no informado')}${r.region ? ' · '+esc(r.region) : ''}</span></td>
       <td>${esc(r.cond)}</td><td>${esc(r.causal)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(r.art)}</span></td><td>${esc(r.conf)}</td>
       <td class="num">${fmt(r.nUsuarios||0)}</td><td class="num">${r.nOc ? fmt(r.nOc) : '—'}</td><td class="num">${r.nOc ? fmtUsd(r.montoUsd) : '—'}</td><td>${nwPac(r)}</td>
       <td style="max-width:260px;">${r.mot ? esc(r.mot) : '<span style="color:var(--text-secondary);">Sin observaciones</span>'}</td></tr>
@@ -4320,7 +4330,7 @@ function renderNuevosPage(){
 
   function buildTableRows(){
     return sortedRows().map(r=>`<tr>
-      <td><a href="#comprador=${encodeURIComponent(r.codigo)}" target="_blank" rel="noopener">${esc(r.nombre)}</a></td>
+      <td><a href="#comprador=${encodeURIComponent(r.codigo)}" rel="noopener">${esc(r.nombre)}</a></td>
       <td>${esc(r.sector||'')}</td>
       <td>${esc(r.rut||'')}</td>
       <td class="num">${fmt(r.nOc)}</td>
@@ -4744,8 +4754,8 @@ function renderEconomiaCircularPage(){
         (5) El indicador del reporte muestra ${fmt(E.compradores)} compradores, mientras que la tabla de compradores trae ${fmt(E.comp.length)} filas con ${fmt(new Set(E.comp.map(r=>r[1])).size)} RUT distintos; el reporte no explica la diferencia.
         (6) «Sin desglosar» es la diferencia entre las reservas de cada comprador y la suma de sus cuatro estados, calculada aquí.
         (7) Las páginas 7 y 8 del reporte («Listado de Reservas Completas e Incompletas» y «Listado de Reservas Pendientes») se incorporaron tal cual, con ${fmt(ECO_DET.p7.rows.length)} y ${fmt(ECO_DET.p8.rows.length)} filas. En la página 8 el reporte trae algunos nombres con secuencias de código (por ejemplo «MU\\U00F1OZ»); aquí se muestran como letras (MUÑOZ). Los datos de la página 8 corresponden a funcionarios compradores y se muestran como los publica el reporte.
-        (8) La base normativa de este módulo no se verificó aquí; confirmar en <a href="https://www.chilecompra.cl" target="_blank" rel="noopener">chilecompra.cl</a>.
-        Fuente: <a href="${esc(E.url)}" target="_blank" rel="noopener">reporte Power BI «Economía Circular»</a>, ChileCompra, actualizado ${esc(E.act)}. Es una captura fija: para actualizarla hay que volver a extraer los datos del reporte.
+        (8) La base normativa de este módulo no se verificó aquí; confirmar en <a href="https://www.chilecompra.cl" rel="noopener">chilecompra.cl</a>.
+        Fuente: <a href="${esc(E.url)}" rel="noopener">reporte Power BI «Economía Circular»</a>, ChileCompra, actualizado ${esc(E.act)}. Es una captura fija: para actualizarla hay que volver a extraer los datos del reporte.
       </p>
     </section>`;
 
@@ -4785,7 +4795,7 @@ function renderEconomiaCircularPage(){
   // --- tablas filtrables y ordenables
   const LIMIT = 50;
   function otrosOf(r){ return r[8] - r[4] - r[5] - r[6] - r[7]; }
-  function nameCell(r){ return r[3] ? `<a href="#comprador=${encodeURIComponent(r[3])}" target="_blank" rel="noopener">${esc(r[2])}</a>` : esc(r[2]); }
+  function nameCell(r){ return r[3] ? `<a href="#comprador=${encodeURIComponent(r[3])}" rel="noopener">${esc(r[2])}</a>` : esc(r[2]); }
   function fillSel(id, names, rows){
     const sel = document.getElementById(id);
     const cnt = names.map((_,i)=>rows.filter(r=>r[0]===i).length);
@@ -5274,7 +5284,7 @@ function pacRenderResults(){
   el.innerHTML = `<div class="kpis" style="margin:8px 0 12px;"><div class="kpi k-prov"><div class="kpi-body"><div class="lbl">Líneas encontradas</div><div class="val">${fmt(n)}</div></div></div>
     <div class="kpi k-monto"><div class="kpi-body"><div class="lbl">Monto estimado</div><div class="val">${pacM(R.total)}</div></div></div></div>
     <div class="table-wrap pac-tw" style="max-height:480px;"><table class="dt"><thead><tr><th>Año</th><th>Organismo</th><th>Ítem</th><th>Proyecto</th><th>Mecanismo</th><th class="num">Cantidad</th><th class="num">Unitario (CLP)</th><th class="num">Total (CLP)</th><th>Banderas</th></tr></thead><tbody>
-    ${rows.map(x => `<tr><td>${x.y}</td><td><a href="${x.y === 2026 ? '#pac26=c' : '#pac='}${encodeURIComponent(x.oc)}" target="_blank" rel="noopener">${esc(x.on)}</a><br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.un)}</span></td><td title="${esc(x.ds)}">${esc(x.it)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.cod)} · ${esc(x.cl)}</span></td><td>${esc(x.pr)}</td><td>${esc(x.mec)}</td><td class="num">${fmt(x.q)}</td><td class="num">${fmt(x.pu)}</td><td class="num">${fmt(x.t)}</td><td>${esc(pacFlagTxt(x.f))}</td></tr>`).join('') || '<tr><td colspan="9" style="padding:12px;">Sin resultados</td></tr>'}</tbody></table></div>
+    ${rows.map(x => `<tr><td>${x.y}</td><td><a href="${x.y === 2026 ? '#pac26=c' : '#pac='}${encodeURIComponent(x.oc)}" rel="noopener">${esc(x.on)}</a><br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.un)}</span></td><td title="${esc(x.ds)}">${esc(x.it)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(x.cod)} · ${esc(x.cl)}</span></td><td>${esc(x.pr)}</td><td>${esc(x.mec)}</td><td class="num">${fmt(x.q)}</td><td class="num">${fmt(x.pu)}</td><td class="num">${fmt(x.t)}</td><td>${esc(pacFlagTxt(x.f))}</td></tr>`).join('') || '<tr><td colspan="9" style="padding:12px;">Sin resultados</td></tr>'}</tbody></table></div>
     <div class="pac-pager"><span>Mostrando ${n ? from + 1 : 0}–${to} de ${fmt(n)}, ordenadas por monto</span><span><button type="button" class="dl-btn" ${PS.resPage ? '' : 'disabled'} onclick="PS.resPage--;pacRenderResults()">Anterior</button> <button type="button" class="dl-btn" ${PS.resPage < pages - 1 ? '' : 'disabled'} onclick="PS.resPage++;pacRenderResults()">Siguiente</button></span></div>
     <div class="dl-row" style="gap:6px;"><button type="button" class="dl-btn" onclick="pacResDownload('xlsx',this)">Descargar todas las líneas encontradas (Excel)</button><button type="button" class="dl-btn" style="font-weight:500;" onclick="pacResDownload('csv',this)">CSV</button></div>`;
 }
@@ -5320,7 +5330,7 @@ function pacRenderBottom(){
       </tbody></table></div>
       <h3 class="pac-h3" style="margin-top:16px;">Las ${fl.length} líneas extremas, ordenadas por monto</h3>
       <div class="table-wrap pac-tw" style="max-height:340px;"><table class="dt"><thead><tr><th>Año</th><th>Organismo</th><th>Código proceso</th><th>Ítem</th><th class="num">Cantidad</th><th class="num">Total (CLP)</th><th>Banderas</th></tr></thead><tbody>
-      ${frows.map(x => `<tr><td>${x[0]}</td><td><a href="#pac=${encodeURIComponent(x[1])}" target="_blank" rel="noopener">${esc(x[2])}</a></td><td>${esc(x[3])}</td><td>${esc(x[4])}</td><td class="num">${fmt(x[5])}</td><td class="num">${fmt(x[7])}</td><td>${esc(x[8])}</td></tr>`).join('')}</tbody></table></div>
+      ${frows.map(x => `<tr><td>${x[0]}</td><td><a href="#pac=${encodeURIComponent(x[1])}" rel="noopener">${esc(x[2])}</a></td><td>${esc(x[3])}</td><td>${esc(x[4])}</td><td class="num">${fmt(x[5])}</td><td class="num">${fmt(x[7])}</td><td>${esc(x[8])}</td></tr>`).join('')}</tbody></table></div>
       <div id="dlPacFlags"></div>
     </section>
     <section class="block" id="pacOpen">
@@ -5598,7 +5608,7 @@ function p6RenderDetail(r){
   const itT = p6PageTable([{h: 'Proyecto'}, {h: 'Ítem'}, {h: 'Unidad de compra'}, {h: 'Mecanismo'}, {h: 'Clasificación'}, {h: 'Cantidad', num: 1}, {h: 'Unitario (CLP)', num: 1}, {h: 'Total (CLP)', num: 1}, {h: 'Banderas'}], IT, P6.ipage, 25, 'p6IPage');
   // OC
   const oq = normTxt(P6.oq.trim()), OC = D.ocs.filter(o => !oq || normTxt(o.oc + ' ' + o.k + ' ' + o.pv + ' ' + o.rp + ' ' + o.un + ' ' + o.mec).includes(oq)).sort((a, b) => b.day - a.day || b.t - a.t);
-  OC.forEach(o => { o.__html = `<tr><td><a href="${esc(mpLink(o.oc))}" target="_blank" rel="noopener">${esc(o.oc)}</a></td><td>${esc(o.k)}</td><td>${p6Day(o.day)}</td><td>${esc(o.un)}</td><td>${esc(o.pv)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(o.rp)}</span></td><td>${esc(o.mec)}</td><td class="num">${fmt(o.t)}</td></tr>`; });
+  OC.forEach(o => { o.__html = `<tr><td><a href="${esc(mpLink(o.oc))}" rel="noopener">${esc(o.oc)}</a></td><td>${esc(o.k)}</td><td>${p6Day(o.day)}</td><td>${esc(o.un)}</td><td>${esc(o.pv)}<br><span style="font-size:10.5px;color:var(--text-secondary);">${esc(o.rp)}</span></td><td>${esc(o.mec)}</td><td class="num">${fmt(o.t)}</td></tr>`; });
   const ocT = p6PageTable([{h: 'OC'}, {h: 'Proyecto PAC'}, {h: 'Fecha envío'}, {h: 'Unidad de compra'}, {h: 'Proveedor'}, {h: 'Mecanismo'}, {h: 'Monto (CLP)', num: 1}], OC, P6.opage, 25, 'p6OPage');
   const cnt = s => D.proj.filter(p => p.estado === s).length;
   el.innerHTML = `
@@ -5635,7 +5645,7 @@ function p6ProjDetail(p){
   return `<tr><td colspan="9" style="background:var(--surface-page);cursor:default;"><div style="font-size:12px;margin-bottom:6px;"><b>${esc(p.pr)}</b>. ${esc(p.ds || '')}</div>
     <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">Mecanismos del PAC: ${esc([...p.mecs].join('; '))} · Clasificaciones: ${esc([...p.cls].join('; '))} · Unidades de compra: ${esc([...p.un].join('; '))}${p.nOC ? ' · Primera OC: ' + p6Day(p.first) + ' · Última OC: ' + p6Day(p.last) : ''}</div>
     <div class="pac-two"><div><b style="font-size:11px;">Ítems (${fmt(its.length)})</b><div class="table-wrap pac-tw" style="max-height:230px;"><table class="dt"><thead><tr><th>Ítem</th><th class="num">Cant.</th><th class="num">Unitario</th><th class="num">Total</th></tr></thead><tbody>${its.slice(0, 200).map(L => `<tr><td>${esc(L.it)}</td><td class="num">${fmt(L.q)}</td><td class="num">${fmt(L.pu)}</td><td class="num">${fmt(L.t)}</td></tr>`).join('')}</tbody></table></div>${its.length > 200 ? '<div style="font-size:10.5px;">Se muestran 200; el Excel trae todos.</div>' : ''}</div>
-    <div><b style="font-size:11px;">OC enlazadas (${fmt(oc.length)})</b><div class="table-wrap pac-tw" style="max-height:230px;"><table class="dt"><thead><tr><th>OC</th><th>Fecha</th><th>Proveedor</th><th class="num">Monto</th></tr></thead><tbody>${oc.slice(0, 200).map(o => `<tr><td><a href="${esc(mpLink(o.oc))}" target="_blank" rel="noopener">${esc(o.oc)}</a></td><td>${p6Day(o.day)}</td><td>${esc(o.pv)}</td><td class="num">${fmt(o.t)}</td></tr>`).join('') || '<tr><td colspan="4" style="padding:8px;">Sin OC enlazadas en los meses disponibles</td></tr>'}</tbody></table></div></div></div></td></tr>`;
+    <div><b style="font-size:11px;">OC enlazadas (${fmt(oc.length)})</b><div class="table-wrap pac-tw" style="max-height:230px;"><table class="dt"><thead><tr><th>OC</th><th>Fecha</th><th>Proveedor</th><th class="num">Monto</th></tr></thead><tbody>${oc.slice(0, 200).map(o => `<tr><td><a href="${esc(mpLink(o.oc))}" rel="noopener">${esc(o.oc)}</a></td><td>${p6Day(o.day)}</td><td>${esc(o.pv)}</td><td class="num">${fmt(o.t)}</td></tr>`).join('') || '<tr><td colspan="4" style="padding:8px;">Sin OC enlazadas en los meses disponibles</td></tr>'}</tbody></table></div></div></div></td></tr>`;
 }
 async function p6FichaExcel(btn){
   const r = p6Find(P6.ent), D = P6.det; if(!r || !D) return;
@@ -5859,7 +5869,7 @@ function goreLicPaint(){
     return true;
   });
   const cell = o => { const e = goreExtLic(o.k); if(e && e.of != null) return `<td class="num">${fmt(e.of)}</td><td class="nw">${e.of >= 3 ? 'Sí' : 'No'}</td>`; const [t, tt] = goreLicMotivo(D.lic[o.k]); return `<td class="num" title="${esc(tt)}">—</td><td title="${esc(tt)}" style="color:var(--text-secondary)">${esc(t)}</td>`; };
-  const trs = rows.map(o => { const id = D.lic[o.k]; return `<tr><td class="nw"><a href="${goreLicLink(id)}" target="_blank" rel="noopener">${esc(id)}</a></td><td class="num">${L(o.n, {lic: o.k}, 'licitación ' + id)}</td><td class="num">${fmt(o.provs.size)}</td><td class="num">${fmtUsd(o.usd)}</td><td>${[...o.gs].map(g => esc(G[g].corto)).join(', ')}</td>${cell(o)}</tr>`; });
+  const trs = rows.map(o => { const id = D.lic[o.k]; return `<tr><td class="nw"><a href="${goreLicLink(id)}" rel="noopener">${esc(id)}</a></td><td class="num">${L(o.n, {lic: o.k}, 'licitación ' + id)}</td><td class="num">${fmt(o.provs.size)}</td><td class="num">${fmtUsd(o.usd)}</td><td>${[...o.gs].map(g => esc(G[g].corto)).join(', ')}</td>${cell(o)}</tr>`; });
   box.innerHTML = goreTable([['ID licitación'], ['N° OC', 1], ['Proveedores adjudicados', 1], ['Monto USD', 1], ['Gobierno Regional'], ['N° ofertas', 1], ['¿3 o más? / motivo']], trs, 'Ninguna licitación coincide con los filtros.').replace('class="gore-tw"', 'class="gore-tw" style="max-height:520px"');
   const c3 = rows.filter(o => { const e = goreExtLic(o.k); return e && e.of != null && e.of >= 3; }).length, cd = rows.filter(o => { const e = goreExtLic(o.k); return e && e.of != null; }).length;
   const msg = document.getElementById('goreLicMsg'); if(msg) msg.textContent = fmt(rows.length) + ' licitaciones' + (cd ? ' · ' + fmt(c3) + ' con 3 o más ofertas de ' + fmt(cd) + ' con dato (' + gorePct(c3, cd) + ')' : '') + (rows.length - cd ? ' · ' + fmt(rows.length - cd) + ' sin dato de ofertas (pasa el cursor sobre «—» para ver el motivo)' : '') + '.';
@@ -6369,7 +6379,7 @@ function renderCfmpPage(){
   const nDup = CFMP_LIST.filter(o => o.dup).length, nPr = CFMP_LIST.filter(o => o.prueba).length;
   let html = `<a class="back-link" href="${esc(location.pathname + location.search)}" onclick="goHome(event)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg> Volver al panel de mecanismos</a>
     <h1 style="font-size:22px; margin:.25rem 0 4px; color:var(--cc-dark);">Compras Fuera de Mercado Público</h1>
-    <p class="block-note">Registro de las contrataciones que los organismos realizan fuera del Sistema de Información, informadas a ChileCompra (fuente: <a href="${CFMP_SRC}" target="_blank" rel="noopener">datos abiertos de ChileCompra</a>). Procede de manera excepcional y con resolución fundada: Art. 21 de la Ley N° 19.886 y Art. 115 del Reglamento (DS 661 de 2024); la Ley N° 21.634 modificó la Ley N° 19.886, verifica el texto vigente en bcn.cl/leychile. Período <b>${esc(rangeLabel(rg))}</b> según el mes de registro (con el período completo se incluyen todos los registros del archivo, también los de oct-2026). Todos los N° son enlaces que descargan el Excel con esos registros.</p>
+    <p class="block-note">Registro de las contrataciones que los organismos realizan fuera del Sistema de Información, informadas a ChileCompra (fuente: <a href="${CFMP_SRC}" rel="noopener">datos abiertos de ChileCompra</a>). Procede de manera excepcional y con resolución fundada: Art. 21 de la Ley N° 19.886 y Art. 115 del Reglamento (DS 661 de 2024); la Ley N° 21.634 modificó la Ley N° 19.886, verifica el texto vigente en bcn.cl/leychile. Período <b>${esc(rangeLabel(rg))}</b> según el mes de registro (con el período completo se incluyen todos los registros del archivo, también los de oct-2026). Todos los N° son enlaces que descargan el Excel con esos registros.</p>
     <section class="block proc-box ff-box"><h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Buscar registros</h2><p class="block-note">Filtra los registros por texto, tipo de compra, motivo, tipo de acto, comprador o moneda.</p><div class="filter-row">
       <div class="filter-field" style="min-width:250px;"><label for="cfQ">Buscar (RUT, comprador, proveedor, objeto, N° de acto)</label><input type="text" id="cfQ" value="${esc(F.q)}" placeholder="Escribe una palabra o un RUT…" autocomplete="off"></div>
       <div class="filter-field"><label for="cfTc">Tipo de compra</label><select id="cfTc">${opt(uniq(o => o.tc), F.tc, 'Todos los tipos')}</select></div>
@@ -6434,7 +6444,7 @@ function renderCfmpPage(){
   { const lst = rows.slice().sort((a, b) => (b.fAct || '').localeCompare(a.fAct || '') || a.i - b.i);
     mkDl('cfLst', CFMP_HDR, lst.map(cfRow));
     const lstKey = o => normTxt([cfOrg(o.rut), o.unidad, o.rut, o.razon, o.rutP].join(' ')) + ' ' + goreRutKey(o.rut) + ' ' + goreRutKey(o.rutP);
-    const trOf = o => `<tr${o.dup || o.prueba ? ' style="opacity:.6"' : ''}><td>${esc(o.fAct)}</td><td>${cfOrg(o.rut) ? `<b>${esc(cfOrg(o.rut))}</b><br>` : ''}${esc(o.unidad)}<br><span class="cp-cap-note">${esc(cfFmtRut(o.rut))}</span></td><td>${esc(o.tc)}</td><td>${esc(o.acto)} ${esc(o.nAct)}</td><td>${esc(o.razon)}</td><td title="${esc(o.obj)}">${esc(o.obj.length > 120 ? o.obj.slice(0, 120) + '…' : o.obj)}</td><td class="num">${o.montoN == null ? '' : fmt(o.montoN) + ' ' + esc(o.mon)}</td><td class="num">${o.usd == null ? '—' : fmtUsd(o.usd)}</td><td>${esc(o.obs)}</td><td>${o.link ? `<a href="${esc(o.link)}" target="_blank" rel="noopener">Documento</a>` : '—'}</td><td style="font-size:11px;">${esc(o.alertas.join('; '))}</td></tr>`;
+    const trOf = o => `<tr${o.dup || o.prueba ? ' style="opacity:.6"' : ''}><td>${esc(o.fAct)}</td><td>${cfOrg(o.rut) ? `<b>${esc(cfOrg(o.rut))}</b><br>` : ''}${esc(o.unidad)}<br><span class="cp-cap-note">${esc(cfFmtRut(o.rut))}</span></td><td>${esc(o.tc)}</td><td>${esc(o.acto)} ${esc(o.nAct)}</td><td>${esc(o.razon)}</td><td title="${esc(o.obj)}">${esc(o.obj.length > 120 ? o.obj.slice(0, 120) + '…' : o.obj)}</td><td class="num">${o.montoN == null ? '' : fmt(o.montoN) + ' ' + esc(o.mon)}</td><td class="num">${o.usd == null ? '—' : fmtUsd(o.usd)}</td><td>${esc(o.obs)}</td><td>${o.link ? `<a href="${esc(o.link)}" rel="noopener">Documento</a>` : '—'}</td><td style="font-size:11px;">${esc(o.alertas.join('; '))}</td></tr>`;
     html += `<section class="block"><h2>Listado de registros</h2><p class="block-note">Un registro por fila, con enlace al documento del contrato. Las filas atenuadas son duplicados o posibles registros de prueba incluidos por tu selección.</p>
       <div class="filter-row" style="margin:0 0 8px;"><div class="filter-field" style="min-width:300px;"><label for="cfLstQ">Buscar en el listado por nombre o RUT (organismo, unidad o proveedor)</label><input type="text" id="cfLstQ" placeholder="Ej.: Molina, 69.110.100-2, nombre de un proveedor…" autocomplete="off"></div></div>
       <p id="cfLstQmsg" class="def-text" style="margin:0 0 8px;"></p>
@@ -6447,7 +6457,7 @@ function renderCfmpPage(){
     html += `<section class="block"><h2>Calidad de los datos y alertas</h2><p class="block-note">Señales para revisar en el registro, sin filtros aplicados (solo el período). No son conclusiones: un registro marcado puede ser correcto.</p>
       ${goreTable([['Alerta'], ['N° registros', 1]], al.map(([k, t]) => `<tr><td>${esc(t)}</td><td class="num">${cfLink(univ.filter(o => o[k]).length, {flag: k, tc: '', mot: '', act: '', rut: '', mon: '', q: ''}, 'alerta ' + k)}</td></tr>`))}${dlBtn('cfAl', 'compras_fuera_alertas.csv', 'Descargar alertas (Excel)')}</section>`; }
   // cargar más archivos
-  html += `<section class="block"><h2>Cargar otro archivo del registro</h2><p class="block-note">El panel trae el archivo entregado (${fmt(CFMP_RAW.rows.length)} filas, registros de jul a oct de 2026). Para sumar otros meses, descarga el CSV desde <a href="${CFMP_SRC}" target="_blank" rel="noopener">datos abiertos de ChileCompra</a> y cárgalo aquí: se agrega al análisis (las filas idénticas no se repiten). El archivo no sale de tu equipo y la carga dura mientras tengas abierta la página.</p>
+  html += `<section class="block"><h2>Cargar otro archivo del registro</h2><p class="block-note">El panel trae el archivo entregado (${fmt(CFMP_RAW.rows.length)} filas, registros de jul a oct de 2026). Para sumar otros meses, descarga el CSV desde <a href="${CFMP_SRC}" rel="noopener">datos abiertos de ChileCompra</a> y cárgalo aquí: se agrega al análisis (las filas idénticas no se repiten). El archivo no sale de tu equipo y la carga dura mientras tengas abierta la página.</p>
     <div class="gore-ext"><input type="file" id="cfFile" accept=".csv,.txt" multiple> <span id="cfFileMsg">${CFMP_FILES.length ? 'Cargados: ' + esc(CFMP_FILES.join(', ')) + '.' : ''}</span></div></section>
     <p class="cp-cap-note" style="margin-top:1.5rem;">Fuente: Registro de compras fuera de Mercado Público (datos abiertos de ChileCompra). Normativa: Ley N° 19.886 Art. 21 y DS 661 de 2024 Art. 115.</p>`;
   view.innerHTML = html; document.title = 'Compras Fuera de Mercado Público · ChileCompra';
@@ -6561,7 +6571,7 @@ function presOrgRow(o){
   let bud = '—', r1 = '—', r2 = '—';
   if(u){ bud = presM(ref) + (sh > 1 ? ` <span class="cp-cap-note" title="El presupuesto es del servicio completo y lo comparten ${sh} organismos de la base: la comparación está en la tabla «Por servicio de la Ley».">(compartido ×${sh})</span>` : ''); if(sh === 1){ r1 = presPct(p2, ref); r2 = presPct(o.o, ref); } }
   else if(o.l === 0) bud = '<span class="cp-cap-note">sin presupuesto propio en la Ley</span>';
-  return `<tr><td><a href="#pac26=c${encodeURIComponent(o.c)}" target="_blank" rel="noopener"><b>${esc(o.n)}</b></a><br><span class="cp-cap-note">cód. ${esc(o.c)}${o.s ? ' · ' + esc(o.s) : ''}${o.rv ? ' · ⚠ revisar cruce' : ''}${o.x ? ' · ⚠ ' + o.x + ' línea(s) extrema(s)' : ''}</span></td>
+  return `<tr><td><a href="#pac26=c${encodeURIComponent(o.c)}" rel="noopener"><b>${esc(o.n)}</b></a><br><span class="cp-cap-note">cód. ${esc(o.c)}${o.s ? ' · ' + esc(o.s) : ''}${o.rv ? ' · ⚠ revisar cruce' : ''}${o.x ? ' · ⚠ ' + o.x + ' línea(s) extrema(s)' : ''}</span></td>
     <td>${o.p ? esc(presPN(o.p)) : '—'}${u ? `<br><span class="cp-cap-note">${esc(u.n)}</span>` : ''}</td><td>${presLvTxt(o)}</td>
     <td class="num">${bud}</td><td class="num">${presM(p2)}</td><td class="num">${presM(pt)}</td><td class="num">${presM(o.o)}</td><td class="num">${r1}</td><td class="num">${r2}</td><td class="num">${presPct(o.o, pt)}</td></tr>`;
 }
@@ -6841,6 +6851,7 @@ function route(){
     renderMain(currentRange());
     CURRENT_APPLY_RANGE = function(){ renderMain(currentRange()); };
   }
+  { const fb = document.getElementById('homeFab'); if(fb) fb.style.display = document.getElementById('mainView').style.display === 'block' ? 'none' : 'inline-flex'; }
 }
 window.addEventListener('hashchange', route);
 route();
@@ -6881,6 +6892,10 @@ route();
   new MutationObserver(() => { clearTimeout(t); t = setTimeout(agrega, 50); }).observe(document.documentElement, {childList:true, subtree:true});
   document.addEventListener('DOMContentLoaded', agrega); agrega();
 })();
+</script>
+<script>
+/* upd20: siempre se navega en una sola pestaña */
+document.addEventListener('click', function(e){ var a = e.target && e.target.closest ? e.target.closest('a[target]') : null; if(a && a.getAttribute('target') === '_blank') a.removeAttribute('target'); }, true);
 </script>
 </body>
 </html>

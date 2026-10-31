@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r5' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r7' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -258,6 +258,8 @@ details.as-disc2>div{padding:0 16px 12px;font-size:12px;line-height:1.55;color:#
 table.as-t th{background:#F2F6FD;}
 .as-grid>*{min-width:0;}
 @media(max-width:900px){.as-grid{grid-template-columns:minmax(0,1fr);} .as-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;} .as-tab{flex:0 0 auto;white-space:nowrap;padding:9px 16px;}}
+.as-rtabs{position:sticky;top:8px;z-index:6;margin:0 0 14px;box-shadow:0 8px 20px rgba(0,35,59,.14);}
+.as-tabhint{margin:2px 4px 10px;font-size:12.5px;}
 @media print{ .as-pan[hidden]{display:block!important;} .as-rtabs{display:none!important;} .as-side{max-height:none;overflow:visible;position:static;} header.cc-header,.back-link,.as-noprint,.as-tabs,.as-side .as-card:not(.as-print-sum){display:none!important;} .as-grid{display:block;} .as-reco{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .as-sec,.as-card{box-shadow:none;break-inside:avoid;} body{background:#fff;} }
 `;
 
@@ -391,7 +393,7 @@ function cmPlazo(id, reg){
 function cmBloqueHtml(vd){
   const V = window.AS_CMV, c = vd.cms[0]; if(!V || !c) return '';
   const v = c.v || {}, reg = orgRegion(), pz = cmPlazo(c.id, reg), pv = cmProveedores(c, reg);
-  let h = `<div class="as-cmb"><h4>Para comprar en ${esc(v.nombre || c.id)}</h4><p class="as-cmb-l">${v.url ? `<a class="as-btn as-main" href="${esc(v.url)}" target="_blank" rel="noopener">Entrar al catálogo del convenio</a>` : ''}<a class="as-btn" href="${esc(V.fuente)}" target="_blank" rel="noopener">Ver la ficha pública (busca ${esc(c.id)})</a></p>`;
+  let h = `<div class="as-cmb"><h4>Para comprar en ${esc(v.nombre || c.id)}</h4><p class="as-cmb-l">${v.url ? `<a class="as-btn as-main" href="${esc(v.url)}" rel="noopener">Entrar al catálogo del convenio</a>` : ''}<a class="as-btn" href="${esc(V.fuente)}" rel="noopener">Ver la ficha pública (busca ${esc(c.id)})</a></p>`;
   h += `<p class="as-hint">El catálogo es donde se emite la orden de compra. La ficha pública resume objeto, vigencia, cotizador, garantías, multas y plazos de entrega del convenio.</p>`;
   h += pz ? `<p><b>Plazo de entrega que fijan las bases${pz.regional ? ' para ' + esc(regName(reg)) : ''}:</b> ${esc(pz.txt)}</p>` : `<p><b>Plazo de entrega:</b> la ficha no fija un plazo único para todo el convenio; está en las bases y en la oferta de cada proveedor dentro de la Tienda.</p>`;
   if(c.extra.cat){
@@ -433,7 +435,7 @@ function vereditoHtml(vd, o){
     h += `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM corresponde <b>${esc(p.nom)}</b>. El detalle de cómo se hace y el orden de revisión están más abajo.</p>`;
   }
   const maestras = window.AS_CMCAT ? 'maestras de ' + window.AS_CMCAT.cms.length + ' convenio(s) al ' + esc(window.AS_CMCAT.gen || '') + ', ' : '';
-  h += `<p class="as-hint">Cómo lo determiné: ${maestras}objeto y palabras clave de los 18 convenios vigentes y compras de los últimos 12 meses.${V ? ` Si quieres revisarlo tú mismo: <a href="${V.tienda}" target="_blank" rel="noopener">Tienda de Convenio Marco</a>${principal && vp.url ? ` · <a href="${esc(vp.url)}" target="_blank" rel="noopener">tienda de este convenio</a>` : ''} · <a href="${V.eco}" target="_blank" rel="noopener">Economía Circular</a>.` : ''}</p></div>`;
+  h += `<p class="as-hint">Cómo lo determiné: ${maestras}objeto y palabras clave de los 18 convenios vigentes y compras de los últimos 12 meses.${V ? ` Si quieres revisarlo tú mismo: <a href="${V.tienda}" rel="noopener">Tienda de Convenio Marco</a>${principal && vp.url ? ` · <a href="${esc(vp.url)}" rel="noopener">tienda de este convenio</a>` : ''} · <a href="${V.eco}" rel="noopener">Economía Circular</a>.` : ''}</p></div>`;
   return h;
 }
 
@@ -672,7 +674,7 @@ function prodByName(nm){
 }
 function procItem(r){
   const prod = r[6].length ? S.proc.pl[r[6][0]] : '', rb = procRub(r), idx = prod ? prodByName(prod) : null;
-  return `<div class="as-prc"><b>${esc(r[3] || sentence(prod) || '(sin título)')}</b><small>${PROC_MEC[r[0]] || r[0]}${r[5] > 1 ? ' · ' + r[5] + ' OC' : ''} · ${procFecha(r[1])} · ${esc(procMonto(r))}${prod ? ' · Producto: ' + esc(sentence(prod)) : ''}${rb ? ' · Rubro: ' + esc(rb) : ''}</small><span class="as-prc-a"><a href="${procLink(r)}" target="_blank" rel="noopener">${esc(r[2])}</a>${idx != null ? `<button type="button" class="as-pick" data-i="${idx}">Usar este producto</button>` : ''}</span></div>`;
+  return `<div class="as-prc"><b>${esc(r[3] || sentence(prod) || '(sin título)')}</b><small>${PROC_MEC[r[0]] || r[0]}${r[5] > 1 ? ' · ' + r[5] + ' OC' : ''} · ${procFecha(r[1])} · ${esc(procMonto(r))}${prod ? ' · Producto: ' + esc(sentence(prod)) : ''}${rb ? ' · Rubro: ' + esc(rb) : ''}</small><span class="as-prc-a"><a href="${procLink(r)}" rel="noopener">${esc(r[2])}</a>${idx != null ? `<button type="button" class="as-pick" data-i="${idx}">Usar este producto</button>` : ''}</span></div>`;
 }
 function procBlocks(){
   const q = S.prodQ.trim();
@@ -704,7 +706,7 @@ function procTabla(){
   const rows = f.rows, cnt = {}, sum = {}; let otras = 0, tot = 0;
   rows.forEach(r => { cnt[r[0]] = (cnt[r[0]] || 0) + 1; if(r[9]) otras++; else { tot += r[4]; sum[r[0]] = (sum[r[0]] || 0) + r[4]; } });
   const chips = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).map(k => `<span class="as-mes as-mes-ok">${PROC_MEC[k] || k} · ${fmt(cnt[k])}${sum[k] ? ' · ' + pesos(sum[k]) : ''}</span>`).join(' ');
-  const fila = r => { const prod = r[6].length ? S.proc.pl[r[6][0]] : '', rb = procRub(r), pv = r[10] >= 0 ? S.proc.pv[r[10]] : ''; return `<tr><td>${PROC_MEC[r[0]] || r[0]}${r[5] > 1 ? `<br><span class="as-hint">${r[5]} OC</span>` : ''}</td><td>${procFecha(r[1])}</td><td><a href="${procLink(r)}" target="_blank" rel="noopener">${esc(r[2])}</a></td><td>${esc(r[3] || sentence(prod) || '(sin título)')}${prod || rb ? `<br><span class="as-hint">${prod ? esc(sentence(prod)) : ''}${prod && rb ? ' · ' : ''}${rb ? 'Rubro: ' + esc(rb) : ''}</span>` : ''}</td><td>${esc(pv || '')}</td><td class="n">${esc(procMonto(r))}</td></tr>`; };
+  const fila = r => { const prod = r[6].length ? S.proc.pl[r[6][0]] : '', rb = procRub(r), pv = r[10] >= 0 ? S.proc.pv[r[10]] : ''; return `<tr><td>${PROC_MEC[r[0]] || r[0]}${r[5] > 1 ? `<br><span class="as-hint">${r[5]} OC</span>` : ''}</td><td>${procFecha(r[1])}</td><td><a href="${procLink(r)}" rel="noopener">${esc(r[2])}</a></td><td>${esc(r[3] || sentence(prod) || '(sin título)')}${prod || rb ? `<br><span class="as-hint">${prod ? esc(sentence(prod)) : ''}${prod && rb ? ' · ' : ''}${rb ? 'Rubro: ' + esc(rb) : ''}</span>` : ''}</td><td>${esc(pv || '')}</td><td class="n">${esc(procMonto(r))}</td></tr>`; };
   const cab = '<div class="as-tw"><table class="as-t"><tr><th>Mecanismo</th><th>Fecha</th><th>Proceso</th><th>Nombre y rubro</th><th>Proveedor</th><th class="n">Monto</th></tr>';
   let h = `<p>${f.parcial ? 'No hay procesos con todas tus palabras; estos mencionan alguna. ' : ''}Encontré <b>${fmt(rows.length)}</b> proceso(s)${tot ? ', ' + pesos(tot) + ' en pesos' : ''}${otras ? ` y ${otras} en otra moneda (se muestran en su moneda, sin convertir)` : ''}.</p><p>${chips}</p>` + cab + rows.slice(0, 25).map(fila).join('') + '</table></div>';
   if(rows.length > 25) h += `<details class="as-det"><summary>Ver los otros ${Math.min(rows.length - 25, 75)}${rows.length > 100 ? ' (de ' + fmt(rows.length - 25) + ')' : ''}</summary>${cab}${rows.slice(25, 100).map(fila).join('')}</table></div></details>`;
@@ -762,7 +764,7 @@ function citas(arts){
   return '<p class="as-cite"><b>Fundamento:</b> ' + Object.keys(g).map(n => {
     const url = n === 'Ley 19.886' ? R().URL_LEY : (n === 'DS 661/2024' ? R().URL_DS : '');
     const nm = n === 'DS 661/2024' ? 'Reglamento DS 661/2024' : n;
-    return (url ? `<a href="${url}" target="_blank" rel="noopener">${esc(nm)}</a>` : esc(nm)) + ': ' + esc(g[n].join('; '));
+    return (url ? `<a href="${url}" rel="noopener">${esc(nm)}</a>` : esc(nm)) + ': ' + esc(g[n].join('; '));
   }).join('. ') + '.</p>';
 }
 function update(){
@@ -842,9 +844,9 @@ function pacConsHtml(o){
   const P = S.pacOrg === S.orgIdx ? S.pac : null, items = pacItems(), nm = S.org ? S.org[1] : '', nmEnc = encodeURIComponent(nm), l = activeLine(), many = S.st.l.length > 1;
   const head = `<div class="as-sec as-pac" id="as-pacc"><h3>Tu PAC 2026 y la consolidación${many ? ' de la línea ' + (S.li + 1) : ' de este producto'}</h3>`;
   if(S.pacOrg !== S.orgIdx) return head + '<div class="as-load">Revisando el PAC 2026 de tu organismo…</div></div>';
-  if(!S.pac) return head + `<p>No encontré PAC 2026 publicado para ${esc(nm)} en el archivo del 20-10-2026 (proyectos Publicado y Actualizado). Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley 19.886 art. 12; DS 661 art. 27). Revisa el <a href="#pac26=${nmEnc}" target="_blank" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
+  if(!S.pac) return head + `<p>No encontré PAC 2026 publicado para ${esc(nm)} en el archivo del 20-10-2026 (proyectos Publicado y Actualizado). Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley 19.886 art. 12; DS 661 art. 27). Revisa el <a href="#pac26=${nmEnc}" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
   const st = pacState(l), nomL = sentence(consultaTexto()) || 'este producto';
-  if(!items.length) return head + `<p>En el PAC 2026 de tu organismo no aparece un ítem que coincida con «${esc(nomL)}». Si vas a comprarlo, agrégalo con una modificación del PAC y fundamenta el motivo en el acto administrativo (Ley art. 12; DS 661 arts. 27 y 166). Para revisar el PAC completo: <a href="#pac26=${nmEnc}" target="_blank" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
+  if(!items.length) return head + `<p>En el PAC 2026 de tu organismo no aparece un ítem que coincida con «${esc(nomL)}». Si vas a comprarlo, agrégalo con una modificación del PAC y fundamenta el motivo en el acto administrativo (Ley art. 12; DS 661 arts. 27 y 166). Para revisar el PAC completo: <a href="#pac26=${nmEnc}" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
   const hoy = new Date().getMonth() + 1, oc = ocMeses(l), plannedAll = pacResumen(items, st.sel).mesesList, tieneComprados = !!(oc && plannedAll.some(m => oc[m]));
   const skip = (tieneComprados && S.pendOnly !== false) ? new Set(plannedAll.filter(m => oc[m])) : null, rs = pacResumen(items, st.sel, skip), conPr = !!(P.pr && items.some(x => x.it[7] != null));
   let h = head + `<p>El Asesor asoció tu producto con ${items.length} ítem(s) del PAC de ${esc(nm)} (versión del 20-10-2026)${conPr ? ', agrupados por proyecto' : ''}. Marca los que corresponden a la misma necesidad: el Asesor suma sus meses y propone una sola compra.</p>`;
@@ -874,7 +876,7 @@ function pacConsHtml(o){
 }
 function wireResult(){
   const st = () => pacState(activeLine());
-  S.host.querySelectorAll('.as-rtab').forEach(b => b.addEventListener('click', () => { S.rtab = b.dataset.rt; S.host.querySelectorAll('.as-rtab').forEach(x => x.setAttribute('aria-selected', x === b ? 'true' : 'false')); S.host.querySelectorAll('.as-pan').forEach(x => { x.hidden = x.dataset.rp !== S.rtab; }); }));
+  S.host.querySelectorAll('.as-rtab').forEach(b => b.addEventListener('click', () => { S.rtab = S.rtab === b.dataset.rt ? '' : b.dataset.rt; S.host.querySelectorAll('.as-rtab').forEach(x => x.setAttribute('aria-selected', x.dataset.rt === S.rtab ? 'true' : 'false')); S.host.querySelectorAll('.as-pan').forEach(x => { x.hidden = x.dataset.rp !== S.rtab; }); const th = S.host.querySelector('.as-tabhint'); if(th) th.hidden = !!S.rtab; }));
   { const rb = S.host.querySelector('.as-rtabs');
     if(rb){ const chk = () => { const ov = rb.scrollWidth > rb.clientWidth + 2; rb.classList.toggle('as-ov', ov); rb.classList.toggle('as-end', ov && rb.scrollLeft + rb.clientWidth >= rb.scrollWidth - 4); };
       rb.addEventListener('scroll', chk); window.addEventListener('resize', chk);
@@ -905,7 +907,7 @@ function orgFinTxt(corto){
       if(!corto && S.st.m) comp += ` Este proceso equivale al ${dec(S.st.m / pr[0] * 100, 1)} % de ese presupuesto.`;
     } else if(pr && pr[1] === 4) a = `La Ley no desglosa un presupuesto propio para este organismo: solo se identifica el ministerio${pr[2] ? ' (' + esc(pr[2]) + ')' : ''}.`;
     else a = 'Sin presupuesto propio en la Ley de Presupuestos 2026 (por ejemplo municipios, corporaciones, universidades y empresas públicas): se financia con recursos propios o transferencias.';
-  } else if(S.presTried) a = 'El presupuesto de la Ley 2026 aún no está cargado en el Asesor. Revísalo en la vista <a href="#presupuesto" target="_blank" rel="noopener">Presupuesto 2026</a> del sitio.';
+  } else if(S.presTried) a = 'El presupuesto de la Ley 2026 aún no está cargado en el Asesor. Revísalo en la vista <a href="#presupuesto" rel="noopener">Presupuesto 2026</a> del sitio.';
   let b = '';
   if(S.pacOrg !== S.orgIdx) b = 'Revisando el PAC 2026…';
   else if(!pt) b = 'No tiene PAC 2026 publicado en el archivo del 20-10-2026.';
@@ -969,7 +971,7 @@ function refHtml(o){
   const code = S.C.c[S.prodIdx], sg = code.slice(0, 2), D = S.ref && S.ref[sg], nm = sentence(S.C.n[S.prodIdx]), lic = o.montoUtm > 100, l = activeLine(), monto = lineTotal(l) || S.st.m;
   const head = `<div class="as-sec as-ref"><h3>${lic ? 'Licitaciones de referencia' : 'Compras Ágiles de referencia'}: ${esc(nm)}</h3>`;
   if(D === undefined) return head + '<div class="as-load">Buscando procesos parecidos…</div></div>';
-  const busca = ' Puedes buscar por palabra en el <a href="#rubro" target="_blank" rel="noopener">buscador de procesos de compra</a> del sitio.';
+  const busca = ' Puedes buscar por palabra en el <a href="#rubro" rel="noopener">buscador de procesos de compra</a> del sitio.';
   const r = D ? refFor(D, code) : {};
   const cerca = rows => rows.slice().sort((a, b) => Math.abs(Math.log((a[4] || 1) / monto)) - Math.abs(Math.log((b[4] || 1) / monto))).slice(0, 5).sort((a, b) => (b[1] || '').localeCompare(a[1] || ''));
   const link = (c, mec) => mec === 'l' ? `http://www.mercadopublico.cl/fichaLicitacion.html?idLicitacion=${encodeURIComponent(c)}` : `https://www.mercadopublico.cl/PurchaseOrder/Modules/PO/DetailsPurchaseOrder.aspx?codigoOC=${encodeURIComponent(c)}`;
@@ -980,7 +982,7 @@ function refHtml(o){
     if(L[3] && L[3] < 2.5) h += '<p>Se reciben pocas ofertas por licitación. Conviene revisar que las exigencias y los plazos de las bases no limiten la participación, y difundir el proceso entre proveedores del rubro.</p>';
     else if(pc >= 20) h += '<p>Más de 1 de cada 5 licitaciones de este producto no se adjudica. Antes de publicar, revisa los requisitos de admisibilidad y el presupuesto estimado frente a los precios de referencia.</p>';
     const rows = cerca(L[5]);
-    h += '<div class="as-tw"><table class="as-t"><tr><th>Licitación</th><th>Publicada</th><th>Título</th><th>Organismo</th><th class="n">Monto</th><th class="n">Ofertas</th><th>Adjudicada a</th></tr>' + rows.map(x => `<tr><td><a href="${link(x[0], 'l')}" target="_blank" rel="noopener">${esc(x[0])}</a><br><span class="as-hint">${esc(x[7] || '')}</span></td><td>${esc(x[1])}</td><td>${esc(sentence(x[2]))}</td><td>${esc(x[3])}</td><td class="n">${x[4] ? pesos(x[4]) : '—'}</td><td class="n">${x[5] || '—'}</td><td>${esc(x[6] || '—')}</td></tr>`).join('') + '</table></div>';
+    h += '<div class="as-tw"><table class="as-t"><tr><th>Licitación</th><th>Publicada</th><th>Título</th><th>Organismo</th><th class="n">Monto</th><th class="n">Ofertas</th><th>Adjudicada a</th></tr>' + rows.map(x => `<tr><td><a href="${link(x[0], 'l')}" rel="noopener">${esc(x[0])}</a><br><span class="as-hint">${esc(x[7] || '')}</span></td><td>${esc(x[1])}</td><td>${esc(sentence(x[2]))}</td><td>${esc(x[3])}</td><td class="n">${x[4] ? pesos(x[4]) : '—'}</td><td class="n">${x[5] || '—'}</td><td>${esc(x[6] || '—')}</td></tr>`).join('') + '</table></div>';
     h += planHtml(r);
     return h + `<p class="as-hint">Se muestran las 5 licitaciones adjudicadas con monto más cercano al tuyo (${pesos(monto)}), entre una muestra de las más recientes desde enero de 2025, con montos variados. Ábrelas en Mercado Público para ver sus bases, criterios de evaluación y plazos. Los estados de licitaciones de 2025 pueden estar desactualizados.${S.st.l.length > 1 ? ' Corresponde a la línea ' + (S.li + 1) + '.' : ''}</p></div>`;
   }
@@ -988,7 +990,7 @@ function refHtml(o){
   const C = r.C;
   let h = head + `<p>${r.claseC ? 'No hay suficientes Compras Ágiles de este producto exacto; se muestran las de su clase (productos parecidos). ' : ''}En los últimos 12 meses hubo <b>${fmt(C[0])}</b> compras ágiles${r.claseC ? ' de la clase' : ' de este producto'}${C[1] ? `, con un monto mediano de <b>${pesos(C[1])}</b>` : ''}.</p>`;
   const rows = cerca(C[2]);
-  h += '<div class="as-tw"><table class="as-t"><tr><th>Orden de compra</th><th>Fecha</th><th>Título</th><th>Organismo</th><th class="n">Monto</th><th>Proveedor</th></tr>' + rows.map(x => `<tr><td><a href="${link(x[0], 'c')}" target="_blank" rel="noopener">${esc(x[0])}</a></td><td>${esc(x[1])}</td><td>${esc(sentence(x[2]))}</td><td>${esc(x[3])}</td><td class="n">${x[4] ? pesos(x[4]) : '—'}</td><td>${esc(x[5] || '—')}</td></tr>`).join('') + '</table></div>';
+  h += '<div class="as-tw"><table class="as-t"><tr><th>Orden de compra</th><th>Fecha</th><th>Título</th><th>Organismo</th><th class="n">Monto</th><th>Proveedor</th></tr>' + rows.map(x => `<tr><td><a href="${link(x[0], 'c')}" rel="noopener">${esc(x[0])}</a></td><td>${esc(x[1])}</td><td>${esc(sentence(x[2]))}</td><td>${esc(x[3])}</td><td class="n">${x[4] ? pesos(x[4]) : '—'}</td><td>${esc(x[5] || '—')}</td></tr>`).join('') + '</table></div>';
   return h + `<p class="as-hint">Se muestran las 5 compras con monto más cercano al tuyo (${pesos(monto)}), entre una muestra de las más recientes desde enero de 2025, con montos variados. Sirven para calibrar el precio y ver qué proveedores responden; la ficha en Mercado Público muestra el detalle.</p></div>`;
 }
 function resultHtml(o){
@@ -996,9 +998,8 @@ function resultHtml(o){
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
   let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div>${(o.escalera && o.escalera.ecOpcion) ? `<h2>Primero, economía circular</h2><p>Es un bien mueble: antes de comprar, consulta si otro organismo tiene uno disponible (DS 661, art. 28). Si no existe o no está disponible, deja constancia de que el producto no está disponible en economía circular y sigue con: <b>${esc(p.nom)}</b>.</p>` : `<h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>`}
     <div class="as-chips"><span class="as-chip">${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip">${fmt(activeLine().n)} ${esc(lineUm(activeLine()))}</span>` : ''}<span class="as-chip">${dec(o.montoUtm, 1)} UTM${st_.l.length > 1 ? ' en total' : ''}</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div></div>`;
-  html += `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
-  html += procesoHtml(o);
-  html += vereditoHtml(S.vd || veredictoCm(), o);
+  const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
+  const vdHtml = procesoHtml(o) + vereditoHtml(S.vd || veredictoCm(), o);
   /* Todo lo que sigue va en pestañas bajo la tarjeta de Convenio Marco. */
   const secs = [], h3t = x => (x.match(/<h3>([\s\S]*?)<\/h3>/) || [, ''])[1].replace(/<[^>]+>/g, '');
   const add = (k, label, x, bdg) => { if(x) secs.push({k, label, x, bdg}); };
@@ -1028,15 +1029,21 @@ function resultHtml(o){
   /* Ocho pestañas como máximo, en una sola fila */
   const GR = [['esc', 'Orden de opciones', ['esc']], ['ref', null, ['ref']], ['alertas', 'Alertas', ['alertas']], ['org', 'Tu organismo', ['datos', 'procs']], ['mer', 'Precios y proveedores', ['precios', 'cm', 'prov']], ['vias', 'Otras vías y demanda', ['alt', 'dem']], ['plan', 'PAC y presupuesto', ['pacc', 'pac']], ['como', 'Cómo se hace', ['como', 'pasos']]];
   const tabs = GR.map(g => { const mem = g[2].map(k => secs.find(z => z.k === k)).filter(Boolean); return mem.length ? {k: g[0], label: g[1] || mem[0].label.split(':')[0], x: mem.map(z => z.x).join(''), bdg: mem[0].bdg} : null; }).filter(Boolean);
+  /* El presupuesto y el veredicto de Convenio Marco viven dentro de sus pestañas; nada se abre hasta que se hace clic. */
+  { const m = tabs.find(z => z.k === 'mer'); if(m) m.x = vdHtml + m.x; else if(vdHtml) tabs.push({k: 'mer', label: 'Convenio Marco', x: vdHtml});
+    const pl = tabs.find(z => z.k === 'plan'); if(pl) pl.x = finHtml + pl.x; else tabs.push({k: 'plan', label: 'Presupuesto y PAC', x: finHtml}); }
+  const heroHtml = html; html = '';
   if(tabs.length){
-    const sel = tabs.some(z => z.k === S.rtab) ? S.rtab : tabs[0].k;
+    const sel = tabs.some(z => z.k === S.rtab) ? S.rtab : '';
     html += '<div class="as-tabs as-rtabs" role="tablist" aria-label="Más información de esta compra">' + tabs.map(z => `<button class="as-rtab" role="tab" data-rt="${z.k}" aria-selected="${z.k === sel}">${esc(z.label)}${z.bdg ? `<span class="as-bdg">${z.bdg}</span>` : ''}</button>`).join('') + '</div>';
+    html += heroHtml;
+    html += `<p class="as-hint as-tabhint as-noprint"${sel ? ' hidden' : ''}>Haz clic en una pestaña para ver el detalle. Haz clic de nuevo para cerrarla.</p>`;
     html += tabs.map(z => `<div class="as-pan" role="tabpanel" data-rp="${z.k}"${z.k === sel ? '' : ' hidden'}>${z.x}</div>`).join('');
-  }
+  } else html += heroHtml + finHtml + vdHtml;
   html += `<p class="as-note">Generado el ${new Date().toLocaleDateString('es-CL')} con datos de órdenes de compra al ${monthLab(S.C.w12[1].toString().slice(0, 4) + '-' + S.C.w12[1].toString().slice(4))}. ${esc(R().TEXTO_BASE)}</p>`;
   return html;
 }
-function linksHtml(l){ return l && l.length ? '<br>' + l.map(x => `<a href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a>`).join(' · ') : ''; }
+function linksHtml(l){ return l && l.length ? '<br>' + l.map(x => `<a href="${esc(x.u)}" rel="noopener">${esc(x.t)}</a>`).join(' · ') : ''; }
 function escaleraHtml(o){
   const e = o.escalera; if(!e) return '';
   const ec = o.pasos.find(x => x.titulo === 'Economía circular');
@@ -1044,7 +1051,7 @@ function escaleraHtml(o){
   if(ec && !e.ecOpcion) h += `<div class="as-op as-op-prev"><div class="as-op-n">Antes</div><div class="as-op-b"><b>Economía circular</b> <span class="as-tag as-t-${esc2(ec.estado)}">${esc(ec.estado)}</span><p>${esc(ec.texto)}</p>${citas(ec.arts)}</div></div>`;
   e.opciones.forEach(op => {
     h += `<div class="as-op as-op-${op.k.toLowerCase()}"><div class="as-op-n">Opción ${op.n}</div><div class="as-op-b"><b>${esc(op.titulo)}</b> <span class="as-tag as-t-${op.tag === 'prioridad' || op.tag === 'primera opción' ? 'obligatorio' : (op.tag === 'excepcional' ? 'verificar' : 'recomendado')}">${esc(op.tag)}</span><p>${esc(op.texto)}</p>`;
-    if(op.k === 'EC') h += `<p class="as-hint">Consulta la plataforma: <a href="${window.AS_CMV ? window.AS_CMV.eco : '#'}" target="_blank" rel="noopener">Economía Circular de Mercado Público</a>.</p>`;
+    if(op.k === 'EC') h += `<p class="as-hint">Consulta la plataforma: <a href="${window.AS_CMV ? window.AS_CMV.eco : '#'}" rel="noopener">Economía Circular de Mercado Público</a>.</p>`;
     if(op.subs) h += '<ul class="as-op-s">' + op.subs.map(s => `<li class="${s.est === 'descartada' ? 'as-off' : ''}"><b>${esc(s.nom)}</b> <span class="as-tag as-t-${s.est === 'descartada' ? 'descartado' : (s.est === 'procede' ? 'recomendado' : (s.est === 'obligatoria' ? 'obligatorio' : 'verificar'))}">${esc(s.est)}</span> ${esc(s.texto)}${linksHtml(s.links)}${s.arts && s.k === 'BT' ? citas(s.arts) : ''}</li>`).join('') + '</ul>';
     if(op.causales) h += '<ul class="as-op-s">' + op.causales.map(c => `<li><b>${esc(CAUS_NOM(c))}</b> <span class="as-hint">(art. ${esc(c.n)} DS 661)</span></li>`).join('') + '</ul><p class="as-hint">Si ninguna calza con hechos que puedas acreditar, esta opción no corresponde. Elige en el paso 3 la situación que aplique y el Asesor te muestra los requisitos de esa causal.</p>';
     h += citas(op.arts) + '</div></div>';
@@ -1106,7 +1113,7 @@ function cmHtml(ci){
   const est = x => !ci.hayVig ? '' : (x.v && x.v.vigente ? `<br><span class="as-hint">Vigente hasta ${esc(x.v.hasta)} · ${esc(x.id)}${x.v.cot ? '<br>Forma de compra: ' + esc(x.v.cot) : ''}</span>` : (x.v && x.v.hasta ? `<br><span class="as-hint">Vigencia indicada en la ficha: ${esc(x.v.hasta)} (ya pasó; revisa si fue prorrogada) · ${esc(x.id)}</span>` : `<br><span class="as-hint">No figura entre los 18 convenios vigentes (probablemente reemplazado) · ${esc(x.id)}</span>`));
   const aviso = ci.sinVigente ? '<div class="as-al as-al-medio" style="margin:8px 0"><b>Revisa</b>Este producto se compró por Convenios Marco que ya no figuran vigentes, por lo que no corresponde esa vía.</div>' : '';
   return `<div class="as-sec"><h3>Convenios Marco en que se ha comprado este producto</h3>${aviso}<div class="as-tw"><table class="as-t"><tr><th>Convenio Marco</th><th class="n">Monto 12 meses</th></tr>${ci.lista.map(x => `<tr><td>${esc(x.n)}${est(x)}</td><td class="n">${x.hist ? 'solo antes de nov-2025' : mm(x.mm)}</td></tr>`).join('')}</table></div>
-   <p class="as-hint">Esta lista se deduce de las órdenes de compra: indica dónde ya se compró el producto, no el Catálogo completo. La vigencia viene de las fichas de <a href="${window.AS_CMV ? window.AS_CMV.fuente : '#'}" target="_blank" rel="noopener">Convenios Marco vigentes</a>. Norma: DS 661, arts. 29 y 89.</p></div>`;
+   <p class="as-hint">Esta lista se deduce de las órdenes de compra: indica dónde ya se compró el producto, no el Catálogo completo. La vigencia viene de las fichas de <a href="${window.AS_CMV ? window.AS_CMV.fuente : '#'}" rel="noopener">Convenios Marco vigentes</a>. Norma: DS 661, arts. 29 y 89.</p></div>`;
 }
 function provHtml(){
   if(S.prodIdx == null) return '';
@@ -1116,7 +1123,7 @@ function provHtml(){
   if(!P) return '<div class="as-sec"><h3>Proveedores de tu región</h3><div class="as-load">Cargando proveedores…</div></div>';
   const rp = P.rp[key], nat = P.rp['0|' + S.prodIdx];
   let html = `<div class="as-sec"><h3>Proveedores de ${esc(regEn(reg))} que han vendido este producto</h3>`;
-  const tabla = (lst) => '<div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th class="n">OC</th><th class="n">Vendido 12 meses</th></tr>' + lst.map(x => { const pv = P.pl[x[0]]; return `<tr><td>${pv[0] ? `<a href="#proveedores=${encodeURIComponent(pv[0])}" target="_blank" rel="noopener">${esc(pv[1])}</a>` : esc(pv[1])}<br><span class="as-hint">${esc(pv[0])}</span></td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td></tr>`; }).join('') + '</table></div>';
+  const tabla = (lst) => '<div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th class="n">OC</th><th class="n">Vendido 12 meses</th></tr>' + lst.map(x => { const pv = P.pl[x[0]]; return `<tr><td>${pv[0] ? `<a href="#proveedores=${encodeURIComponent(pv[0])}" rel="noopener">${esc(pv[1])}</a>` : esc(pv[1])}<br><span class="as-hint">${esc(pv[0])}</span></td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td></tr>`; }).join('') + '</table></div>';
   if(rp){
     html += `<p>${fmt(rp[0])} proveedores con ventas de este producto a organismos ${reg ? 'de la región' : 'del país'} (se muestran los ${rp.length - 1} con mayor venta). La región es la que elegiste en el paso 1.</p>` + tabla(rp.slice(1));
     html += `<p class="as-hint">Con 100 UTM o menos, la Compra Ágil debe dirigirse primero a empresas de menor tamaño y proveedores locales (Ley art. 56; DS art. 97). Un proveedor local es una empresa de menor tamaño con domicilio principal en la región donde se entrega el bien o servicio (DS art. 4 N° 25). El tamaño de cada empresa está en su ficha.</p>`;
@@ -1187,7 +1194,7 @@ function pacHtml(){
   const nm = S.org ? S.org[1] : '';
   return `<div class="as-sec"><h3>Antes de publicar: PAC y presupuesto</h3><ul>
     <li>Confirma que la compra esté en tu Plan Anual de Compras; si no está, fundamenta el motivo en el acto administrativo (DS 661, arts. 27 y 166; Ley art. 12).</li>
-    <li>Revisa el PAC de tu organismo en este sitio: <a href="#pac26=${encodeURIComponent(nm)}" target="_blank" rel="noopener">Buscador PAC 2026</a> y la comparación con el <a href="#presupuesto" target="_blank" rel="noopener">presupuesto 2026</a>.</li>
+    <li>Revisa el PAC de tu organismo en este sitio: <a href="#pac26=${encodeURIComponent(nm)}" rel="noopener">Buscador PAC 2026</a> y la comparación con el <a href="#presupuesto" rel="noopener">presupuesto 2026</a>.</li>
     <li>Obtén el certificado de disponibilidad presupuestaria antes de adjudicar (DS 661, art. 5).</li></ul></div>`;
 }
 
@@ -1213,7 +1220,7 @@ function renderDiag(){
   const barras = MEC.filter(m => d.mix[m]).map(m => { const sh = totMM ? d.mix[m][1] / totMM : 0, bi = MEC.indexOf(m), bs = b ? b[bi] : null;
     return `<div class="as-bar"><span>${MEC_NOM[m]}</span><div class="as-bt"><div class="as-bf" style="width:${Math.max(1, 100 * sh)}%;background:${MEC_COL[m]}"></div>${bs != null ? `<div class="as-bm" style="left:${100 * bs}%" title="Mediana del sector"></div>` : ''}</div><span class="n">${dec(100 * sh, 1)} %${bs != null ? ' · sector ' + dec(100 * bs, 1) + ' %' : ''}</span></div>`; }).join('');
   const tdn = d.td.map(x => `<tr><td>${esc(S.O.causales[x[0]])}</td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td><td class="n">${x[3] ? fmt(x[3]) : '—'}</td></tr>`).join('');
-  const tdp = d.tdp.map(x => `<tr><td>${x[0] ? `<a href="#proveedores=${encodeURIComponent(x[0])}" target="_blank" rel="noopener">${esc(x[1])}</a>` : esc(x[1])}<br><span class="as-hint">${esc(x[0])}</span></td><td class="n">${fmt(x[2])}</td><td class="n">${mm(x[3])}</td></tr>`).join('');
+  const tdp = d.tdp.map(x => `<tr><td>${x[0] ? `<a href="#proveedores=${encodeURIComponent(x[0])}" rel="noopener">${esc(x[1])}</a>` : esc(x[1])}<br><span class="as-hint">${esc(x[0])}</span></td><td class="n">${fmt(x[2])}</td><td class="n">${mm(x[3])}</td></tr>`).join('');
   const frag = d.frag.slice(0, 12).map(f => `<tr><td>${esc(sentence(S.C.n[f[0]]))}</td><td>${qLab(f[1])}</td><td class="n">${f[2]}</td><td class="n">${fmt(f[3])}</td></tr>`).join('');
   const fcm = d.fcm.slice(0, 12).map(f => { const tot = f[1].reduce((a, e) => a + e[2], 0); return `<tr><td>${esc(sentence(S.C.n[f[0]]))}</td><td>${f[1].map(e => (MEC_NOM[e[0]] || e[0]) + ' ' + e[1]).join(', ')}</td><td class="n">${mm(tot)}</td></tr>`; }).join('');
   el.innerHTML = `<div class="as-sec"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3 style="margin:0">Diagnóstico de compras</h3><div style="font-size:18px;font-weight:800;color:var(--cc-dark);margin:4px 0">${esc(o[1])}</div><div class="as-hint">${esc(o[2] === 'null' ? 'Sin sector' : o[2])} · región principal ${esc(regName(o[3]))} · órdenes de compra de nov-2025 a oct-2026</div></div><div class="as-act as-noprint"><button class="as-btn" id="as-dx">Cambiar organismo</button><button class="as-btn as-main" id="as-dcopy">Copiar enlace</button><button class="as-btn" id="as-dprint">Imprimir o PDF</button></div></div></div>
@@ -1246,7 +1253,7 @@ function guiaHtml(){
   let vig = '';
   if(window.AS_CMV){
     const rows = Object.keys(window.AS_CMV.cm).map(id => { const v = cmVig(id); return `<tr><td>${esc(window.AS_CMV.cm[id][0])}</td><td>${esc(id)}</td><td>${v && v.vigente ? esc(v.hasta) : esc(window.AS_CMV.cm[id][1]) + ' (fecha ya pasada; revisa si fue prorrogada)'}</td><td>${window.AS_CMV.cm[id][2] === 1 ? 'Sí' : 'No'}</td><td>${esc(window.AS_CMV.cm[id][3] || '')}</td></tr>`; }).join('');
-    vig = `<div class="as-sec"><h3>Convenios Marco vigentes</h3><div class="as-tw"><table class="as-t"><tr><th>Convenio Marco</th><th>ID de licitación</th><th>Vigencia hasta</th><th>Maestra de productos</th><th>Forma de compra</th></tr>${rows}</table></div><p class="as-hint">Fichas al ${esc(window.AS_CMV.gen)}. Detalle de cada convenio (objeto, cotizador, reajuste, transacciones): <a href="${window.AS_CMV.fuente}" target="_blank" rel="noopener">Fichas de Convenios Marco vigentes</a>. El Catálogo oficial es la referencia final (DS 661, art. 29).</p></div>`;
+    vig = `<div class="as-sec"><h3>Convenios Marco vigentes</h3><div class="as-tw"><table class="as-t"><tr><th>Convenio Marco</th><th>ID de licitación</th><th>Vigencia hasta</th><th>Maestra de productos</th><th>Forma de compra</th></tr>${rows}</table></div><p class="as-hint">Fichas al ${esc(window.AS_CMV.gen)}. Detalle de cada convenio (objeto, cotizador, reajuste, transacciones): <a href="${window.AS_CMV.fuente}" rel="noopener">Fichas de Convenios Marco vigentes</a>. El Catálogo oficial es la referencia final (DS 661, art. 29).</p></div>`;
   }
   return tabla + vig + mecs + causales + `<p class="as-note">${esc(R_.TEXTO_BASE)}</p>`;
 }
