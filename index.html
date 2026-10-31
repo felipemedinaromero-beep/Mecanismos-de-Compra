@@ -426,6 +426,57 @@
   .mx-warn { font-size:12px; color:var(--cc-wine); background:var(--surface-page); border-left:4px solid var(--cc-amber); border-radius:10px; padding:9px 13px; margin:10px 0 0; line-height:1.5; }
   .mx-h3 { font-size:13.5px; font-weight:700; color:var(--cc-navy); margin:18px 0 6px; }
   .mx-stack svg { width:100%; height:auto; display:block; }
+
+  /* ===== upd17: asesor destacado, opcionales y herramientas ===== */
+  .asesor-hero { position:relative; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:26px; margin:0 0 1.5rem; padding:28px 34px; border-radius:26px; text-decoration:none !important; color:#fff; overflow:hidden;
+    background:radial-gradient(circle at 92% 8%, rgba(208,255,102,.28) 0, rgba(208,255,102,0) 38%), linear-gradient(120deg,#00233B 0%,#0032A2 62%,#005AF8 100%); box-shadow:0 18px 40px rgba(0,35,59,.28); transition:transform .18s ease, box-shadow .18s ease; }
+  .asesor-hero:hover { transform:translateY(-2px); box-shadow:0 24px 48px rgba(0,35,59,.34); }
+  .asesor-hero:focus-visible { outline:3px solid var(--cc-lime); outline-offset:3px; }
+  .ah-ico { width:78px; height:78px; border-radius:50%; background:var(--cc-lime); color:var(--cc-dark); display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 8px rgba(208,255,102,.18); }
+  .ah-ico svg { width:40px; height:40px; }
+  .ah-tag { display:inline-block; font-size:10.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--cc-lime); margin-bottom:6px; }
+  .ah-body h2 { margin:0 0 8px; font-size:26px; line-height:1.15; font-weight:800; color:#fff; text-transform:none; letter-spacing:0; display:block; }
+  .ah-body p { margin:0 0 14px; font-size:14px; line-height:1.55; color:rgba(255,255,255,.86); max-width:70ch; }
+  .ah-chips { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
+  .ah-chips li { font-size:11.5px; font-weight:600; color:#fff; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); border-radius:99px; padding:5px 12px; }
+  .ah-cta { display:inline-flex; align-items:center; gap:9px; background:var(--cc-lime); color:var(--cc-dark); font-weight:800; font-size:14px; border-radius:99px; padding:14px 26px; white-space:nowrap; box-shadow:0 8px 20px rgba(0,0,0,.25); }
+  .ah-cta svg { width:18px; height:18px; transition:transform .15s ease; }
+  .asesor-hero:hover .ah-cta svg { transform:translateX(4px); }
+  @media (max-width:860px){ .asesor-hero { grid-template-columns:1fr; gap:16px; padding:24px 22px; } .ah-ico { width:60px; height:60px; } .ah-ico svg { width:30px; height:30px; } .ah-body h2 { font-size:22px; } .ah-cta { justify-self:start; } }
+
+  details.note-fold { background:transparent; border:1px solid var(--border); box-shadow:none; border-left:4px solid var(--pbi-yellow); border-radius:12px; padding:0; }
+  details.note-fold > summary { cursor:pointer; list-style:none; padding:10px 16px; font-weight:700; color:var(--cc-navy); font-size:12.5px; }
+  details.note-fold > summary::-webkit-details-marker { display:none; }
+  details.note-fold > summary::after { content:' +'; }
+  details.note-fold[open] > summary::after { content:' −'; }
+  details.note-fold > div, details.note-fold > p { padding:0 16px 12px; margin:0; font-size:12px; line-height:1.55; color:var(--cc-wine); }
+
+  section.block.block-opt { background:linear-gradient(135deg,#F3FFD6 0%,#E8F2FF 100%); border:1px solid #D6E6B8; box-shadow:none; }
+  section.block.block-opt .pend-card { background:#fff; border:1px solid rgba(0,35,59,.10); border-style:solid; border-radius:16px; box-shadow:0 2px 8px rgba(0,35,59,.05); }
+  section.block.block-opt a.pend-card-link { border:1px solid rgba(76,154,42,.45); border-left-width:4px; }
+  section.block.block-opt .pend-card-title { font-size:13.5px; }
+  section.block.block-opt .pend-grid { gap:14px; }
+  section.block.block-opt details.note-fold { margin-top:14px; background:rgba(255,255,255,.55); }
+
+  section.block.block-tools { background:transparent; box-shadow:none; border:0; padding:0; margin-top:1.8rem; }
+  section.block.block-tools > h2, section.block.block-tools > .block-note { padding-left:2px; }
+  .tool-groups { display:flex; flex-direction:column; gap:16px; margin-top:12px; }
+  .tool-group { --gc:var(--cc-navy); --gbg:linear-gradient(135deg,#DFE8FF 0%,#EEF3FF 100%); background:var(--gbg); border-radius:24px; padding:18px 20px 20px; border:1px solid rgba(0,35,59,.06); }
+  .tool-group.g-plan { --gc:var(--cc-green); --gbg:linear-gradient(135deg,#E2F2D3 0%,#F1F9E8 100%); }
+  .tool-group.g-more { --gc:var(--cc-violet); --gbg:linear-gradient(135deg,#E9E0F7 0%,#F3EEFB 100%); }
+  .tool-group > h3 { display:flex; align-items:center; gap:9px; margin:0 0 12px; font-size:13px; letter-spacing:.06em; text-transform:uppercase; font-weight:800; color:var(--gc); }
+  .tool-group > h3::before { content:''; width:10px; height:10px; border-radius:50%; background:var(--gc); }
+  .tool-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:12px; }
+  .tool-card { display:flex; align-items:center; gap:13px; background:rgba(255,255,255,.86); border:1px solid rgba(0,35,59,.07); border-radius:16px; padding:14px 16px; text-decoration:none !important; color:inherit; transition:transform .15s ease, box-shadow .15s ease, background .15s ease; }
+  .tool-card:hover { background:#fff; transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,35,59,.12); }
+  .tool-card:focus-visible { outline:2px solid var(--gc); outline-offset:2px; }
+  .tc-ico { flex:0 0 auto; width:42px; height:42px; border-radius:50%; background:var(--gc); color:#fff; display:flex; align-items:center; justify-content:center; }
+  .tc-ico svg { width:21px; height:21px; }
+  .tc-txt { flex:1 1 auto; min-width:0; }
+  .tc-txt b { display:block; font-size:13.5px; line-height:1.25; color:var(--cc-dark); margin-bottom:3px; }
+  .tc-txt span { display:block; font-size:11.5px; line-height:1.4; color:var(--text-secondary); }
+  .tc-go { flex:0 0 auto; width:18px; height:18px; color:var(--gc); transition:transform .15s ease; }
+  .tool-card:hover .tc-go { transform:translateX(3px); }
 </style>
 </head>
 <body>
@@ -447,7 +498,17 @@
   <div class="kpis" id="kpiRow"></div>
   <div id="dlMainResumen"></div>
 
-  <div class="note-box">Cifras procesadas a nivel de Orden de Compra (deduplicadas por código de OC), incluyendo únicamente OC en estado <b>Recepción Conforme</b> o <b>Aceptada</b> (se excluyen "Enviada a Proveedor", "En Proceso" y "Solicitud de Cancelación"), a partir de los archivos mensuales de "Descarga masiva por URL" de Datos Abiertos ChileCompra. Los montos se expresan en dólares (USD), convirtiendo los pesos chilenos al dólar observado del día de emisión de cada OC (Banco Central de Chile); UF y EUR se muestran aparte, sin convertir. Ver metodología completa al final de la página.</div>
+  <a class="asesor-hero" href="#asesor" target="_blank" rel="noopener">
+    <span class="ah-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></span>
+    <div class="ah-body">
+      <span class="ah-tag">Herramienta destacada</span>
+      <h2>Asesor estratégico de compras</h2>
+      <p>Indica el organismo, el producto y el monto, y recibe el procedimiento que corresponde según la Ley 19.886 y su Reglamento, con alertas de fragmentación y la revisión de Convenio Marco, trato directo, precios y proveedores de la región.</p>
+      <ul class="ah-chips"><li>Procedimiento recomendado</li><li>Alertas de fragmentación</li><li>Convenio Marco</li><li>Precios y proveedores</li></ul>
+    </div>
+    <span class="ah-cta">Abrir el asesor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></span>
+  </a>
+  <details class="note-fold" style="margin:0 0 1.25rem;"><summary>Cómo se calculan estas cifras</summary><div>Cifras procesadas a nivel de Orden de Compra (deduplicadas por código de OC), incluyendo únicamente OC en estado <b>Recepción Conforme</b> o <b>Aceptada</b> (se excluyen "Enviada a Proveedor", "En Proceso" y "Solicitud de Cancelación"), a partir de los archivos mensuales de "Descarga masiva por URL" de Datos Abiertos ChileCompra. Los montos se expresan en dólares (USD), convirtiendo los pesos chilenos al dólar observado del día de emisión de cada OC (Banco Central de Chile); UF y EUR se muestran aparte, sin convertir. Ver metodología completa al final de la página.</div></details>
 
   <section class="block">
     <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>Participación por mecanismo</h2>
@@ -476,6 +537,36 @@
     <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Los siete mecanismos</h2>
     <p class="block-note">Cada ficha resume un mecanismo en el período elegido: órdenes de compra, monto, peso dentro del total y evolución mensual. Abre «Ver detalle» para el análisis completo.</p>
     <div id="grid"></div>
+  </section>
+
+  <section class="block block-opt" id="optSection">
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Mecanismos nuevos de la Ley 21.634</h2>
+    <p class="block-note">Procedimientos incorporados por la Ley 21.634 y el DS 661/2024, vigentes desde el <b>12 de junio de 2025</b>. Compra Ágil y Contratación por Cotización ya tienen su ficha arriba. Diálogos Competitivos y Contratos para la Innovación no tienen ninguna OC en los datos de <span id="pendPeriodo"></span>; Economía Circular se mide con un reporte de ChileCompra y no con OC.</p>
+    <div class="pend-grid">
+      <a class="pend-card pend-card-link" href="#subasta-inversa" target="_blank" rel="noopener" title="Abrir las subastas identificadas">
+        <div class="pend-card-head"><span class="pend-card-title">Subasta Inversa Electrónica</span><span class="pend-badge ok">2 subastas · 1 OC</span></div>
+        <p class="pend-card-desc">Procedimiento abierto para bienes y servicios estandarizados, donde los proveedores compiten ofreciendo precios cada vez más bajos, mediante un módulo dedicado en Mercado Público.</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
+        <span class="pend-card-cta">Ver subastas y OC →</span>
+      </a>
+      <div class="pend-card">
+        <div class="pend-card-head"><span class="pend-card-title">Diálogos Competitivos</span><span class="pend-badge">0 OC detectadas</span></div>
+        <p class="pend-card-desc">Procedimiento especial para necesidades públicas complejas, mediante un diálogo estructurado en fases sucesivas con los proveedores para definir y ajustar la solución.</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
+      </div>
+      <div class="pend-card">
+        <div class="pend-card-head"><span class="pend-card-title">Contratos para la Innovación</span><span class="pend-badge">0 OC detectadas</span></div>
+        <p class="pend-card-desc">Procedimiento orientado a la adquisición de soluciones innovadoras para desafíos públicos, en el marco de la Compra Pública de Innovación (CPI).</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
+      </div>
+      <a class="pend-card pend-card-link" href="#economia-circular" target="_blank" rel="noopener" title="Abrir los datos de Economía Circular">
+        <div class="pend-card-head"><span class="pend-card-title">Economía Circular</span><span class="pend-badge ok">1.182 reservas</span></div>
+        <p class="pend-card-desc">Organismos que publican productos para que otros organismos los reserven. No son Órdenes de Compra: los datos vienen de un reporte propio de ChileCompra y tienen su vista aparte.</p>
+        <p class="pend-card-meta">Datos al <b>26/10/2026</b> · reporte Power BI de ChileCompra</p>
+        <span class="pend-card-cta">Ver datos →</span>
+      </a>
+    </div>
+    <details class="note-fold"><summary>Cómo se buscaron estos procedimientos en los datos</summary><div>Se buscó en los 22 meses de OC (ene-2025 a oct-2026; octubre parcial) el sufijo "SIE" en el código de licitación, la glosa y el nombre de la OC, y las menciones de "subasta inversa", "diálogo competitivo" e "innovación" en Tipo, DescripcionTipoOC y ProcedenciaOC. Solo apareció una OC de subasta (5240-235-SE25, subasta 6153-1-SIE25, Carabineros); la subasta 6153-5-SIE25 se agregó por indicación del equipo y no tiene OC en los datos abiertos. Esto vale para los organismos y el período de este panel y no permite concluir que los demás mecanismos no se hayan usado en otro lugar del país. Para confirmarlo a nivel nacional conviene revisar <a href="https://www.chilecompra.cl/subasta-inversa-electronica/" target="_blank" rel="noopener">chilecompra.cl</a> o consultar al Centro de Ayuda de Mercado Público.</div></details>
   </section>
 
   <section class="block">
@@ -512,131 +603,15 @@
     <div id="sectorEvoBody"></div>
   </section>
 
-  <section class="block">
-    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Explorador de transacciones</h2>
-    <p class="block-note">Revisa todas las Órdenes de Compra (Recepción Conforme o Aceptada), ya sea partiendo de un organismo comprador específico o partiendo de un rubro de compra para ver qué organismos han transado en él. En ambos casos puedes acotar por período, mecanismo, región, proveedor y monto.</p>
-    <div class="explore-grid">
-      <a class="explore-card" href="#asesor" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Asesor estratégico de compras</p>
-          <p class="explore-card-sub">Indica organismo, producto y monto: te recomienda el procedimiento según la Ley 19.886 y el Reglamento, y revisa fragmentación, Convenio Marco, trato directo, precios y proveedores de la región</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#comprador" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 3 9 21 9"/><line x1="9" y1="21" x2="9" y2="10"/><line x1="15" y1="21" x2="15" y2="10"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Explorar por comprador</p>
-          <p class="explore-card-sub">Elige un organismo y su unidad de compra, y filtra por rubro, familia, clase, producto o palabra</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#rubro" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.82 0l4.6-4.6a2 2 0 0 0 0-2.82z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Explorar por rubro de compra</p>
-          <p class="explore-card-sub">Busca licitaciones, tratos directos, compras ágiles y otros procesos por palabra (ej.: mantención de aire acondicionado) con todos sus antecedentes; navega rubro, familia, clase y producto y ve quién compró</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#nuevos" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Organismos nuevos incorporados</p>
-          <p class="explore-card-sub">Actividad de compra exclusiva de los organismos del listado de incorporación</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#gore" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 2 9 22 9 12 3"/><line x1="9" y1="21" x2="9" y2="13"/><line x1="15" y1="21" x2="15" y2="13"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Gobiernos Regionales</p>
-          <p class="explore-card-sub">Los 16 GORE: procedimientos de compra, montos, concentración de proveedores, rubros, tratos directos y licitaciones; busca por RUT o elige uno de la lista</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#cfmp" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Compras Fuera de Mercado Público</p>
-          <p class="explore-card-sub">Registro de compras realizadas fuera del Sistema (Art. 21 Ley 19.886 y Art. 115 Reglamento): tipo de compra, motivo, montos, compradores y proveedores</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#comparacion" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Comparación año a año</p>
-          <p class="explore-card-sub">Compara 2025 y 2026, mes a mes y por mecanismo</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#pac" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Plan Anual de Compras (PAC) 2025 y 2026</p>
-          <p class="explore-card-sub">Lo que los organismos planificaron comprar: montos, comparación entre años, frente a lo ejecutado y ficha por organismo</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#presupuesto" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Presupuesto 2026 · PAC · Ejecutado</p>
-          <p class="explore-card-sub">Cuánto presupuesto asigna la Ley de Presupuestos 2026 a cada organismo, cuánto planificó en el PAC y cuánto ejecutó en Mercado Público con OC</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#pac26" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Buscador PAC 2026</p>
-          <p class="explore-card-sub">Organismos con su PAC 2026 (proyectos, ítems, monto), OC enlazadas al PAC, cumplimiento, organismos sin PAC publicado y buscador de oportunidades sobre las líneas del PAC</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
-      <a class="explore-card" href="#proveedores" target="_blank" rel="noopener">
-        <div class="explore-card-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01"/><path d="M15 11h.01"/></svg></div>
-        <div class="explore-card-text">
-          <p class="explore-card-title">Proveedores</p>
-          <p class="explore-card-sub">Busca un proveedor por nombre o RUT y revisa su ficha: ventas en OC, mecanismos, Convenios Marco, licitaciones en que participó, organismos compradores y enlace a su ficha oficial</p>
-        </div>
-        <svg class="icon explore-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
-      </a>
+  <section class="block block-tools" id="toolsSection">
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Herramientas de análisis</h2>
+    <p class="block-note">Parte desde un organismo, un rubro, un proveedor o el plan de compras. Cada herramienta abre en una pestaña nueva y permite acotar por período, mecanismo, región, proveedor y monto.</p>
+    <div class="tool-groups">
+      <div class="tool-group g-nav"><h3>Explorar transacciones</h3><div class="tool-grid"><a class="tool-card" href="#comprador" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 3 9 21 9"/><line x1="9" y1="21" x2="9" y2="10"/><line x1="15" y1="21" x2="15" y2="10"/></svg></span><span class="tc-txt"><b>Explorar por comprador</b><span>Elige un organismo y su unidad de compra; filtra por rubro, producto o palabra.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#rubro" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.24H4a1 1 0 0 0-1 1v5.59a2 2 0 0 0 .59 1.41l9.58 9.58a2 2 0 0 0 2.82 0l4.6-4.6a2 2 0 0 0 0-2.82z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span><span class="tc-txt"><b>Explorar por rubro de compra</b><span>Busca licitaciones, tratos directos y compras ágiles por palabra y mira quién compró.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#proveedores" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/><path d="M9 11h.01"/><path d="M15 11h.01"/></svg></span><span class="tc-txt"><b>Proveedores</b><span>Ficha por nombre o RUT: ventas, mecanismos, Convenios Marco y compradores.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#nuevos" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span><span class="tc-txt"><b>Organismos nuevos incorporados</b><span>Actividad de los organismos del listado de incorporación.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
+      <div class="tool-group g-plan"><h3>Plan de compras y presupuesto</h3><div class="tool-grid"><a class="tool-card" href="#pac" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="tc-txt"><b>Plan Anual de Compras (PAC) 2025 y 2026</b><span>Lo que se planificó comprar: montos, comparación entre años y ficha por organismo.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#pac26" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="tc-txt"><b>Buscador PAC 2026</b><span>PAC 2026 por organismo, OC enlazadas, cumplimiento y buscador de oportunidades.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#presupuesto" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span><span class="tc-txt"><b>Presupuesto 2026 · PAC · Ejecutado</b><span>Presupuesto 2026, lo planificado en el PAC y lo ejecutado con OC.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
+      <div class="tool-group g-more"><h3>Otras miradas</h3><div class="tool-grid"><a class="tool-card" href="#gore" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 2 9 22 9 12 3"/><line x1="9" y1="21" x2="9" y2="13"/><line x1="15" y1="21" x2="15" y2="13"/></svg></span><span class="tc-txt"><b>Gobiernos Regionales</b><span>Los 16 GORE: procedimientos, montos, proveedores y licitaciones.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#cfmp" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h4"/></svg></span><span class="tc-txt"><b>Compras Fuera de Mercado Público</b><span>Compras fuera del Sistema (Art. 21 Ley 19.886 y Art. 115 Reglamento).</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a><a class="tool-card" href="#comparacion" target="_blank" rel="noopener"><span class="tc-ico"><svg  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span><span class="tc-txt"><b>Comparación año a año</b><span>Compara 2025 y 2026 mes a mes y por mecanismo.</span></span><svg class="tc-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a></div></div>
     </div>
   </section>
-
-  <section class="block">
-    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Mecanismos de la Ley 21.634 aún sin registro en este panel</h2>
-    <p class="block-note">La Ley N° 21.634 (que modificó la Ley 19.886) y su Reglamento, el Decreto N° 661 de 2024, incorporaron nuevos procedimientos de compra. Compra Ágil (con su tope ampliado a 100 UTM) y Contratación por Cotización ya están en las fichas de este panel. Los tres procedimientos siguientes entraron en vigencia el <b>12 de junio de 2025</b>. Para Subasta Inversa Electrónica se encontraron dos subastas y una OC (ver su vista); Diálogos Competitivos y Contratos para la Innovación no tienen ninguna OC en los datos de <span id="pendPeriodo"></span>. Economía Circular no se mide con Órdenes de Compra sino con un reporte de ChileCompra, y al abrir su caja se muestran esos datos.</p>
-    <div class="pend-grid">
-      <a class="pend-card pend-card-link" href="#subasta-inversa" target="_blank" rel="noopener" title="Abrir las subastas identificadas">
-        <div class="pend-card-head"><span class="pend-card-title">Subasta Inversa Electrónica</span><span class="pend-badge ok">2 subastas · 1 OC</span></div>
-        <p class="pend-card-desc">Procedimiento abierto para bienes y servicios estandarizados, donde los proveedores compiten ofreciendo precios cada vez más bajos, mediante un módulo dedicado en Mercado Público.</p>
-        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
-        <span class="pend-card-cta">Ver subastas y OC →</span>
-      </a>
-      <div class="pend-card">
-        <div class="pend-card-head"><span class="pend-card-title">Diálogos Competitivos</span><span class="pend-badge">0 OC detectadas</span></div>
-        <p class="pend-card-desc">Procedimiento especial para necesidades públicas complejas, mediante un diálogo estructurado en fases sucesivas con los proveedores para definir y ajustar la solución.</p>
-        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
-      </div>
-      <div class="pend-card">
-        <div class="pend-card-head"><span class="pend-card-title">Contratos para la Innovación</span><span class="pend-badge">0 OC detectadas</span></div>
-        <p class="pend-card-desc">Procedimiento orientado a la adquisición de soluciones innovadoras para desafíos públicos, en el marco de la Compra Pública de Innovación (CPI).</p>
-        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
-      </div>
-      <a class="pend-card pend-card-link" href="#economia-circular" target="_blank" rel="noopener" title="Abrir los datos de Economía Circular">
-        <div class="pend-card-head"><span class="pend-card-title">Economía Circular</span><span class="pend-badge ok">1.182 reservas</span></div>
-        <p class="pend-card-desc">Organismos que publican productos para que otros organismos los reserven. No son Órdenes de Compra: los datos vienen de un reporte propio de ChileCompra y tienen su vista aparte.</p>
-        <p class="pend-card-meta">Datos al <b>26/10/2026</b> · reporte Power BI de ChileCompra</p>
-        <span class="pend-card-cta">Ver datos →</span>
-      </a>
-    </div>
-    <div class="note-box" style="margin:12px 0 0;">Se buscó en los 22 meses de OC (ene-2025 a oct-2026; octubre parcial) el sufijo "SIE" en el código de licitación, la glosa y el nombre de la OC, y las menciones de "subasta inversa", "diálogo competitivo" e "innovación" en Tipo, DescripcionTipoOC y ProcedenciaOC. Solo apareció una OC de subasta (5240-235-SE25, subasta 6153-1-SIE25, Carabineros); la subasta 6153-5-SIE25 se agregó por indicación del equipo y no tiene OC en los datos abiertos. Esto vale para los organismos y el período de este panel y no permite concluir que los demás mecanismos no se hayan usado en otro lugar del país. Para confirmarlo a nivel nacional conviene revisar <a href="https://www.chilecompra.cl/subasta-inversa-electronica/" target="_blank" rel="noopener">chilecompra.cl</a> o consultar al Centro de Ayuda de Mercado Público.</div>
-  </section>
-
 
   <footer class="cc-footer" id="footerBox"></footer>
 </div>
