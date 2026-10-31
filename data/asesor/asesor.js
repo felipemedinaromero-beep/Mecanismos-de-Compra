@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r7' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r8' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -63,8 +63,14 @@ function umOptions(l){
 }
 const lineTotal = l => (l.n && l.pu) ? Math.round(l.n * l.pu) : (l.m || 0);
 function procTotal(){ return S.st.l.reduce((a, l) => a + lineTotal(l), 0); }
-function autoTipo(code){ const sg = Number(String(code || '').slice(0, 2)); return sg >= SERV_CODE && sg <= 94 ? 'servicio' : 'bien'; }
-function lineTipo(l){ return l.t || (l.p ? autoTipo(l.p) : 'bien'); }
+/* El código ONU manda (segmentos 70 a 94 son servicios). En los demás, si lo que el comprador escribió o el nombre del producto indican un servicio
+   (nube, suscripción, arriendo, mantención, soporte técnico, capacitación...), el tipo es servicio aunque el código sea de un bien (por ejemplo, software). */
+const SERV_TXT = /\b(servicios?|nube|cloud|saas|iaas|paas|hosting|alojamiento|suscripcion(es)?|arriendos?|arrendamientos?|mantencion(es)?|mantenimientos?|soporte (tecnico|informatico|de usuarios?|remoto)|capacitacion(es)?|cursos?|asesoria(s)?|consultoria(s)?|auditoria(s)?|outsourcing|monitoreo|vigilancia|catering|traslados?|reparacion(es)?|desarrollo de software|licenciamiento)\b/;
+const servTxt = t => { const m = norm(t || '').match(SERV_TXT); return m ? m[0] : ''; };
+function servNombre(code){ const i = (S.prodByCode && code) ? S.prodByCode[code] : null; if(i == null || !S.C) return false; const n = norm(S.C.n[i]); return /^(servicios?|arriendo|suscripcion|mantencion|mantenimiento) /.test(n) || /\b(nube|cloud|saas)\b/.test(n); }
+function autoTipo(code, tx){ const sg = Number(String(code || '').slice(0, 2)); if(sg >= SERV_CODE && sg <= 94) return 'servicio'; return (servTxt(tx) || servNombre(code)) ? 'servicio' : 'bien'; }
+const autoTipoL = l => autoTipo(l.p, l.tx);
+function lineTipo(l){ return l.t || (l.p ? autoTipoL(l) : (servTxt(l.q) ? 'servicio' : 'bien')); }
 function lineName(l){ const i = l.p ? S.prodByCode[l.p] : null; return i != null ? sentence(S.C.n[i]) : (l.q || ''); }
 function activeLine(){ return S.st.l[S.li] || S.st.l[0]; }
 function recalc(){ S.st.m = procTotal(); }
@@ -260,6 +266,15 @@ table.as-t th{background:#F2F6FD;}
 @media(max-width:900px){.as-grid{grid-template-columns:minmax(0,1fr);} .as-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;} .as-tab{flex:0 0 auto;white-space:nowrap;padding:9px 16px;}}
 .as-rtabs{position:sticky;top:8px;z-index:6;margin:0 0 14px;box-shadow:0 8px 20px rgba(0,35,59,.14);}
 .as-tabhint{margin:2px 4px 10px;font-size:12.5px;}
+/* upd22: Convenio Marco dentro del recuadro azul */
+.as-rc{margin-top:16px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);}
+.as-rc-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;} .as-rc-k{flex:0 0 100%;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--cc-lime);}
+.as-rc-h b{font-size:17px;color:#fff;} .as-rc-id{font-size:12px;font-weight:800;padding:2px 10px;border-radius:99px;background:var(--cc-lime);color:var(--cc-dark);letter-spacing:.02em;}
+.as-reco .as-rc-s{margin-top:6px;font-size:12.5px;color:#D7E6F7;}
+.as-rc-pl{display:block;margin-top:12px;font-size:12px;font-weight:800;color:#fff;}
+.as-rc-pv ul{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px 14px;}
+.as-rc-pv li{font-size:12.5px;color:#fff;padding:5px 10px;border-radius:9px;background:rgba(255,255,255,.1);min-width:0;overflow-wrap:anywhere;} .as-rc-pv li small{color:#BFD3EA;margin-left:4px;}
+.as-rc-go-w{margin:12px 0 0 !important;} .as-rc-go{display:inline-flex;align-items:center;padding:8px 16px;border-radius:99px;background:var(--cc-lime);color:var(--cc-dark) !important;font-size:12.5px;font-weight:800;text-decoration:none;} .as-rc-go:hover{background:#fff;}
 @media print{ .as-pan[hidden]{display:block!important;} .as-rtabs{display:none!important;} .as-side{max-height:none;overflow:visible;position:static;} header.cc-header,.back-link,.as-noprint,.as-tabs,.as-side .as-card:not(.as-print-sum){display:none!important;} .as-grid{display:block;} .as-reco{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .as-sec,.as-card{box-shadow:none;break-inside:avoid;} body{background:#fff;} }
 `;
 
@@ -439,6 +454,10 @@ function vereditoHtml(vd, o){
   return h;
 }
 
+function esNoMueble(){
+  const code = S.prodIdx != null ? S.C.c[S.prodIdx] : '';
+  return code.slice(0, 2) === '95' || code.startsWith('4323') || /\b(software|licencias?|suscripcion(es)?)\b/.test(norm(consultaTexto()));
+}
 function esConsumible(){
   const t = (S.st.t || 'bien') !== 'servicio'; if(!t) return false;
   const code = S.prodIdx != null ? S.C.c[S.prodIdx] : '', seg = code.slice(0, 2);
@@ -459,7 +478,7 @@ function compute(){
   S.vd = vd;
   const dm = S.prodIdx != null && S.segData ? S.segData.dm[orgRegion() + '|' + S.prodIdx] : null;
   const consumible = esConsumible();
-  const noMueble = S.prodIdx != null && S.C.c[S.prodIdx].slice(0, 2) === '95';
+  const noMueble = esNoMueble();
   const inp = {bt: btDetect(), consumible, noMueble, montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
     sector: S.org ? S.org[2] : '', demanda: dm ? {no: dm[0], mm: dm[1]} : null,
     hist: h ? {noCmUtm: h.noCmUtm, totalUtm: h.totalUtm} : null, fueraCm: fueraCmMM()};
@@ -492,7 +511,7 @@ function renderTab(){
       <input class="as-in" id="as-prod" type="search" autocomplete="off" placeholder="Ej.: toallas de papel, guardias de seguridad, 14111703" aria-label="Buscar producto o servicio">
       <div class="as-list" id="as-prodres" hidden></div>
       <div id="as-lines"></div>
-      <p class="as-hint">Escribe el producto o servicio y elígelo de la lista; después indica la unidad de medida, la cantidad y el precio. El tipo (bien o servicio) se asigna solo desde el código del producto. Si no encuentras tu producto, escribe igual una descripción y elige si es bien o servicio: la recomendación por monto y por norma funciona, pero sin datos de precios ni de Convenio Marco.</p></div>
+      <p class="as-hint">Escribe el producto o servicio y elígelo de la lista; después indica la unidad de medida, la cantidad y el precio. El tipo (bien o servicio) se asigna solo desde el código del producto y de lo que escribes (por ejemplo, «nube» o «suscripción» lo marcan como servicio); puedes cambiarlo a mano. Si no encuentras tu producto, escribe igual una descripción y elige si es bien o servicio: la recomendación por monto y por norma funciona, pero sin datos de precios ni de Convenio Marco.</p></div>
     <div class="as-card" id="as-c3"><h3><span class="as-n">3</span>¿Cuánto costará?</h3>
       <div class="as-tot" id="as-tot" aria-live="polite"></div>
       <div class="as-eq" id="as-eq" aria-live="polite"></div>
@@ -520,12 +539,12 @@ function wire(){
   ln.addEventListener('click', e => {
     const b = e.target.closest('[data-a]'); if(!b) return; const i = Number(b.dataset.i), a = b.dataset.a, l = S.st.l[i]; if(!l) return;
     if(a === 'sel'){ activate(i); $('as-prod').value = l.p ? '' : (l.q || ''); $('as-prodres').hidden = true; paintLines(); loadSegFor(); update(); }
-    else if(a === 'chg'){ activate(i); l.p = ''; l.q = ''; l.t = ''; activate(i); $('as-prod').value = ''; $('as-prodres').hidden = true; paintLines(); update(); $('as-prod').focus(); }
+    else if(a === 'chg'){ activate(i); l.p = ''; l.q = ''; l.tx = ''; l.t = ''; activate(i); $('as-prod').value = ''; $('as-prodres').hidden = true; paintLines(); update(); $('as-prod').focus(); }
     else if(a === 'del'){ S.st.l.splice(i, 1); if(!S.st.l.length) S.st.l.push(newLine()); activate(Math.min(S.li > i ? S.li - 1 : S.li, S.st.l.length - 1)); $('as-prod').value = activeLine().p ? '' : (activeLine().q || ''); paintLines(); loadSegFor(); update(); }
   });
   ln.addEventListener('change', e => { const t = e.target;
     if(t.classList.contains('as-ln-um')){ S.st.l[Number(t.dataset.i)].um = t.value; paintLines(); update(); return; }
-    if(!t.classList.contains('as-ln-t')) return; const l = S.st.l[Number(t.dataset.i)]; l.t = t.value === (l.p ? autoTipo(l.p) : 'bien') && l.p ? '' : t.value; if(Number(t.dataset.i) === S.li) activate(S.li); paintLines(); update(); });
+    if(!t.classList.contains('as-ln-t')) return; const l = S.st.l[Number(t.dataset.i)]; l.t = t.value === (l.p ? autoTipoL(l) : 'bien') && l.p ? '' : t.value; if(Number(t.dataset.i) === S.li) activate(S.li); paintLines(); update(); });
   ln.addEventListener('input', e => {
     const t = e.target, row = t.closest('.as-ln'); if(!row || !/as-ln-(q|pu|m)\b/.test(t.className)) return;
     const l = S.st.l[Number(row.dataset.i)], prev = lineTotal(l), d = t.value.replace(/\D/g, ''), v = d ? Number(d) : 0;
@@ -586,9 +605,9 @@ function paintSelections(){
 function paintLines(){
   const box = $('as-lines'); if(!box) return;
   const l = S.st.l[0]; S.li = 0;
-  const pi = l.p ? S.prodByCode[l.p] : null, nm = lineName(l), tipo = lineTipo(l), auto = l.p ? autoTipo(l.p) : null, calc = !!(l.n && l.pu), tot = lineTotal(l), um = lineUm(l);
+  const pi = l.p ? S.prodByCode[l.p] : null, nm = lineName(l), tipo = lineTipo(l), auto = l.p ? autoTipoL(l) : null, calc = !!(l.n && l.pu), tot = lineTotal(l), um = lineUm(l);
   const meta = pi != null ? `${esc(S.C.rubros[S.C.r[pi]] || '')} · código ${esc(l.p)}${S.C.cm[pi] ? ' · en Convenio Marco' : ''}` : '';
-  const nota = auto ? `Tipo asignado según el código ONU ${esc(l.p)}${l.t && l.t !== auto ? '; lo cambiaste a mano' : ''}.` : 'Elige un producto de la lista y el tipo se asigna solo. Mientras tanto, indica si es bien o servicio.';
+  const nota = auto ? `Tipo asignado ${Number(String(l.p).slice(0, 2)) < SERV_CODE && auto === 'servicio' ? (servTxt(l.tx) ? 'como servicio por lo que escribiste («' + esc(servTxt(l.tx)) + '»)' : 'como servicio por el nombre del producto') : 'según el código ONU ' + esc(l.p)}${l.t && l.t !== auto ? '; lo cambiaste a mano' : ''}.` : 'Elige un producto de la lista y el tipo se asigna solo. Mientras tanto, indica si es bien o servicio.';
   box.innerHTML = `<div class="as-ln" data-i="0">
     ${pi != null ? `<div class="as-ln-h"><div class="as-ln-n"><span><b>${esc(nm)}</b>${meta ? `<small>${meta}</small>` : ''}</span></div><button class="as-x" data-a="chg" data-i="0">cambiar</button></div>` : ''}
     <div class="as-ln-f">
@@ -748,7 +767,7 @@ function chooseOrg(i){
   loadOrg(i).then(d => { if(S.orgIdx !== i) return; S.od = d; S.loadingOrg = false; paintSelections(); loadSegFor(); update(); }).catch(e => { S.loadingOrg = false; paintSelections(); const r = $('as-res'); if(r) r.innerHTML = '<div class="as-err">' + esc(e.message) + '</div>'; });
 }
 function chooseProd(i, q){
-  const l = activeLine(); S.chosenQ = (q || '').trim(); S.chosenFor = S.C.c[i]; S.procQ = null; l.p = S.C.c[i]; l.q = ''; l.t = ''; $('as-prod').value = ''; $('as-prodres').hidden = true;
+  const l = activeLine(); S.chosenQ = (q || '').trim(); S.chosenFor = S.C.c[i]; S.procQ = null; l.p = S.C.c[i]; l.q = ''; l.tx = S.chosenQ; l.t = (autoTipo(l.p, l.tx) !== autoTipo(l.p, '') ? autoTipo(l.p, l.tx) : ''); $('as-prod').value = ''; $('as-prodres').hidden = true;
   activate(S.li); paintLines(); loadSegFor(); update();
 }
 function loadSegFor(){
@@ -921,7 +940,7 @@ function procesoHtml(o){
   const utm = utmNow(), filas = [];
   let cmClp = 0, fuera = 0;
   L.forEach(l => { const idx = S.st.l.indexOf(l);
-    const r = withLine(l, () => { const vd = veredictoCm(), pt = lineTipo(l), cons = pt === 'servicio' ? false : esConsumible(), nm = S.prodIdx != null && S.C.c[S.prodIdx].slice(0, 2) === '95';
+    const r = withLine(l, () => { const vd = veredictoCm(), pt = lineTipo(l), cons = pt === 'servicio' ? false : esConsumible(), nm = esNoMueble();
       return {vd, tipo: pt, ec: pt === 'bien' && !cons && !nm}; });
     const ps = pacState(l), cm = ['catalogo', 'oc', 'familia', 'tema'].includes(r.vd.nivel), t = lineTotal(l);
     if(cm) cmClp += t; else fuera += t;
@@ -993,11 +1012,31 @@ function refHtml(o){
   h += '<div class="as-tw"><table class="as-t"><tr><th>Orden de compra</th><th>Fecha</th><th>Título</th><th>Organismo</th><th class="n">Monto</th><th>Proveedor</th></tr>' + rows.map(x => `<tr><td><a href="${link(x[0], 'c')}" rel="noopener">${esc(x[0])}</a></td><td>${esc(x[1])}</td><td>${esc(sentence(x[2]))}</td><td>${esc(x[3])}</td><td class="n">${x[4] ? pesos(x[4]) : '—'}</td><td>${esc(x[5] || '—')}</td></tr>`).join('') + '</table></div>';
   return h + `<p class="as-hint">Se muestran las 5 compras con monto más cercano al tuyo (${pesos(monto)}), entre una muestra de las más recientes desde enero de 2025, con montos variados. Sirven para calibrar el precio y ver qué proveedores responden; la ficha en Mercado Público muestra el detalle.</p></div>`;
 }
+function heroCmHtml(o){
+  const p = o.principal; if(!p || p.k !== 'CM') return '';
+  const vd = S.vd || veredictoCm(); if(!['catalogo', 'oc', 'familia', 'tema'].includes(vd.nivel) || !vd.cms.length) return '';
+  const c = vd.cms[0], v = c.v || {}, reg = orgRegion(), pv = cmProveedores(c, reg), alta = vd.nivel === 'catalogo' || vd.nivel === 'oc', ec = !!(o.escalera && o.escalera.ecOpcion);
+  let h = `<div class="as-rc"><div class="as-rc-h"><span class="as-rc-k">${ec ? 'Después, Convenio Marco' : 'Dónde comprar: Convenio Marco'}</span><b>${esc(v.nombre || c.id)}</b><span class="as-rc-id">ID ${esc(c.id)}</span></div>`;
+  h += `<p class="as-rc-s">${v.hasta ? 'Vigente hasta ' + esc(v.hasta) : 'Convenio vigente'}${v.cot ? ' · Forma de compra: ' + esc(v.cot) : ''}${c.extra.cat ? ' · ' + c.extra.cat.n + ' producto(s) del Catálogo coinciden con lo que buscas' : ''}</p>`;
+  if(c.extra.cat){
+    if(!pv || (!pv.lst.length && pv.nivel === 'producto' && !window.AS_CMPROV)) h += '<p class="as-rc-s">Cargando proveedores…</p>';
+    else if(!pv.lst.length) h += `<p class="as-rc-s">No encontré proveedores del convenio con oferta de este producto en ${esc(regEn(reg))}. Revisa el catálogo: la oferta puede haber cambiado desde las maestras.</p>`;
+    else h += `<div class="as-rc-pv"><span class="as-rc-pl">${pv.lst.length} proveedor(es) del convenio en ${esc(regEn(reg))}${reg ? ' (incluye cobertura nacional)' : ''}</span><ul>${pv.lst.slice(0, 8).map(x => `<li><b>${esc(x.nom)}</b> <small>${esc(x.rut)}</small></li>`).join('')}</ul>${pv.lst.length > 8 ? `<p class="as-rc-s">Y ${pv.lst.length - 8} más: la lista completa, con plazos de entrega, está en la pestaña «Convenio Marco».</p>` : ''}</div>`;
+  } else {
+    const P_ = S.segData, rp_ = (P_ && S.prodIdx != null) ? P_.rp[reg + '|' + S.prodIdx] : null;
+    h += '<p class="as-rc-s">Este convenio se cotiza por requerimiento: cada proveedor adjudicado publica sus fichas, con su propio ID, dentro del catálogo del convenio.</p>';
+    if(rp_ && rp_.length > 1) h += `<div class="as-rc-pv"><span class="as-rc-pl">Referencia: proveedores de ${esc(regEn(reg))} con más ventas de este producto al Estado en los últimos 12 meses</span><ul>${rp_.slice(1, 7).map(x => { const pv = P_.pl[x[0]]; return `<li><b>${esc(pv[1])}</b> <small>${esc(pv[0])}</small></li>`; }).join('')}</ul><p class="as-rc-s">Son proveedores por cualquier mecanismo, no solo de este convenio: en el catálogo del convenio confirmas cuáles lo ofrecen.</p></div>`;
+    else if(S.prodIdx != null && !P_) h += '<p class="as-rc-s">Cargando proveedores de referencia…</p>';
+  }
+  if(!alta) h += '<p class="as-rc-s">La coincidencia es por la materia del convenio: confirma en el catálogo que el producto exacto está.</p>';
+  if(v.url) h += `<p class="as-rc-go-w"><a class="as-rc-go" href="${esc(v.url)}" rel="noopener">Entrar al catálogo del convenio</a></p>`;
+  return h + '</div>';
+}
 function resultHtml(o){
   const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
   let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div>${(o.escalera && o.escalera.ecOpcion) ? `<h2>Primero, economía circular</h2><p>Es un bien mueble: antes de comprar, consulta si otro organismo tiene uno disponible (DS 661, art. 28). Si no existe o no está disponible, deja constancia de que el producto no está disponible en economía circular y sigue con: <b>${esc(p.nom)}</b>.</p>` : `<h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>`}
-    <div class="as-chips"><span class="as-chip">${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip">${fmt(activeLine().n)} ${esc(lineUm(activeLine()))}</span>` : ''}<span class="as-chip">${dec(o.montoUtm, 1)} UTM${st_.l.length > 1 ? ' en total' : ''}</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div></div>`;
+    <div class="as-chips"><span class="as-chip">${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip">${fmt(activeLine().n)} ${esc(lineUm(activeLine()))}</span>` : ''}<span class="as-chip">${dec(o.montoUtm, 1)} UTM${st_.l.length > 1 ? ' en total' : ''}</span><span class="as-chip">${esc(o.tramoNom)}</span><span class="as-chip">${esc(regName(orgRegion()))}</span></div>${heroCmHtml(o)}</div>`;
   const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
   const vdHtml = procesoHtml(o) + vereditoHtml(S.vd || veredictoCm(), o);
   /* Todo lo que sigue va en pestañas bajo la tarjeta de Convenio Marco. */
