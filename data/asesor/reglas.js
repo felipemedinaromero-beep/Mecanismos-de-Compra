@@ -82,54 +82,91 @@ const MECANISMOS = [
 ];
 const MEC_BY = {}; MECANISMOS.forEach(m => MEC_BY[m.k] = m);
 
-/* Causales de Trato Directo (art. 71 DS / art. 8 bis Ley). */
+/* Causales de Trato Directo o Contratación Excepcional Directa con Publicidad.
+   Fuentes: Ley 19.886 arts. 8 bis, 8 ter y 60 (texto BCN al 05-02-2026) y DS 661/2024 arts. 71 a 84.
+   req = requisitos de fondo; acto = qué debe decir la resolución y quién la dicta; pub = publicidad y plazos; resp = responsabilidad. */
 const CAUSALES = {
-  urgencia: {n: '71 N° 3', ley: '8 bis letra c)', t: 'Emergencia, urgencia o imprevisto', reglas: [
-    'La jefatura superior dicta un acto fundado: hechos que generan graves perjuicios si no se contrata en plazo breve y motivos por los que no sirve otro procedimiento (art. 74).',
-    'El plazo del suministro debe quedar acotado a los hechos que lo motivan (art. 74).',
-    'Las circunstancias no pueden ser imputables a la entidad: la falta de gestión oportuna no sirve como urgencia (art. 83).',
-    'Publica la resolución y la orden de compra dentro de 24 horas (arts. 77 y 78).',
-    'Sobre 1.000 UTM adjunta informe técnico que explique por qué la necesidad no está cubierta por el PAC (art. 80).',
-    'La jefatura superior que califique mal esta causal arriesga una multa de 10 a 100 UTM (art. 84).'], arts: ['arts. 71 N° 3, 74, 77, 78, 80, 83, 84']},
-  unico: {n: '71 N° 1', ley: '8 bis letra a)', t: 'Proveedor único', reglas: [
-    'Solo procede si no hay sustituto ni alternativa razonable para satisfacer la necesidad de forma similar o equivalente (art. 72).',
-    'Incluye el caso en que solo el titular de derechos de propiedad intelectual, licencias o patentes puede proveer (art. 72).',
-    'Sobre 1.000 UTM publica tu intención de contratar, con el proveedor identificado, durante 5 días hábiles para que otros pidan otro procedimiento (art. 78 y Ley art. 8 bis letra a).',
-    'Sobre 1.000 UTM adjunta informe técnico (art. 80).'], arts: ['arts. 71 N° 1, 72, 78, 80']},
-  desierta: {n: '71 N° 2', ley: '8 y 8 ter', t: 'Licitación sin interesados', reglas: [
-    'Primero licitación pública sin interesados u ofertas admisibles, constancia en acto publicado (art. 73 N° 1).',
-    'Luego licitación privada también sin interesados o con ofertas inadmisibles (art. 73 N° 2).',
-    'Solo entonces procede el trato directo, con las mismas bases de la licitación pública (Ley art. 8 ter; art. 73).',
-    'Si modificas las bases en cualquier etapa, debes volver a una licitación pública.'], arts: ['arts. 69, 70, 71 N° 2, 73']},
-  confid: {n: '71 N° 4', ley: '8 bis letra d)', t: 'Servicios confidenciales', reglas: [
-    'Solo si la confidencialidad o la seguridad e interés nacional están determinados por ley.',
-    'No rige la obligación de publicar resolución y orden de compra del art. 77.',
-    'Puede tramitarse fuera del Sistema de Información (art. 115 N° 4) y la información se mantiene en reserva (arts. 114 y 142).'], arts: ['arts. 71 N° 4, 77, 114, 115']},
-  confianza: {n: '71 N° 5', ley: '8 bis letra e)', t: 'Magnitud, importancia y confianza', reglas: [
-    'Solo para contrataciones sobre 1.000 UTM (art. 75 letra d).',
-    'Debe existir un único proveedor con experiencia comprobada que dé seguridad y confianza, y fundamentar que no hay otros capaces de lo mismo (art. 75).',
-    'Haber sido proveedor de la entidad no basta para invocarla (art. 75).',
-    'Publica tu intención de contratar durante 5 días hábiles (art. 78) y adjunta informe técnico (art. 80).',
-    'Una calificación indebida lleva multa de 10 a 100 UTM a la jefatura superior (arts. 84 y Ley art. 35 decies).'], arts: ['arts. 71 N° 5, 75, 78, 80, 84']},
-  impacto: {n: '71 N° 6', ley: '8 bis (alto impacto social)', t: 'Menos de 30 UTM con alto impacto social', reglas: [
-    'Solo adquisiciones inferiores a 30 UTM (art. 71 N° 6).',
-    'Debe privilegiar empresas de menor tamaño (incluidas las lideradas por mujeres), proveedores locales, descentralización o sustentabilidad ambiental (art. 76).',
-    'En el acto fundamenta el cumplimiento de esos objetivos y que el precio responde a valores de mercado (art. 76).',
-    'Preferentemente con personas naturales, empresas de menor tamaño o proveedores locales (art. 76).'], arts: ['arts. 71 N° 6, 76']},
-  compat: {n: '71 N° 7 letra a)', ley: '8 bis letra f)', t: 'Servicios o equipamiento accesorios compatibles', reglas: [
-    'Deben ser necesariamente compatibles con modelos, sistemas o infraestructura adquiridos antes y necesarios para un contrato adjudicado.',
-    'Sin ellos se afectaría el correcto funcionamiento de ese contrato.'], arts: ['art. 71 N° 7 letra a)']},
-  desprop: {n: '71 N° 7 letra b)', ley: '8 bis letra f)', t: 'Costo desproporcionado del proceso competitivo', reglas: [
-    'Solo servicios, y con un monto total que no supere 100 UTM.',
-    'Elabora un informe con antecedentes objetivos que demuestre el sobrecosto financiero o de recursos humanos de un proceso competitivo, en relación con el valor del servicio.'], arts: ['art. 71 N° 7 letra b)']},
-  especial: {n: '71 N° 7 letra c)', ley: '8 bis letra f)', t: 'Servicios de alta especialización', reglas: [
-    'El proveedor necesita alto grado de especialización, en aspectos fundamentales para tus funciones, que no puede cubrir el personal propio.',
-    'Antes de usar trato directo revisa si procede la licitación pública con preselección para servicios personales especializados (arts. 173 a 175), que es el camino general para esta clase de servicios.'], arts: ['art. 71 N° 7 letra c)', 'arts. 173 a 175']},
-  seguridad: {n: '71 N° 7 letra d)', ley: '8 bis letra f)', t: 'Seguridad e integridad de autoridades', reglas: [
-    'Es necesario contratar directamente con un proveedor probado que asegure discreción y confianza.'], arts: ['art. 71 N° 7 letra d)']},
-  publicidad: {n: '71 N° 7 letra e)', ley: '8 bis letra f)', t: 'Riesgo por el conocimiento público del proceso', reglas: [
-    'El conocimiento público que generaría la licitación pondría en serio riesgo el objeto y la eficacia de la contratación.'], arts: ['art. 71 N° 7 letra e)']}
+  unico: {n: '71 N° 1', ley: 'art. 8 bis letra a)', t: 'Proveedor único', arts: ['arts. 71 N° 1, 72, 77, 78, 79, 80'],
+    req: ['Solo existe un proveedor del bien o servicio y no hay sustituto ni otra alternativa razonable que satisfaga la necesidad de forma similar o equivalente (art. 72).',
+      'También procede cuando la contratación solo puede hacerse con quienes son titulares de derechos de propiedad intelectual, industrial, licencias o patentes (art. 72).'],
+    acto: ['Resolución fundada que autoriza el trato directo y aprueba el contrato (Ley art. 8 bis letra a; DS art. 77).',
+      'Sobre 1.000 UTM, esa resolución o un acto dictado al efecto debe ponderar iniciar otro procedimiento o explicar por qué se mantiene la causal, después de las solicitudes de otros proveedores (art. 78).'],
+    pub: ['Publica en el Sistema los antecedentes básicos del bien o servicio y la identidad del proveedor (art. 78).',
+      'Sobre 1.000 UTM, antes de firmar el contrato o emitir la orden de compra, publica tu intención de contratar durante 5 días hábiles para que otros proveedores pidan otro procedimiento; el proveedor afectado puede reclamar (arts. 78 y 79).',
+      'Sobre 1.000 UTM, informe técnico firmado por las unidades técnicas, con los hechos documentados y las razones por las que la necesidad no está cubierta por el PAC (art. 80).',
+      'Publica resolución, contrato y orden de compra dentro de 24 horas (art. 77).'],
+    resp: ['La contratación indebidamente fundada genera responsabilidad administrativa (art. 83).']},
+  desierta: {n: '71 N° 2', ley: 'arts. 8 bis letra b) y 8 ter', t: 'Licitación sin interesados', arts: ['arts. 69, 70, 71 N° 2, 73'],
+    req: ['Primero, una licitación pública sin interesados o con todas las ofertas inadmisibles, con constancia en un acto administrativo publicado en el Sistema (art. 73 N° 1).',
+      'Después, una licitación privada que tampoco tuvo interesados u ofertas admisibles (art. 73 N° 2).',
+      'Solo entonces procede el trato directo, con las mismas bases de la licitación pública. Si las bases se modifican en cualquier etapa, hay que volver a una licitación pública (Ley art. 8 ter; DS art. 73).'],
+    acto: ['Acto administrativo publicado que deje constancia de cada licitación fallida (art. 73).'], pub: [], resp: []},
+  urgencia: {n: '71 N° 3', ley: 'art. 8 bis letra c)', t: 'Emergencia, urgencia o imprevisto', arts: ['arts. 71 N° 3, 74, 77, 78, 80, 83, 84'],
+    req: ['Necesidad impostergable. Emergencia es la situación del art. 2 letra b) de la Ley 21.364; urgencia, una necesidad apremiante que solo se satisface en el menor tiempo posible; imprevisto, un hecho externo y fortuito que impide el funcionamiento normal de la entidad (art. 74).',
+      'Si no se contrata en plazo breve se generarían graves perjuicios a las personas o al funcionamiento del Estado, y no puede usarse otro procedimiento para evitarlos (Ley art. 8 bis letra c; art. 74).',
+      'Las circunstancias no pueden ser imputables a la entidad. No sirve la falta de gestión oportuna para asegurar la continuidad de las prestaciones ni la falta de ejecución de un contrato anterior con las mismas partes (art. 83).'],
+    acto: ['Resolución fundada del jefe superior del organismo que califica la situación. Debe contener los hechos que justifican los graves perjuicios y los motivos por los que no sirve otro procedimiento (art. 74).',
+      'El plazo del suministro o del servicio se limita a los hechos que lo motivan (art. 74).'],
+    pub: ['Publica la resolución en el Sistema, en la sección especial, y en el sitio web del organismo; la orden de compra, dentro de 24 horas (art. 78).',
+      'Sobre 1.000 UTM, informe técnico con los hechos documentados y las razones por las que la necesidad no está cubierta por el PAC (art. 80).'],
+    resp: ['Si las circunstancias son imputables a la entidad, deben iniciarse las medidas para determinar responsabilidades administrativas (Ley art. 8 bis letra c).',
+      'Calificar indebidamente la situación se sanciona al jefe superior con multa de 10 a 100 UTM, sin perjuicio de la validez del contrato (art. 84).']},
+  confid: {n: '71 N° 4', ley: 'art. 8 bis letra d)', t: 'Servicios confidenciales', arts: ['arts. 39, 71 N° 4, 77, 114, 115, 142'],
+    req: ['Solo servicios (no bienes) de naturaleza confidencial o cuya difusión puede afectar la seguridad o el interés nacional.',
+      'La confidencialidad o la afectación de la seguridad e interés nacional deben estar determinadas por ley, no por decisión del organismo.'],
+    acto: ['Resolución fundada que autoriza el trato directo; el art. 108 c) exceptúa su publicación en este caso.'],
+    pub: ['No rige la publicación de resolución, contrato y orden de compra del art. 77.',
+      'Puede tramitarse fuera del Sistema (art. 115 N° 4) y la información se mantiene en reserva (arts. 114 y 142). El acceso a la información se rige por la Ley 20.285 (Ley art. 8 bis letra d).'], resp: []},
+  confianza: {n: '71 N° 5', ley: 'art. 8 bis letra e)', t: 'Magnitud, importancia y confianza', arts: ['arts. 71 N° 5, 75, 77, 78, 79, 80, 84'],
+    req: ['Solo para contrataciones superiores a 1.000 UTM (Ley art. 8 bis letra e; art. 75 letra d).',
+      'Por la magnitud e importancia de la contratación es indispensable recurrir a un proveedor determinado, por la confianza y seguridad que da su experiencia comprobada en lo requerido, y se estima fundadamente que no hay otros que den esa misma seguridad (art. 75 letras a y b).',
+      'El producto o servicio debe ser indispensable y necesario para la continuidad del servicio y los fines de la entidad (art. 75 letra c).',
+      'No basta que el proveedor sea o haya sido proveedor de la entidad ni que tenga experiencia en ella. La experiencia se pondera en proporción al objeto y no puede vulnerar la libre concurrencia (art. 75).'],
+    acto: ['Resolución fundada que autoriza el trato directo, con las circunstancias que justifican la causal; el plazo del contrato se limita a los hechos que lo fundan (art. 75).',
+      'La resolución o un acto previo debe ponderar iniciar otro procedimiento o explicar por qué se mantiene la causal, después de las solicitudes de otros proveedores (art. 78).'],
+    pub: ['Antes de firmar el contrato o emitir la orden de compra, publica tu intención de contratar durante 5 días hábiles; el proveedor afectado puede reclamar (arts. 78 y 79).',
+      'Informe técnico firmado por las unidades técnicas, con los hechos documentados y las razones por las que la necesidad no está cubierta por el PAC (art. 80).',
+      'Publica resolución, contrato y orden de compra dentro de 24 horas (art. 77).'],
+    resp: ['Calificar indebidamente la situación se sanciona al jefe superior con multa de 10 a 100 UTM, según el art. 35 decies de la Ley (art. 84).']},
+  impacto: {n: '71 N° 6', ley: 'art. 60 (y art. 8 bis)', t: 'Menos de 30 UTM con alto impacto social', arts: ['arts. 71 N° 6, 76, 77'],
+    req: ['Adquisición inferior a 30 UTM (Ley art. 60; art. 71 N° 6). Con 30 UTM o más la causal no procede.',
+      'La compra privilegia materias de alto impacto social: impulso a empresas de menor tamaño (incluidas las lideradas por mujeres), proveedores locales, descentralización o sustentabilidad ambiental (Ley art. 60; art. 76).',
+      'Debe realizarse preferentemente con personas naturales, empresas de menor tamaño o proveedores locales (art. 76).'],
+    acto: ['La resolución que autoriza la contratación debe expresar que se cumplen esos objetivos, declarar que el precio corresponde a valores de mercado según las características que la motivan y especificar que se enmarca en el alto impacto social (Ley art. 60; art. 76).'],
+    pub: ['Publica resolución, contrato y orden de compra dentro de 24 horas (art. 77).'], resp: []},
+  compat: {n: '71 N° 7 letra a)', ley: 'art. 8 bis letra f) N° 1°', t: 'Servicios o equipamiento accesorios compatibles', arts: ['art. 71 N° 7 letra a)'],
+    req: ['Bienes o servicios accesorios que deben ser necesariamente compatibles con modelos, sistemas, equipamiento o infraestructura tecnológica que la propia entidad adquirió antes.',
+      'Son necesarios para ejecutar un contrato ya adjudicado y sin ellos se afectaría su correcto funcionamiento.'],
+    acto: ['Resolución fundada que acredite el contrato previo, la compatibilidad necesaria y el riesgo para su funcionamiento.'], pub: [], resp: []},
+  desprop: {n: '71 N° 7 letra b)', ley: 'art. 8 bis letra f) N° 2°', t: 'Costo desproporcionado del proceso competitivo', arts: ['arts. 4 N° 9 y 10, 71 N° 7 letra b)'],
+    req: ['Solo adquisición de servicios (Ley art. 8 bis letra f N° 2°). Un contrato con bienes y servicios es de suministro si el servicio vale menos del 50% (art. 4 N° 9 y 10).',
+      'El monto total de la contratación no supera 100 UTM (art. 71 N° 7 letra b).',
+      'Hacer un procedimiento competitivo costaría de forma desproporcionada, en dinero o en horas de personal, en relación con el valor del servicio.'],
+    acto: ['Informe de la entidad con antecedentes objetivos y comprobables que acrediten el sobrecosto de un procedimiento competitivo y la desproporción frente al costo del servicio (art. 71 N° 7 letra b).'], pub: [], resp: []},
+  especial: {n: '71 N° 7 letra c)', ley: 'art. 8 bis letra f) N° 3°', t: 'Servicios de alta especialización', arts: ['art. 71 N° 7 letra c)', 'arts. 173 a 175'],
+    req: ['Solo servicios. El proveedor necesita un alto grado de especialización en la materia, en aspectos fundamentales para las funciones de la entidad, que no puede cubrir el personal propio.',
+      'Por ejemplo, consultorías, asesorías o servicios altamente especializados sobre temas clave y estratégicos, o proyectos específicos o singulares de docencia, investigación o extensión (art. 71 N° 7 letra c).',
+      'El camino general para servicios personales especializados es la licitación pública con preselección (arts. 173 a 175); la entidad debe expresar por qué clasifica el servicio como especializado y por qué no lo hace personal propio (art. 174).'],
+    acto: ['Resolución fundada que acredite la alta especialización y que el personal propio no puede realizarlo.'], pub: [], resp: []},
+  seguridad: {n: '71 N° 7 letra d)', ley: 'art. 8 bis letra f)', t: 'Seguridad e integridad de autoridades', arts: ['arts. 39, 71 N° 7 letra d)'],
+    req: ['Puede afectarse la seguridad e integridad personal de las autoridades y es necesario contratar directamente con un proveedor probado que asegure discreción y confianza.'],
+    acto: ['Resolución fundada que acredite el riesgo y la necesidad del proveedor probado.'],
+    pub: ['El art. 39 exceptúa a esta causal de la publicidad de los documentos de la contratación.'], resp: []},
+  publicidad: {n: '71 N° 7 letra e)', ley: 'art. 8 bis letra f)', t: 'Riesgo por el conocimiento público del proceso', arts: ['art. 71 N° 7 letra e)'],
+    req: ['El conocimiento público que generaría el proceso licitatorio previo pondría en serio riesgo el objeto y la eficacia de la contratación.'],
+    acto: ['Resolución fundada que explique cómo la publicidad previa pondría en riesgo el objeto del contrato.'], pub: [], resp: []}
 };
+Object.keys(CAUSALES).forEach(k => { const c = CAUSALES[k]; c.reglas = [].concat(c.req, c.acto, c.pub, c.resp); });
+/* Exigencias que valen para cualquier trato directo (Ley 8 bis y DS 661) */
+const COMUN_TD = [
+  'Consulta antes el Catálogo de Convenio Marco: si el producto está, corresponde comprarlo ahí salvo que obtengas condiciones más ventajosas demostrables (DS arts. 29, 89 y 92).',
+  'Dicta un acto administrativo fundado que autorice el trato directo y adjunta todos los antecedentes en el Sistema de Información (DS art. 33).',
+  'La compra debe estar en tu Plan Anual de Compras o debes justificar en el acto por qué no (Ley art. 12; DS arts. 27 y 166).',
+  'Publica la resolución, el contrato y la orden de compra en el Sistema dentro de 24 horas, salvo servicios confidenciales (DS art. 77).',
+  'Cumple el art. 12 bis de la Ley: registro de quienes participan y declaración de patrimonio e intereses (DS arts. 13 y 82).',
+  'Aplica las reglas de garantía de fiel cumplimiento del art. 11 de la Ley (DS arts. 81 y 121) e incluye en el contrato la cláusula de programa de integridad (DS art. 17).',
+  'La Dirección de Compras monitorea estos tratos directos y puede dictar instrucciones obligatorias (Ley art. 8 bis; DS art. 82).'
+];
 
 /* Bases Tipo de licitación vigentes (chilecompra.cl/bases-tipo, revisadas el 28-10-2026). Uso obligatorio según Dictamen CGR E370752/2023. */
 const BT_FUENTE = 'https://www.chilecompra.cl/bases-tipo/';
@@ -225,7 +262,7 @@ function recomendar(inp){
   if(inp.cm){
     cmEstado = 'obligatorio';
     if(u > 100){
-      cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Sobre 100 UTM corresponde comprar por Convenio Marco antes que por cualquier otro procedimiento, salvo que el producto no esté disponible o que obtengas directamente condiciones más ventajosas objetivas y demostrables (plazo de entrega, garantías, calidad o mejor costo-beneficio), que debes informar a la Dirección de Compras y respaldar.';
+      cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Sobre 100 UTM corresponde comprar por Convenio Marco antes que por cualquier otro procedimiento, salvo que el producto no esté disponible o que obtengas directamente condiciones más ventajosas objetivas y demostrables (plazo de entrega, garantías, calidad o mejor costo-beneficio), que debes informar a la Dirección de Compras y respaldar. Si el argumento es el precio, la compra fuera debe quedar efectivamente por debajo del precio del Catálogo.';
     } else {
       cmEstado = 'recomendado';
       cmTexto = 'Lo que necesitas está en Convenio Marco: ' + nomCm + cert + '. Es la primera opción: hasta 100 UTM la Compra Ágil no te obliga a consultar el Catálogo, pero el precio del convenio sirve de tope de referencia y, si es menor que las cotizaciones, conviene comprar por Convenio Marco.';
@@ -247,8 +284,8 @@ function recomendar(inp){
   // Validaciones de coherencia de causales con el monto
   const inval = [];
   if(sit.has('confianza') && u <= 1000) inval.push('La causal de confianza (art. 71 N° 5) solo se aplica a contrataciones superiores a 1.000 UTM (art. 75 letra d); con ' + R(u, 1).toLocaleString('es-CL') + ' UTM no procede.');
-  if(sit.has('impacto') && u >= 30) inval.push('La causal de alto impacto social (art. 71 N° 6) es solo para adquisiciones inferiores a 30 UTM; con ' + R(u, 1).toLocaleString('es-CL') + ' UTM no procede.');
-  if(sit.has('desprop') && (u > 100 || bien)) inval.push('La causal por costo desproporcionado (art. 71 N° 7 letra b) es solo para servicios que no superen 100 UTM.');
+  if(sit.has('impacto') && u >= 30) inval.push('La causal de alto impacto social (Ley art. 60; DS art. 71 N° 6) es solo para adquisiciones inferiores a 30 UTM; con ' + R(u, 1).toLocaleString('es-CL') + ' UTM no procede.');
+  if(sit.has('desprop') && (u > 100 || bien)) inval.push('La causal por costo desproporcionado (art. 71 N° 7 letra b) es solo para servicios cuyo monto total no supere 100 UTM.');
   if(sit.has('termino') && u > 1000) inval.push('La compra por cotización por término anticipado exige que el remanente no supere 1.000 UTM (Ley art. 8 quáter).');
   inval.forEach(x => out.alertas.push({nivel: 'alto', t: x}));
   const causalesOk = causalesMarcadas.filter(k => {
@@ -320,7 +357,7 @@ function recomendar(inp){
   } else if(pr.k === 'TD' && pr.causal){
     const c = CAUSALES[pr.causal];
     pr.req = c.reglas.slice();
-    pr.arts = [ley('arts. 7 letra c) y 8 bis (' + c.ley + ')'), ds(c.arts.join('; ') + '; art. 77')];
+    pr.arts = [ley('art. 7 letra c); ' + c.ley), ds(c.arts.join('; '))];
     pr.plazos.push('Publicar la resolución, el contrato y la orden de compra en el Sistema dentro de 24 horas (art. 77).');
   } else if(pr.k === 'LV'){
     pr.req = MEC_BY.LV.req.slice(); pr.arts = MEC_BY.LV.arts.slice();
@@ -352,12 +389,12 @@ function recomendar(inp){
   esc.ecOpcion = ecOp;
   /* upd29: la economía circular es un paso previo que el Asesor no puede verificar; no es una opción numerada */
   if(enCm){
-    esc.opciones.push({n: 1 + off, k: 'CM', tag: 'prioridad', titulo: u > 1000 ? 'Gran Compra por Convenio Marco' : 'Compra por Convenio Marco', texto: cmTexto, cm: true, arts: [ley('art. 30 letra d)'), ds('arts. 29, 89, 90')]});
+    esc.opciones.push({n: 1 + off, k: 'CM', tag: 'prioridad', titulo: u > 1000 ? 'Gran Compra por Convenio Marco' : 'Compra por Convenio Marco', texto: cmTexto, cm: true, ahorro: ahorroCm(inp, u), arts: [ley('art. 30 letra d)'), ds('arts. 29, 89, 90, 91')]});
   }
   // fuera de Convenio Marco
   const fuera = {n: (enCm ? 2 : 1) + off, k: 'FUERA', tag: enCm ? 'alternativa' : 'recomendado', titulo: enCm ? 'Fuera de Convenio Marco' : 'Procedimiento según el monto', subs: [], arts: [ley('art. 30 letra d); art. 7'), ds('art. 92')]};
   fuera.texto = enCm
-    ? 'La norma permite comprar fuera del Convenio Marco si el producto no está disponible o si obtienes condiciones más ventajosas objetivas y demostrables. Debes informarlo a la Dirección de Compras y guardar los antecedentes (art. 92). En ese caso, el procedimiento depende del monto:'
+    ? 'La norma permite comprar fuera del Convenio Marco si el producto no está disponible o si obtienes condiciones más ventajosas objetivas y demostrables. Debes informarlo a la Dirección de Compras y guardar los antecedentes (art. 92). ' + REGLA_PRECIO + ' Si sales, el procedimiento depende del monto:'
     : 'El producto no está en Convenio Marco, así que el procedimiento depende del monto:';
   if(u <= 100){
     fuera.subs.push({k: 'CA', est: 'procede', nom: 'Compra Ágil', texto: 'Hasta 100 UTM: tres cotizaciones por el Sistema, preferentemente a empresas de menor tamaño y proveedores locales. No necesitas acto administrativo.', arts: [ley('art. 7 letra d) N° 1; art. 56'), ds('arts. 97, 98')]});
@@ -379,53 +416,106 @@ function recomendar(inp){
   const kw = re => re.test(txt), enCm_ = !!inp.cm;
   const uF = R(u, 1).toLocaleString('es-CL');
   const ev = [];
-  const E = (k, estado, motivo) => ev.push({k, estado, motivo});
+  /* Cada causal se evalúa con criterios en orden: primero monto y tipo; si uno falla, se descarta de inmediato.
+     'ok' = lo que ingresaste lo respalda; 'ver' = hecho que la entidad debe acreditar; 'no' = no calza. */
+  const E = (k, crit) => {
+    const no = crit.filter(x => x[0] === 'no'), ver = crit.filter(x => x[0] === 'ver');
+    const marcada = causalesOk.includes(k);
+    let estado = no.length ? 'descartada' : (marcada || (!ver.length) ? 'aplica' : 'depende');
+    const motivo = no.length ? no[0][1] : (marcada ? 'La marcaste en el paso 3. Debes acreditar los puntos que siguen.' : 'Calza por monto y tipo; falta acreditar los hechos que siguen.');
+    ev.push({k, estado, motivo, crit: no.length ? no.slice(0, 1) : crit});
+  };
+  const sobre1000 = u > 1000;
+  const montoInfo = (lim) => ['ok', 'Monto de ' + uF + ' UTM: ' + lim];
   // N° 1 proveedor único
-  if(enCm_) E('unico', 'descartada', 'El producto está en un Convenio Marco vigente, con varios proveedores: no hay proveedor único (art. 72).');
-  else if(nProv != null && nProv >= 2) E('unico', 'descartada', nProv + ' proveedores distintos vendieron este producto al Estado en los últimos 12 meses; solo aplicaría si ninguno de ellos puede sustituir al tuyo (art. 72).');
-  else if(nProv === 1) E('unico', 'aplica', 'Solo 1 proveedor vendió este producto al Estado en los últimos 12 meses. Además debes acreditar que no hay sustituto ni alternativa equivalente (art. 72).');
-  else E('unico', 'depende', 'Solo si acreditas que un único proveedor ofrece este bien o servicio, sin sustituto razonable (art. 72). No hay ventas registradas del producto que lo confirmen.');
+  { const c = [];
+    if(enCm_) c.push(['no', 'El producto está en un Convenio Marco vigente, con varios proveedores: hay alternativa y no hay proveedor único (art. 72).']);
+    else if(nProv != null && nProv >= 2) c.push(['no', nProv + ' proveedores distintos vendieron este producto al Estado en los últimos 12 meses; solo aplicaría si ninguno puede sustituir al tuyo (art. 72).']);
+    else if(nProv === 1) c.push(['ok', 'Solo 1 proveedor vendió este producto al Estado en los últimos 12 meses.']);
+    c.push(['ver', 'Debes acreditar que no existe sustituto ni alternativa razonable que satisfaga la necesidad de forma similar o equivalente (art. 72).']);
+    c.push(sobre1000 ? ['ver', 'Sobre 1.000 UTM: publicar la intención de contratar 5 días hábiles e informe técnico (arts. 78 y 80).'] : montoInfo('no exige publicar la intención ni informe técnico (bajo 1.000 UTM).'));
+    c.push(['ver', 'Resolución fundada que autoriza el trato directo, con los antecedentes del bien y la identidad del proveedor publicados (Ley art. 8 bis letra a).']);
+    E('unico', c); }
   // N° 2 licitación sin interesados
-  if(enCm_) E('desierta', 'descartada', 'Con Convenio Marco vigente no corresponde licitar: primero se compra por el convenio.');
-  else E('desierta', 'depende', 'Solo si ya hiciste una licitación pública y una privada que quedaron sin ofertas o con ofertas inadmisibles (art. 73).');
+  { const c = [];
+    if(enCm_) c.push(['no', 'Con Convenio Marco vigente no corresponde licitar: primero se compra por el convenio.']);
+    c.push(['ver', 'Debes tener una licitación pública previa sin interesados o con ofertas inadmisibles, y luego una licitación privada con el mismo resultado (art. 73).']);
+    c.push(['ver', 'Las bases de ambas deben ser las mismas; si las modificas, vuelve a licitación pública (Ley art. 8 ter).']);
+    E('desierta', c); }
   // N° 3 emergencia, urgencia o imprevisto
-  E('urgencia', 'depende', 'Solo ante una necesidad impostergable que no puedes imputar a falta de planificación (arts. 74 y 83).');
+  { const c = [];
+    c.push(['ver', 'Debes acreditar una necesidad impostergable (emergencia, urgencia o imprevisto) con graves perjuicios si no se contrata en plazo breve (art. 74).']);
+    c.push(['ver', 'Las circunstancias no pueden ser imputables a tu entidad ni deberse a falta de gestión oportuna (art. 83).']);
+    c.push(['ver', 'Resolución fundada del jefe superior del organismo que califique la situación (Ley art. 8 bis letra c).']);
+    if(sobre1000) c.push(['ver', 'Sobre 1.000 UTM: informe técnico (art. 80).']);
+    E('urgencia', c); }
   // N° 4 servicios confidenciales
-  if(bien) E('confid', 'descartada', 'Es una causal para servicios; esta compra es de un bien.');
-  else if(kw(/reservad|secret|inteligencia|defensa|seguridad nacional|confidencial/)) E('confid', 'depende', 'Solo si una ley declara el servicio confidencial o su difusión afecta la seguridad o el interés nacional.');
-  else E('confid', 'descartada', 'Exige que una ley determine la confidencialidad o la seguridad e interés nacional; nada de lo que pediste lo indica.');
+  { const c = [];
+    if(bien) c.push(['no', 'Es una causal solo para servicios; esta compra es de un bien.']);
+    else if(kw(/reservad|secret|inteligencia|defensa|seguridad nacional|confidencial/)) c.push(['ver', 'Debe existir una ley que declare el servicio confidencial o que su difusión afecta la seguridad o el interés nacional.']);
+    else c.push(['no', 'Exige que una ley determine la confidencialidad o la seguridad e interés nacional; nada de lo que pediste lo indica.']);
+    E('confid', c); }
   // N° 5 magnitud, importancia y confianza
-  if(u <= 1000) E('confianza', 'descartada', 'Solo para contrataciones sobre 1.000 UTM (art. 75 letra d); esta compra es de ' + uF + ' UTM.');
-  else if(enCm_) E('confianza', 'descartada', 'Existe Convenio Marco con varios proveedores: no hay un único proveedor de confianza sin competidores.');
-  else E('confianza', 'depende', 'Sobre 1.000 UTM, solo si acreditas un único proveedor con experiencia comprobada y que nadie más ofrece las mismas garantías' + (nProv != null && nProv >= 2 ? ' (' + nProv + ' proveedores vendieron este producto en 12 meses: deberás explicar por qué ninguno sirve)' : '') + ' (art. 75).');
+  { const c = [];
+    if(u <= 1000) c.push(['no', 'Solo para contrataciones superiores a 1.000 UTM (art. 75 letra d); esta compra es de ' + uF + ' UTM.']);
+    else if(enCm_) c.push(['no', 'Existe Convenio Marco con varios proveedores: no hay un único proveedor de confianza sin competidores.']);
+    else {
+      c.push(montoInfo('supera 1.000 UTM, como exige la causal.'));
+      c.push(['ver', 'Debes acreditar un único proveedor con experiencia comprobada que dé seguridad y confianza, y que no hay otros que den esa misma seguridad' + (nProv != null && nProv >= 2 ? ' (' + nProv + ' proveedores vendieron este producto en 12 meses: deberás explicar por qué ninguno sirve)' : '') + ' (art. 75).']);
+      c.push(['ver', 'El producto debe ser indispensable para la continuidad del servicio, y haber sido proveedor de tu entidad no basta (art. 75).']);
+      c.push(['ver', 'Publicar la intención de contratar 5 días hábiles e informe técnico (arts. 78 y 80).']);
+    }
+    E('confianza', c); }
   // N° 6 menos de 30 UTM con alto impacto social
-  if(u >= 30) E('impacto', 'descartada', 'Solo para adquisiciones inferiores a 30 UTM; esta compra es de ' + uF + ' UTM.');
-  else E('impacto', 'depende', 'Menos de 30 UTM: solo si la compra privilegia empresas de menor tamaño, proveedores locales, descentralización o sustentabilidad (art. 76).');
-  // N° 7 letra a) compatibilidad con tecnología ya adquirida
-  if(tieneHist || ['41', '42', '43', '45', '46', '49', '73'].includes(seg) || kw(/accesorio|repuesto|mantencion|mantenimiento|soporte|licencia|insumo|compatible|actualizacion|upgrade/)) E('compat', 'depende', 'Solo si es un accesorio o servicio que debe ser compatible con equipamiento o un contrato que ya tienes' + (tieneHist ? ' (tu organismo ya compró este producto)' : '') + ' y solo un proveedor puede entregarlo.');
-  else E('compat', 'descartada', 'Exige tecnología o equipamiento ya adquirido con el que la compra deba ser compatible; no hay indicios en lo que pediste.');
+  { const c = [];
+    if(u >= 30) c.push(['no', 'Solo para adquisiciones inferiores a 30 UTM (Ley art. 60); esta compra es de ' + uF + ' UTM.']);
+    else {
+      c.push(montoInfo('es menor que 30 UTM, como exige la causal (Ley art. 60).'));
+      c.push(['ver', 'La compra debe privilegiar empresas de menor tamaño (incluidas las lideradas por mujeres), proveedores locales, descentralización o sustentabilidad ambiental (art. 76).']);
+      c.push(['ver', 'La resolución debe expresar el cumplimiento de esos objetivos y declarar que el precio responde a valores de mercado (Ley art. 60; art. 76).']);
+    }
+    E('impacto', c); }
+  // N° 7 letra a) compatibilidad
+  { const c = [];
+    if(tieneHist || ['41', '42', '43', '45', '46', '49', '73'].includes(seg) || kw(/accesorio|repuesto|mantencion|mantenimiento|soporte|licencia|insumo|compatible|actualizacion|upgrade/)) {
+      c.push(['ver', 'Debe ser necesariamente compatible con equipamiento, sistemas o infraestructura tecnológica que tu entidad ya adquirió' + (tieneHist ? ' (tu organismo ya compró este producto)' : '') + '.']);
+      c.push(['ver', 'Debe ser necesario para ejecutar un contrato ya adjudicado, cuyo funcionamiento se afectaría sin él.']);
+    } else c.push(['no', 'Exige tecnología o equipamiento ya adquirido con el que la compra deba ser compatible; no hay indicios en lo que pediste.']);
+    E('compat', c); }
   // N° 7 letra b) costo desproporcionado
-  if(bien) E('desprop', 'descartada', 'Solo para servicios; esta compra es de un bien.');
-  else if(u > 100) E('desprop', 'descartada', 'Solo para servicios de hasta 100 UTM; esta compra es de ' + uF + ' UTM.');
-  else E('desprop', 'depende', 'Servicio de hasta 100 UTM: solo si un proceso competitivo costaría más que el propio servicio.');
+  { const c = [];
+    if(bien) c.push(['no', 'Es solo para adquisición de servicios (Ley art. 8 bis letra f N° 2°; DS art. 71 N° 7 letra b); esta compra es de un bien.']);
+    else if(u > 100) c.push(['no', 'El monto total no puede superar 100 UTM (art. 71 N° 7 letra b); esta compra es de ' + uF + ' UTM.']);
+    else {
+      c.push(['ok', 'Es un servicio por ' + uF + ' UTM, dentro del tope de 100 UTM.']);
+      c.push(['ver', 'Debes elaborar un informe con antecedentes objetivos y comprobables del sobrecosto financiero o de recursos humanos de un procedimiento competitivo, frente al costo del servicio.']);
+    }
+    E('desprop', c); }
   // N° 7 letra c) alta especialización
-  if(bien) E('especial', 'descartada', 'Solo para servicios; esta compra es de un bien.');
-  else if(['80', '86'].includes(seg) || kw(/asesor|consultor|capacitaci|arquitect|diseno|juridic|estrateg|estudio|auditor|especializ|investigaci|peritaje|traduc/)) E('especial', 'depende', 'Solo si el servicio exige un alto grado de especialización comprobada. El camino general para estos servicios es la licitación con preselección (arts. 173 a 176).');
-  else E('especial', 'descartada', 'El servicio que pediste no parece exigir alta especialización comprobada.');
+  { const c = [];
+    if(bien) c.push(['no', 'Es solo para servicios; esta compra es de un bien.']);
+    else if(['80', '86'].includes(seg) || kw(/asesor|consultor|capacitaci|arquitect|diseno|juridic|estrateg|estudio|auditor|especializ|investigaci|peritaje|traduc/)) {
+      c.push(['ok', 'Es una contratación de servicios.']);
+      c.push(['ver', 'El proveedor debe necesitar un alto grado de especialización en aspectos fundamentales para tus funciones, que tu personal no puede realizar.']);
+      c.push(['ver', 'El camino general es la licitación con preselección (arts. 173 a 175); debes expresar por qué clasificas el servicio como especializado (art. 174).']);
+    } else c.push(['no', 'El servicio que pediste no parece exigir alta especialización comprobada.']);
+    E('especial', c); }
   // N° 7 letra d) seguridad e integridad de autoridades
-  if(kw(/seguridad|vigilan|escolta|guardia|blindaj|autoridad/)) E('seguridad', 'depende', 'Solo si está en juego la seguridad e integridad personal de autoridades.');
-  else E('seguridad', 'descartada', 'Solo cuando está en juego la seguridad personal de autoridades; nada de lo que pediste lo indica.');
+  { const c = [];
+    if(kw(/seguridad|vigilan|escolta|guardia|blindaj|autoridad/)) c.push(['ver', 'Debe estar en juego la seguridad e integridad personal de autoridades y ser necesario un proveedor probado que asegure discreción y confianza.']);
+    else c.push(['no', 'Solo cuando está en juego la seguridad personal de autoridades; nada de lo que pediste lo indica.']);
+    E('seguridad', c); }
   // N° 7 letra e) riesgo por conocimiento público
-  if(kw(/reservad|terreno|inmueble|expropia/)) E('publicidad', 'depende', 'Solo si dar a conocer la licitación pondría en riesgo el objeto del contrato.');
-  else E('publicidad', 'descartada', 'Solo si el conocimiento público del proceso pone en riesgo el contrato; nada de lo que pediste lo indica.');
-  // Lo que marcó el comprador en el paso 3 (si es coherente con el monto y el tipo) pasa a "aplica"
-  ev.forEach(x => { if(causalesOk.includes(x.k) && x.estado !== 'aplica'){ x.estado = 'aplica'; x.motivo = 'La marcaste en el paso 3. ' + x.motivo.replace(/^Solo /, 'Recuerda que solo procede ').replace(/^Menos de 30 UTM: s/, 'S'); } });
+  { const c = [];
+    if(kw(/reservad|terreno|inmueble|expropia/)) c.push(['ver', 'Debes acreditar que dar a conocer la licitación pondría en serio riesgo el objeto y la eficacia del contrato.']);
+    else c.push(['no', 'Solo si el conocimiento público del proceso pone en riesgo el contrato; nada de lo que pediste lo indica.']);
+    E('publicidad', c); }
   const ord = {aplica: 0, depende: 1, descartada: 2};
   ev.sort((p, q) => ord[p.estado] - ord[q.estado]);
-  const conN = k => ({k, n: CAUSALES[k].n, t: CAUSALES[k].t});
-  const vivas = ev.filter(x => x.estado !== 'descartada').map(x => Object.assign(conN(x.k), {estado: x.estado, motivo: x.motivo}));
-  const descartadas = ev.filter(x => x.estado === 'descartada').map(x => Object.assign(conN(x.k), {estado: x.estado, motivo: x.motivo}));
-  esc.opciones.push({n: fuera.n + 1, k: 'TD', tag: 'excepcional', titulo: 'Trato Directo (solo con causal)', texto: 'No reemplaza al procedimiento ordinario: exige una causal del art. 8 bis de la Ley (art. 71 del Reglamento) acreditada en un acto fundado y publicado. Cruzando el monto, el tipo de contratación' + (enCm_ ? ', el Convenio Marco' : '') + ' y los proveedores que venden el producto, estas son las causales que podrían calzar y las que descarté:', causales: vivas, descartadas, arts: [ley('art. 7 letra c); art. 8 bis'), ds('arts. 71 a 84')]});
+  const conN = k => ({k, n: CAUSALES[k].n, t: CAUSALES[k].t, ley: CAUSALES[k].ley});
+  const vivas = ev.filter(x => x.estado !== 'descartada').map(x => Object.assign(conN(x.k), {estado: x.estado, motivo: x.motivo, crit: x.crit}));
+  const descartadas = ev.filter(x => x.estado === 'descartada').map(x => Object.assign(conN(x.k), {estado: x.estado, motivo: x.motivo, crit: x.crit}));
+  esc.opciones.push({n: fuera.n + 1, k: 'TD', tag: 'excepcional', titulo: 'Trato Directo (solo con causal)', texto: 'No reemplaza al procedimiento ordinario: exige una causal del art. 8 bis de la Ley o, bajo 30 UTM, el art. 60 (art. 71 del Reglamento), acreditada en un acto fundado y publicado. Cada causal se revisa contra todo lo que exige la norma: primero el monto y el tipo de contratación' + (enCm_ ? ', luego el Convenio Marco' : '') + ' y los proveedores que venden el producto. Estas son las que podrían calzar y las que descarté:', causales: vivas, descartadas, comun: COMUN_TD, arts: [ley('art. 7 letra c); art. 8 bis; art. 60'), ds('arts. 71 a 84')]});
   out.escalera = esc;
 
   // Alertas de datos
@@ -442,13 +532,14 @@ function recomendar(inp){
       out.alertas.push({nivel: 'medio', t: 'Si sumas lo comprado en 12 meses (' + R(h.totalUtm, 0).toLocaleString('es-CL') + ' UTM) con esta compra, el gasto anual del producto queda en el tramo "' + TRAMOS[tramoUtm(h.totalUtm + u)].nom + '", que exige un procedimiento más exigente que el de esta compra aislada.', arts: [ds('arts. 16, 36')], accion: 'Planifica la demanda anual del producto y define el procedimiento sobre ese total.'});
     }
   }
+  if(inp.cm && u > 100) out.alertas.push({nivel: 'medio', t: 'Si te apartas del Convenio Marco por mejores condiciones y estas apuntan al precio, la compra fuera debe quedar efectivamente por debajo del precio vigente del Catálogo para lo mismo, con despacho e IVA. Documenta el cotejo con una captura del Catálogo con fecha y las ofertas recibidas; si no bajas el precio, compra por Convenio Marco.', arts: [ds('arts. 89, 92')], accion: 'Antes de decidir, pide la oferta especial del proveedor del convenio o un acuerdo complementario: puede igualar o mejorar el precio de afuera sin salir del Catálogo.'});
   if(inp.fueraCm && inp.fueraCm > 0 && inp.cm){
     out.alertas.push({nivel: 'medio', t: 'Tu organismo compró este producto fuera de Convenio Marco por $' + Math.round(inp.fueraCm).toLocaleString('es-CL') + ' millones en los últimos 12 meses, existiendo cobertura en el Catálogo. Guarda los antecedentes de las condiciones más ventajosas si fue el caso.', arts: [ley('art. 30 letra d)'), ds('arts. 89, 92')]});
   }
   if(out.causal && (out.causal === 'urgencia' || out.causal === 'confianza' || out.causal === 'unico') && u > 1000){
     out.alertas.push({nivel: 'medio', t: 'Sobre 1.000 UTM, esta causal exige informe técnico (art. 80) y, en proveedor único y confianza, publicar la intención de contratar con 5 días hábiles de anticipación (art. 78).', arts: [ds('arts. 78, 80')]});
   }
-  if(u >= 3 && u < 30 && pr.k === 'CA') out.alertas.push({nivel: 'info', t: 'Con menos de 30 UTM también podrías usar Trato Directo si privilegias empresas de menor tamaño, proveedores locales, descentralización o sustentabilidad (art. 71 N° 6). La Compra Ágil sigue siendo la opción por defecto.', arts: [ds('arts. 71 N° 6, 76')]});
+  if(u >= 3 && u < 30 && pr.k === 'CA') out.alertas.push({nivel: 'info', t: 'Con menos de 30 UTM también podrías usar Trato Directo si privilegias empresas de menor tamaño, proveedores locales, descentralización o sustentabilidad, y lo fundas en la resolución junto con que el precio es de mercado (Ley art. 60; DS arts. 71 N° 6 y 76). La Compra Ágil sigue siendo la opción por defecto.', arts: [ley('art. 60'), ds('arts. 71 N° 6, 76')]});
   if(bt.length && u <= 100) out.alertas.push({nivel: 'info', t: 'Existe Base Tipo para esto (' + btNom + '). Si decides licitar aunque el monto no supere 100 UTM, debes usar esa Base Tipo (Dictamen CGR E370752/2023).', arts: btArts});
   if(u < 3) out.alertas.push({nivel: 'info', t: 'Las contrataciones inferiores a 3 UTM pueden efectuarse fuera del Sistema de Información (art. 116 letra a), aunque conviene usar igualmente el Sistema por trazabilidad.', arts: [ds('art. 116')]});
 
@@ -456,6 +547,42 @@ function recomendar(inp){
 }
 
 /* Consolidación de la demanda del PAC: pac = {totalClp, n (ítems), meses (cantidad de meses distintos)} */
+/* Ahorro y eficiencia dentro del Convenio Marco: ofertas especiales, acuerdo complementario, cotización (datos: cmahorro.js). */
+const REGLA_PRECIO = 'Si el motivo para salir del Convenio Marco es el precio, la compra fuera debe quedar efectivamente por debajo del precio vigente en el Catálogo para lo mismo (misma cantidad y especificación, con despacho e IVA incluidos). Deja documentado el cotejo: captura del precio del Catálogo con fecha y las ofertas recibidas. Si no logras un precio menor, corresponde comprar por Convenio Marco.';
+function ahorroCm(inp, u){
+  const D = root.AS_CMAH && root.AS_CMAH.cm;
+  if(!D || !inp.cmIds || !inp.cmIds.length) return [];
+  const monto = inp.montoClp || 0, fm = x => '$' + Math.round(x).toLocaleString('es-CL');
+  const res = [];
+  inp.cmIds.forEach((id, i) => {
+    const d = D[id]; if(!d) return;
+    const L = [];
+    if(d.dcto){
+      let t = 'Ofertas especiales: los proveedores pueden publicar descuentos con vigencia de ' + d.dcto.vig + ' y ' + d.dcto.min + '. Antes de emitir la orden de compra revisa en la Tienda si hay una vigente; si no la hay, puedes pedirle al proveedor que publique una.';
+      if(d.dcto.pct && monto > 0) t += ' Con ese mínimo de ' + d.dcto.pct + '% ahorrarías al menos ' + fm(monto * d.dcto.pct / 100) + ' sobre ' + fm(monto) + '.';
+      L.push({k: 'dcto', t});
+    } else if(!d.cot){
+      L.push({k: 'dcto', t: 'Este convenio no contempla ofertas especiales con descuento mínimo. El ahorro viene de comparar proveedores y de negociar condiciones dentro de las bases.'});
+    }
+    if(d.cot) L.push({k: 'cot', t: d.cot});
+    if(d.ac){
+      let t;
+      if(d.ac.tipo === 'no') t = 'Acuerdo complementario: el convenio vigente no lo contempla.';
+      else if(d.ac.tipo === 'obligatorio'){
+        t = 'Acuerdo complementario: es obligatorio para compras desde ' + (d.ac.desde || 1000).toLocaleString('es-CL') + ' UTM (vigencia ' + d.ac.plazo + '; garantía de fiel cumplimiento no inferior al 5% del monto).' + (u >= (d.ac.desde || 1000) ? ' Tu compra (' + R(u, 0).toLocaleString('es-CL') + ' UTM) lo exige.' : '');
+      } else {
+        t = 'Acuerdo complementario (opcional' + (d.ac.nota ? ', ' + d.ac.nota : '') + '): puedes suscribirlo con el proveedor adjudicado, con vigencia ' + d.ac.plazo + ' y garantía de fiel cumplimiento no inferior al 5% del monto. Permite pactar entrega por partes, plazos, forma de pago y especificaciones sin apartarse de las bases del convenio, útil en compras recurrentes (DS 661, art. 91).';
+        if(d.ac.obligDesde) t += ' Desde ' + d.ac.obligDesde.toLocaleString('es-CL') + ' UTM es obligatorio en ' + d.ac.obligNota.replace(/^obligatorio en /, '') + '.';
+      }
+      L.push({k: 'ac', t});
+    }
+    (d.extra || []).forEach(t => L.push({k: 'extra', t}));
+    if(u > 1000) L.push({k: 'gran', t: 'Gran Compra: sobre 1.000 UTM comunicas la intención de compra a todos los proveedores de la categoría, con al menos 10 días hábiles para ofertar (art. 90), que es la principal palanca de precio por volumen.'});
+    res.push({id, conv: (inp.cmNombres && inp.cmNombres[i]) || id, lineas: L});
+  });
+  return res;
+}
+
 function consolidar(inp, pac){
   const total = pac.totalClp, u = total / inp.utm, out = {totalClp: total, totalUtm: u, tramo: tramoUtm(u), tramoNom: TRAMOS[tramoUtm(u)].nom, texto: [], alertas: [], arts: []};
   const rec = recomendar(Object.assign({}, inp, {montoClp: total, sit: []}));
@@ -467,7 +594,8 @@ function consolidar(inp, pac){
   if(inp.cm){
     out.texto.push('Como el producto está en Convenio Marco, compra el total por ese mecanismo' + (u > 1000 ? ': sobre 1.000 UTM es Gran Compra (comunicas la intención de compra a todos los proveedores de la categoría, con al menos 10 días hábiles para ofertar; DS 661, art. 90), lo que además abre competencia y mejores precios.' : '.'));
     out.texto.push('Para repartir las entregas en los meses que planificaste, suscribe un acuerdo complementario con el proveedor adjudicado: fija oportunidad y forma de entrega, precio y forma de pago, especificaciones, vigencia y efectos de los incumplimientos, sin apartarse de las bases del convenio (DS 661, art. 91).');
-    out.texto.push('Con más volumen en una sola orden, pide al proveedor una oferta especial dentro de las bases del convenio (por ejemplo descuento por volumen, despacho o plazos). El precio del Catálogo es el tope de referencia; si obtienes condiciones más ventajosas fuera de él, debes informarlo a la Dirección de Compras (art. 92).');
+    out.texto.push('Con más volumen en una sola orden, pide al proveedor una oferta especial dentro de las bases del convenio (por ejemplo descuento por volumen, despacho o plazos). El precio del Catálogo es el tope de referencia: salir del convenio por precio solo se justifica si lo que contratas fuera queda efectivamente más barato, con el cotejo documentado, y debes informarlo a la Dirección de Compras (art. 92).');
+    out.ahorro = ahorroCm(Object.assign({}, inp, {montoClp: total}), u);
     out.arts = [ds('arts. 16, 89, 90, 91, 92')];
   } else if(u > 100){
     out.texto.push('Fuera de Convenio Marco corresponde ' + rec.principal.nom + ' por el total, con calendario de entregas parciales en los meses planificados. Una sola licitación de suministro reemplaza varias compras menores.');
@@ -480,6 +608,6 @@ function consolidar(inp, pac){
   return out;
 }
 
-root.AsesorReglas = {consolidar, BASES_TIPO, BT_FUENTE, recomendar, tramoUtm, planLicitacion, TRAMOS, SITUACIONES, MECANISMOS, MEC_BY, CAUSALES, URL_LEY, URL_DS,
+root.AsesorReglas = {ahorroCm, REGLA_PRECIO, consolidar, BASES_TIPO, BT_FUENTE, recomendar, tramoUtm, planLicitacion, TRAMOS, SITUACIONES, MECANISMOS, MEC_BY, CAUSALES, COMUN_TD, URL_LEY, URL_DS,
   TEXTO_BASE: 'Ley N° 19.886 (texto consolidado BCN, última versión del 05-02-2026, con las modificaciones de las leyes 21.634 y 21.806) y Reglamento DS N° 661/2024 de Hacienda (publicado el 12-12-2024).'};
 })(typeof window !== 'undefined' ? window : globalThis);
