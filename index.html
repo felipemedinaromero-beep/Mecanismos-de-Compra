@@ -423,11 +423,12 @@
   @media (max-width:640px){ body.is-sub header.cc-header .hdr-range-picker { white-space:normal; flex-wrap:wrap; } body.is-sub header.cc-header .hdr-mes-select { max-width:180px; } body.is-sub header.cc-header { padding:8px 1rem; } body.is-sub header.cc-header h1 { font-size:14.5px; } }
 
   /* upd20: botón fijo para volver al inicio en todas las vistas */
-  .home-fab { position:fixed; right:18px; bottom:18px; z-index:70; display:none; align-items:center; gap:8px; padding:11px 18px 11px 14px; border-radius:99px; background:var(--cc-navy); color:#fff; font:inherit; font-size:13.5px; font-weight:700; text-decoration:none; box-shadow:0 8px 24px rgba(0,35,59,.35); border:2px solid #fff; cursor:pointer; }
+  .home-fab { position:fixed; top:12px; right:16px; z-index:70; display:none; align-items:center; gap:8px; padding:11px 18px 11px 14px; border-radius:99px; background:var(--cc-navy); color:#fff; font:inherit; font-size:13.5px; font-weight:700; text-decoration:none; box-shadow:0 8px 24px rgba(0,35,59,.35); border:2px solid #fff; cursor:pointer; }
   .home-fab:hover { background:var(--cc-dark); }
   .home-fab:focus-visible { outline:3px solid var(--cc-lightblue); outline-offset:2px; }
   .home-fab svg { width:18px; height:18px; flex:0 0 auto; }
-  @media (max-width:600px){ .home-fab { right:12px; bottom:12px; padding:10px 14px 10px 12px; } }
+  @media (max-width:900px){ body.is-sub .cc-topbar { padding-right:62px; padding-left:62px; } }
+  @media (max-width:600px){ .home-fab { top:8px; right:10px; width:42px; height:42px; padding:0; justify-content:center; font-size:0; gap:0; } .home-fab svg { width:20px; height:20px; } }
   @media print { .home-fab { display:none !important; } }
   .sticky-ribbon { position:fixed; top:0; left:0; right:0; z-index:60; display:flex; justify-content:center; flex-wrap:wrap; gap:6px 28px; padding:8px 18px; background:var(--cc-dark); color:#fff; font-size:12px; transform:translateY(-110%); transition:transform .2s ease; box-shadow:0 4px 16px rgba(0,35,59,.25); }
   .sticky-ribbon.show { transform:translateY(0); }
@@ -3806,7 +3807,7 @@ function renderAsesorPage(payload){
   const h = document.getElementById('asesorHost');
   const go = () => window.AsesorCompras && window.AsesorCompras.init(h, payload || '');
   if(window.AsesorCompras) return go();
-  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r12';
+  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r13';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el asesor. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
