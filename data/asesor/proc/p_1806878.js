@@ -1,0 +1,1 @@
+window.AS_PROC=window.AS_PROC||{};window.AS_PROC["1806878"]={"pl":["Recuerdos o souvenirs","Parlantes"],"pv":["MARIA FERNANDA MICHELLE","LUIS EFRAÍN SOTO MIRANDA"],"r":[["ca",761,"1219252-2-AG26","",1540000,2,[1],310,"","",1],["ca",449,"1219252-1-AG25","",1698725,1,[0],817,"","",0]]};

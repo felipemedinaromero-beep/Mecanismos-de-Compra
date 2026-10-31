@@ -1,0 +1,1 @@
+window.AS_PROC=window.AS_PROC||{};window.AS_PROC["1273481"]={"pl":["COMPUTADORES PERSONALES"],"pv":[],"r":[["l",436,"671549-2-LP25","Prueba",3000000,1,[0],2031,"Computadores personales","Pes",-1]]};

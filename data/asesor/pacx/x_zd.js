@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["zd"]={"g":"2026-10-20","d":["Rollos de  1000 etiquetas Termicas 5x10 cm compatible con impresora ZEBRA ZD230"],"t":{"zd230":[[663,0,"10:550,11:550,12:550","22-04"]]}};

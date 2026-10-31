@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["z8"]={"g":"2026-10-20","d":["POLIDIOXANONA 1 Z880G"],"t":{"z880g":[[11,0,"10:1195,11:1195,12:1195","22-04"]]}};

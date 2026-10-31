@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["0t"]={"g":"2026-10-20","d":["0TROS GASTOS EN BIENES Y SERVICIOS DE CONSUMO"],"t":{"0tro":[[443,0,"10:900,11:900,12:6751","22-12"]]}};

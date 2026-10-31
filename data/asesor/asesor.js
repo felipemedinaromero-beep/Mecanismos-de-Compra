@@ -119,8 +119,15 @@ const CSS = `
 .as-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px;border-bottom:1px solid var(--border);}
 .as-tab{font:inherit;font-size:13px;font-weight:700;padding:9px 16px;border:0;border-bottom:3px solid transparent;background:none;color:var(--text-secondary);cursor:pointer;}
 .as-tab[aria-selected=true]{color:var(--cc-navy);border-bottom-color:var(--cc-navy);} .as-tab:hover{color:var(--cc-navy);}
-.as-rtabs{margin:16px 0 12px;gap:2px 4px;}
-.as-rtab{font:inherit;font-size:13px;font-weight:700;padding:9px 14px;border:0;border-bottom:3px solid transparent;background:none;color:var(--text-secondary);cursor:pointer;text-align:left;}
+.as-rtabs{flex-wrap:nowrap;overflow-x:auto;gap:6px;margin:16px 0 14px;scrollbar-width:none;}
+.as-rtabs::-webkit-scrollbar{display:none;}
+.as-rtabs.as-ov{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);}
+.as-rtabs.as-ov.as-end{-webkit-mask-image:none;mask-image:none;}
+.as-rtab{flex:0 0 auto;white-space:nowrap;font:inherit;font-size:13px;font-weight:700;padding:9px 16px;border:0;border-bottom:3px solid transparent;background:none;color:var(--text-secondary);cursor:pointer;}
+.as-prc{border:1px solid var(--border);border-radius:10px;background:#fff;padding:8px 12px;font-size:12.5px;margin:4px 0;} .as-prc b{display:block;overflow-wrap:anywhere;} .as-prc small{display:block;color:var(--text-secondary);font-size:11px;margin-top:2px;}
+.as-prc-a{display:flex;gap:12px;align-items:center;margin-top:5px;font-size:11.5px;flex-wrap:wrap;}
+.as-pick{font:inherit;font-size:11.5px;padding:3px 10px;border:1px solid var(--cc-navy);border-radius:8px;background:#fff;color:var(--cc-navy);cursor:pointer;} .as-pick:hover{background:var(--cc-mist);}
+.as-pq{margin:6px 0 10px;}
 .as-rtab[aria-selected=true]{color:var(--cc-navy);border-bottom-color:var(--cc-navy);} .as-rtab:hover{color:var(--cc-navy);}
 .as-rtab .as-bdg{display:inline-block;min-width:18px;padding:0 6px;margin-left:6px;border-radius:9px;background:#B3261E;color:#fff;font-size:11px;line-height:18px;text-align:center;}
 .as-pan[hidden]{display:none;}
@@ -353,7 +360,11 @@ function cmBloqueHtml(vd){
     }
     h += `<p class="as-hint">Fuente: maestras del Catálogo al ${esc((window.AS_CMCAT || {}).gen || '')}. El plazo es el máximo que exigen las bases del convenio, igual para todos los proveedores; el plazo que ofrece cada uno para un producto aparece en su ficha dentro del catálogo y puede ser menor. Verifica stock y precio ahí antes de emitir la orden de compra.</p>`;
   } else {
-    h += `<p><b>Proveedores:</b> este convenio no tiene maestra de productos cargada en el Asesor. Los proveedores adjudicados, su cobertura por región y sus condiciones se ven en el catálogo del convenio.</p>`;
+    h += `<p><b>ID de producto y proveedores:</b> este convenio no tiene la maestra del Catálogo cargada en el Asesor, así que no puedo mostrar el ID de cada ficha ni quién la ofrece. Los productos de este convenio se cotizan por requerimiento y cada proveedor adjudicado publica sus fichas con su propio ID dentro del catálogo.</p>`;
+    const P_ = S.segData, rp_ = (P_ && S.prodIdx != null) ? P_.rp[reg + '|' + S.prodIdx] : null;
+    if(rp_ && rp_.length > 1){
+      h += `<p><b>Referencia por órdenes de compra:</b> proveedores de ${esc(regEn(reg))} con más ventas de este producto a organismos públicos en los últimos 12 meses (por cualquier mecanismo, no solo este convenio):</p><div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th>RUT</th><th class="n">OC</th><th class="n">Vendido 12 meses</th></tr>` + rp_.slice(1, 7).map(x => { const pv = P_.pl[x[0]]; return `<tr><td>${esc(pv[1])}</td><td>${esc(pv[0])}</td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td></tr>`; }).join('') + `</table></div><p class="as-hint">Esta lista sale de las órdenes de compra, no del Catálogo: sirve para saber quiénes abastecen el producto en tu región. Confirma en el catálogo del convenio cuáles tienen ficha vigente y su precio.</p>`;
+    } else if(S.prodIdx != null && !P_) h += '<p class="as-hint">Cargando proveedores de referencia…</p>';
   }
   return h + '</div>';
 }
@@ -568,6 +579,96 @@ const ALIAS = [
   {re: /\b(wifi|internet|enlace|banda ancha|fibra)\b/, cods: ['81112101'], nota: 'servicio de Internet'},
   {re: /\b(licencias?|software|antivirus)\b/, cods: ['43231512', '81112202'], nota: 'licencias y software'}
 ];
+/* ------------------------------ procesos del organismo ------------------------------
+   data/asesor/proc/p_<código>.js: licitaciones, tratos directos, compras ágiles, cotizaciones y OC de convenio marco del organismo (ene-2025 a oct-2026),
+   en cualquier moneda, con el nombre que le puso cada proceso y su rubro. Fila: [mec, días desde 2024-01-01, código, título, monto, n, [productos], rubro, extra, moneda, proveedor] */
+const PROC_MEC = {l: 'Licitación', td: 'Trato directo', cc: 'Compra coordinada', ot: 'Otro', ca: 'Compra Ágil', cm: 'Convenio Marco'};
+const pn = t => norm(t).replace(/[^a-z0-9]+/g, ' ').trim();
+const toks2 = txt => pn(txt).split(' ').filter(t => t.length >= 3 && !STOP.has(t)).map(stem);
+const procFecha = d => new Date(Date.UTC(2024, 0, 1) + d * 864e5).toLocaleDateString('es-CL', {day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'});
+const procLink = r => r[0] === 'l' ? 'http://www.mercadopublico.cl/fichaLicitacion.html?idLicitacion=' + encodeURIComponent(r[2]) : 'https://www.mercadopublico.cl/PurchaseOrder/Modules/PO/DetailsPurchaseOrder.aspx?codigoOC=' + encodeURIComponent(r[2]);
+const procMonto = r => r[9] ? fmt(r[4]) + ' ' + r[9] : (r[4] ? pesos(r[4]) : 'sin monto');
+const procRub = r => { const x = (window.AS_PROCRUB || [])[r[7]]; return x ? x.split(' › ').slice(-1)[0] : ''; };
+function procPrep(d){
+  const rub = window.AS_PROCRUB || [];
+  d.w = d.r.map(r => { const pr = r[6].map(k => d.pl[k] || '').join(' '), rb = r[7] >= 0 && rub[r[7]] ? rub[r[7]].split(' › ').slice(-2).join(' ') : '', pv = r[10] >= 0 ? (d.pv[r[10]] || '') : '', t = toks2(r[3]); return {t, a: t.concat(toks2(pr + ' ' + rb + ' ' + r[8] + ' ' + pv))}; });
+  d.pk = d.pl.map(pn); return d;
+}
+function ensureProc(){
+  const c = S.org && S.org[0]; if(!c || S.procFor === c || S.procLoading === c) return;
+  S.procLoading = c; window.AS_PROC = window.AS_PROC || {};
+  const p1 = window.AS_PROC[c] ? Promise.resolve() : loadScript(AB + 'proc/p_' + c + '.js' + ver()).catch(() => null);
+  const p2 = window.AS_PROCRUB ? Promise.resolve() : loadScript(AB + 'proc/rub.js' + ver()).catch(() => null);
+  Promise.all([p1, p2]).then(() => {
+    if(!S.org || S.org[0] !== c){ if(S.procLoading === c) S.procLoading = null; return; }
+    const d = window.AS_PROC[c]; S.proc = d ? (d.w ? d : procPrep(d)) : null; S.procFor = c; S.procLoading = null;
+    if(S.host && $('as-prod') && norm(S.prodQ).trim().length >= 2) searchProd();
+    update();
+  });
+}
+function procFind(q, prodName){
+  const d = S.proc; if(!d || !S.org || S.procFor !== S.org[0]) return null;
+  const sq = [...new Set(toks2(q || ''))], pk = prodName ? pn(prodName) : '', pks = new Set(); if(pk) d.pk.forEach((x, k) => { if(x === pk) pks.add(k); });
+  const out = [];
+  d.r.forEach((r, i) => {
+    let sc = 0; if(pks.size && r[6].some(k => pks.has(k))) sc = 3;
+    if(sq.length){ const w = d.w[i]; if(sq.every(t => w.a.some(x => x.startsWith(t)))) sc = Math.max(sc, sq.every(t => w.t.some(x => x.startsWith(t))) ? 4 : 2); }
+    if(sc) out.push([sc, i]);
+  });
+  let parcial = false;
+  if(!out.length && sq.length > 1){ d.r.forEach((r, i) => { const w = d.w[i]; if(sq.some(t => t.length >= 4 && w.a.some(x => x.startsWith(t)))) out.push([1, i]); }); parcial = out.length > 0; }
+  out.sort((a, b) => b[0] - a[0] || d.r[b[1]][1] - d.r[a[1]][1]);
+  return {rows: out.map(x => d.r[x[1]]), parcial};
+}
+function prodByName(nm){
+  if(!S.prodByPn){ S.prodByPn = {}; S.C.n.forEach((x, i) => { const k = pn(x); if(S.prodByPn[k] == null) S.prodByPn[k] = i; }); }
+  return S.prodByPn[pn(nm)];
+}
+function procItem(r){
+  const prod = r[6].length ? S.proc.pl[r[6][0]] : '', rb = procRub(r), idx = prod ? prodByName(prod) : null;
+  return `<div class="as-prc"><b>${esc(r[3] || sentence(prod) || '(sin título)')}</b><small>${PROC_MEC[r[0]] || r[0]}${r[5] > 1 ? ' · ' + r[5] + ' OC' : ''} · ${procFecha(r[1])} · ${esc(procMonto(r))}${prod ? ' · Producto: ' + esc(sentence(prod)) : ''}${rb ? ' · Rubro: ' + esc(rb) : ''}</small><span class="as-prc-a"><a href="${procLink(r)}" target="_blank" rel="noopener">${esc(r[2])}</a>${idx != null ? `<button type="button" class="as-pick" data-i="${idx}">Usar este producto</button>` : ''}</span></div>`;
+}
+function procBlocks(){
+  const q = S.prodQ.trim();
+  if(!S.org) return {top: '', bot: '<p class="as-hint" style="margin:6px 8px">Elige el organismo (paso 1) y busco también en lo que ya compró, por el nombre de cada licitación u orden de compra.</p>'};
+  if(S.procFor !== S.org[0]) return {top: '', bot: '<p class="as-hint" style="margin:6px 8px">Buscando también en los procesos de tu organismo…</p>'};
+  if(!S.proc) return {top: '', bot: ''};
+  const f = procFind(q); if(!f || !f.rows.length) return {top: '', bot: '<p class="as-hint" style="margin:6px 8px">No encontré procesos de tu organismo con ese nombre.</p>'};
+  const n = f.rows.length;
+  return {top: `<p class="as-hint" style="margin:6px 8px"><b>En los procesos de tu organismo</b> (licitaciones, tratos directos, compras ágiles y órdenes de compra desde enero de 2025, en cualquier moneda) ${f.parcial ? 'hay ' + fmt(n) + ' que mencionan alguna de tus palabras' : 'hay <b>' + fmt(n) + '</b> con «' + esc(q) + '»'}. Si eliges uno de sus productos, ves el detalle en la pestaña «Tu organismo».</p>` + f.rows.slice(0, 5).map(procItem).join(''), bot: ''};
+}
+function procQuery(){
+  if(S.procQ != null) return S.procQ;
+  if(S.prodIdx != null) return S.chosenFor && S.C.c[S.prodIdx] === S.chosenFor ? S.chosenQ : '';
+  return S.prodQ || '';
+}
+/* Procesos que corresponden a la consulta actual (producto elegido y palabra con que se buscó, o lo que escribió el usuario en la pestaña) */
+function procRel(){
+  if(S.procQ != null) return procFind(S.procQ, '');
+  const nm = S.prodIdx != null ? S.C.n[S.prodIdx] : '';
+  return (nm || procQuery().trim()) ? procFind(procQuery(), nm) : null;
+}
+function procTabla(){
+  if(!S.org) return '';
+  if(S.procFor !== S.org[0]) return '<div class="as-load">Buscando en los procesos de tu organismo…</div>';
+  if(!S.proc) return '<p>No tengo el índice de procesos de este organismo.</p>';
+  const f = procRel();
+  if(!f) return '<p class="as-hint">Elige un producto en el paso 2 o escribe una palabra arriba (por ejemplo «google», «nube» o «licencias») para ver lo que tu organismo ya publicó o compró con ese nombre.</p>';
+  if(!f.rows.length) return `<p>No encontré licitaciones, tratos directos, compras ágiles ni órdenes de compra de tu organismo con ese nombre o producto entre enero de 2025 y octubre de 2026. Prueba con otra palabra: algunos procesos usan nombres comerciales.</p>`;
+  const rows = f.rows, cnt = {}, sum = {}; let otras = 0, tot = 0;
+  rows.forEach(r => { cnt[r[0]] = (cnt[r[0]] || 0) + 1; if(r[9]) otras++; else { tot += r[4]; sum[r[0]] = (sum[r[0]] || 0) + r[4]; } });
+  const chips = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).map(k => `<span class="as-mes as-mes-ok">${PROC_MEC[k] || k} · ${fmt(cnt[k])}${sum[k] ? ' · ' + pesos(sum[k]) : ''}</span>`).join(' ');
+  const fila = r => { const prod = r[6].length ? S.proc.pl[r[6][0]] : '', rb = procRub(r), pv = r[10] >= 0 ? S.proc.pv[r[10]] : ''; return `<tr><td>${PROC_MEC[r[0]] || r[0]}${r[5] > 1 ? `<br><span class="as-hint">${r[5]} OC</span>` : ''}</td><td>${procFecha(r[1])}</td><td><a href="${procLink(r)}" target="_blank" rel="noopener">${esc(r[2])}</a></td><td>${esc(r[3] || sentence(prod) || '(sin título)')}${prod || rb ? `<br><span class="as-hint">${prod ? esc(sentence(prod)) : ''}${prod && rb ? ' · ' : ''}${rb ? 'Rubro: ' + esc(rb) : ''}</span>` : ''}</td><td>${esc(pv || '')}</td><td class="n">${esc(procMonto(r))}</td></tr>`; };
+  const cab = '<div class="as-tw"><table class="as-t"><tr><th>Mecanismo</th><th>Fecha</th><th>Proceso</th><th>Nombre y rubro</th><th>Proveedor</th><th class="n">Monto</th></tr>';
+  let h = `<p>${f.parcial ? 'No hay procesos con todas tus palabras; estos mencionan alguna. ' : ''}Encontré <b>${fmt(rows.length)}</b> proceso(s)${tot ? ', ' + pesos(tot) + ' en pesos' : ''}${otras ? ` y ${otras} en otra moneda (se muestran en su moneda, sin convertir)` : ''}.</p><p>${chips}</p>` + cab + rows.slice(0, 25).map(fila).join('') + '</table></div>';
+  if(rows.length > 25) h += `<details class="as-det"><summary>Ver los otros ${Math.min(rows.length - 25, 75)}${rows.length > 100 ? ' (de ' + fmt(rows.length - 25) + ')' : ''}</summary>${cab}${rows.slice(25, 100).map(fila).join('')}</table></div></details>`;
+  return h + '<p class="as-hint">Fuente: índice de procesos de Mercado Público (datos abiertos, enero de 2025 a octubre de 2026). Compras Ágiles y Convenio Marco aparecen agrupadas por nombre; en las licitaciones y tratos directos se muestra el monto en la moneda del proceso.</p>';
+}
+function procesosHtml(){
+  if(S.orgIdx == null) return '';
+  return `<div class="as-sec"><h3>Procesos de tu organismo por nombre o producto</h3><p>Busca en lo que ${esc(S.org[1])} ya publicó o compró, con el nombre que le puso a cada proceso y el rubro con que lo clasificó. Incluye licitaciones, tratos directos, compras ágiles y órdenes de compra, en cualquier moneda.</p><input class="as-in as-pq" id="as-pq" type="search" placeholder="Escribe una palabra: google, nube, licencias…" aria-label="Buscar en los procesos de tu organismo" value="${esc(procQuery())}"><div id="as-pres">${procTabla()}</div></div>`;
+}
+
 function searchProd(){
   const q = norm(S.prodQ).trim(), box = $('as-prodres');
   if(q.length < 2){ box.hidden = true; return; }
@@ -590,15 +691,16 @@ function searchProd(){
   const resR = res.filter(i => !rel.includes(i));
   if(resR.length) h += (rel.length ? '<p class="as-hint" style="margin:6px 8px">Otros que coinciden con lo escrito:</p>' : '') + resR.slice(0, rel.length ? 8 : 14).map(opt).join('');
   if(par.length) h += '<p class="as-hint" style="margin:6px 8px">No hay coincidencia exacta. Productos que contienen alguna de tus palabras:</p>' + par.slice(0, 10).map(opt).join('');
-  box.innerHTML = h || '<p class="as-hint">Sin resultados. Prueba con una palabra más corta, un sinónimo (por ejemplo "correo electrónico" en vez de "mail") o el código ONU.</p>';
-  box.querySelectorAll('.as-opt').forEach(b => b.addEventListener('click', () => chooseProd(Number(b.dataset.i))));
+  const pb = procBlocks();
+  box.innerHTML = (pb.top + h + pb.bot) || '<p class="as-hint">Sin resultados. Prueba con una palabra más corta, un sinónimo (por ejemplo "correo electrónico" en vez de "mail") o el código ONU.</p>';
+  box.querySelectorAll('.as-opt, .as-pick').forEach(b => b.addEventListener('click', () => chooseProd(Number(b.dataset.i), S.prodQ)));
 }
 function chooseOrg(i){
-  S.orgIdx = i; S.org = S.O.o[i]; S.st.o = S.org[0]; S.st.u = null; S.st.r = null; S.od = null; $('as-orgres').hidden = true; S.loadingOrg = true; paintSelections(); update();
+  S.orgIdx = i; S.org = S.O.o[i]; S.st.o = S.org[0]; S.st.u = null; S.st.r = null; S.od = null; S.procQ = null; $('as-orgres').hidden = true; S.loadingOrg = true; paintSelections(); update();
   loadOrg(i).then(d => { if(S.orgIdx !== i) return; S.od = d; S.loadingOrg = false; paintSelections(); loadSegFor(); update(); }).catch(e => { S.loadingOrg = false; paintSelections(); const r = $('as-res'); if(r) r.innerHTML = '<div class="as-err">' + esc(e.message) + '</div>'; });
 }
-function chooseProd(i){
-  const l = activeLine(); l.p = S.C.c[i]; l.q = ''; l.t = ''; $('as-prod').value = ''; $('as-prodres').hidden = true;
+function chooseProd(i, q){
+  const l = activeLine(); S.chosenQ = (q || '').trim(); S.chosenFor = S.C.c[i]; S.procQ = null; l.p = S.C.c[i]; l.q = ''; l.t = ''; $('as-prod').value = ''; $('as-prodres').hidden = true;
   activate(S.li); paintLines(); loadSegFor(); update();
 }
 function loadSegFor(){
@@ -625,7 +727,7 @@ function update(){
   if(eq) eq.textContent = S.st.m ? '= ' + dec(S.st.m / utm, 1) + ' UTM · ' + R().TRAMOS[R().tramoUtm(S.st.m / utm)].nom : '';
   const n = (S.st.s || []).length, ds = $('as-detsum'); if(ds) ds.textContent = n ? n + ' situación(es) marcada(s)' : 'Ninguna (compra habitual)';
   syncUrl();
-  ensurePac(); ensureRef(); ensureOc();
+  ensurePac(); ensureRef(); ensureOc(); ensureProc(); ensurePacx();
   if(S.orgIdx == null || !S.st.m){
     res.innerHTML = `<div class="as-empty"><b>Tu recomendación aparecerá aquí.</b><br>Elige el organismo (paso 1) e indica el monto estimado (paso 3). Mientras más completes, más datos reales verás: precios de referencia, Convenios Marco, proveedores de tu región y compras de otros organismos que podrías consolidar.</div>`;
     return;
@@ -727,6 +829,12 @@ function pacConsHtml(o){
 function wireResult(){
   const st = () => pacState(activeLine());
   S.host.querySelectorAll('.as-rtab').forEach(b => b.addEventListener('click', () => { S.rtab = b.dataset.rt; S.host.querySelectorAll('.as-rtab').forEach(x => x.setAttribute('aria-selected', x === b ? 'true' : 'false')); S.host.querySelectorAll('.as-pan').forEach(x => { x.hidden = x.dataset.rp !== S.rtab; }); }));
+  { const rb = S.host.querySelector('.as-rtabs');
+    if(rb){ const chk = () => { const ov = rb.scrollWidth > rb.clientWidth + 2; rb.classList.toggle('as-ov', ov); rb.classList.toggle('as-end', ov && rb.scrollLeft + rb.clientWidth >= rb.scrollWidth - 4); };
+      rb.addEventListener('scroll', chk); window.addEventListener('resize', chk);
+      const sb = rb.querySelector('[aria-selected=true]'); if(sb) rb.scrollLeft = Math.max(0, sb.offsetLeft - 24); chk();
+      rb.querySelectorAll('.as-rtab').forEach(b => b.addEventListener('click', () => { rb.scrollTo({left: Math.max(0, b.offsetLeft - 24), behavior: 'smooth'}); setTimeout(chk, 350); })); }
+    const pq = $('as-pq'); if(pq) pq.addEventListener('input', () => { S.procQ = pq.value; const bx = $('as-pres'); if(bx) bx.innerHTML = procTabla(); }); }
   S.host.querySelectorAll('.as-pk').forEach(c => c.addEventListener('change', () => { const k = Number(c.dataset.k), s_ = st(); if(c.checked) s_.sel.add(k); else s_.sel.delete(k); update(); }));
   S.host.querySelectorAll('.as-pj').forEach(c => c.addEventListener('change', () => { const s_ = st(); c.dataset.ks.split(',').forEach(k => { if(c.checked) s_.sel.add(Number(k)); else s_.sel.delete(Number(k)); }); update(); }));
   const pe = $('as-pend'); if(pe) pe.addEventListener('change', () => { S.pendOnly = pe.checked; update(); });
@@ -863,17 +971,21 @@ function resultHtml(o){
   }
   add('pasos', 'Orden de la decisión', '<div class="as-sec"><h3>Orden de la decisión</h3><ol class="as-steps">' + o.pasos.map(x => `<li><div><b>${esc(x.titulo)}</b><span class="as-tag as-t-${x.estado}">${x.estado}</span><p>${esc(x.texto)}</p>${linksHtml(x.links)}${citas(x.arts)}</div></li>`).join('') + '</ol></div>');
   add('datos', 'Compras de tu organismo', datosOrg(o, h, ci));
+  add('procs', 'Procesos de tu organismo', procesosHtml());
   add('precios', 'Precio de referencia', preciosHtml(h));
   if(ci.lista.length) add('cm', 'Convenios Marco del producto', cmHtml(ci));
   add('prov', 'Proveedores de tu región', provHtml());
-  add('dem', 'Demanda que podrías consolidar', demandaHtml());
+  add('dem', 'Otros organismos con este producto en su PAC', demandaHtml());
   add('pac', 'Antes de publicar: PAC y presupuesto', pacHtml());
   if(o.alternativas.length) add('alt', 'Otras vías', '<div class="as-sec"><h3>Otras vías que puedes evaluar</h3>' + o.alternativas.map(a => `<p><b>${esc(a.nom)}.</b> ${esc(a.texto)}</p>${citas(a.arts)}`).join('') + '</div>');
   if(S.od == null) html += '<div class="as-load">Cargando las compras del organismo para cruzarlas con la recomendación…</div>';
-  if(secs.length){
-    const sel = secs.some(z => z.k === S.rtab) ? S.rtab : secs[0].k;
-    html += '<div class="as-tabs as-rtabs" role="tablist" aria-label="Más información de esta compra">' + secs.map(z => `<button class="as-rtab" role="tab" data-rt="${z.k}" aria-selected="${z.k === sel}">${esc(z.label)}${z.bdg ? `<span class="as-bdg">${z.bdg}</span>` : ''}</button>`).join('') + '</div>';
-    html += secs.map(z => `<div class="as-pan" role="tabpanel" data-rp="${z.k}"${z.k === sel ? '' : ' hidden'}>${z.x}</div>`).join('');
+  /* Ocho pestañas como máximo, en una sola fila */
+  const GR = [['esc', 'Orden de opciones', ['esc']], ['ref', null, ['ref']], ['alertas', 'Alertas', ['alertas']], ['org', 'Tu organismo', ['datos', 'procs']], ['mer', 'Precios y proveedores', ['precios', 'cm', 'prov']], ['vias', 'Otras vías y demanda', ['alt', 'dem']], ['plan', 'PAC y presupuesto', ['pacc', 'pac']], ['como', 'Cómo se hace', ['como', 'pasos']]];
+  const tabs = GR.map(g => { const mem = g[2].map(k => secs.find(z => z.k === k)).filter(Boolean); return mem.length ? {k: g[0], label: g[1] || mem[0].label.split(':')[0], x: mem.map(z => z.x).join(''), bdg: mem[0].bdg} : null; }).filter(Boolean);
+  if(tabs.length){
+    const sel = tabs.some(z => z.k === S.rtab) ? S.rtab : tabs[0].k;
+    html += '<div class="as-tabs as-rtabs" role="tablist" aria-label="Más información de esta compra">' + tabs.map(z => `<button class="as-rtab" role="tab" data-rt="${z.k}" aria-selected="${z.k === sel}">${esc(z.label)}${z.bdg ? `<span class="as-bdg">${z.bdg}</span>` : ''}</button>`).join('') + '</div>';
+    html += tabs.map(z => `<div class="as-pan" role="tabpanel" data-rp="${z.k}"${z.k === sel ? '' : ' hidden'}>${z.x}</div>`).join('');
   }
   html += `<p class="as-note">Generado el ${new Date().toLocaleDateString('es-CL')} con datos de órdenes de compra al ${monthLab(S.C.w12[1].toString().slice(0, 4) + '-' + S.C.w12[1].toString().slice(4))}. ${esc(R().TEXTO_BASE)}</p>`;
   return html;
@@ -901,7 +1013,8 @@ function datosOrg(o, h, ci){
   if(S.prodIdx == null){
     html += '<p>Elige un producto en el paso 2 para ver cuánto ha comprado tu organismo de lo mismo, por qué mecanismos y con qué riesgo de fragmentación.</p>';
   } else if(!h.row){
-    html += '<p>En los datos no aparecen compras de este producto por parte de tu organismo. No hay historial que pueda fragmentarse.</p>';
+    const pr_ = S.proc ? procRel() : null, np_ = pr_ ? pr_.rows.length : 0;
+    html += '<p>En el historial por producto (órdenes de compra en pesos con este código ONU) no aparecen compras de tu organismo.' + (np_ ? ` Sin embargo, hay <b>${fmt(np_)} proceso(s)</b> de tu organismo con ese nombre o producto, en cualquier mecanismo y moneda: los ves más abajo en esta misma pestaña.` : (S.proc ? ' Tampoco encontré procesos con ese nombre en el índice de procesos.' : '')) + '</p>';
   } else {
     const r = h.row, mecs = Object.keys(h.mecs).sort((a, b) => h.mecs[b] - h.mecs[a]);
     html += `<div class="as-kpis"><div class="as-k"><div class="l">Compras 12 meses</div><div class="v">${fmt(r[3])}</div><div class="s">órdenes de compra</div></div>
@@ -965,14 +1078,64 @@ function provHtml(){
   if(reg && nat) html += '<details class="as-det"><summary>Ver proveedores a nivel nacional</summary>' + tabla(nat.slice(1)) + '</details>';
   return html + '</div>';
 }
+/* Otros organismos que tienen el producto en su PAC 2026 en los meses que quedan (índice inverso data/asesor/pacx/x_<2 letras>.js) */
+function pxMesMin(){ const h = new Date(); return h.getMonth() + 1 + (h.getDate() > 24 ? 1 : 0); }
+function pxToks(){ return [...new Set(toks2(consultaTexto()))]; }
+/* Conjuntos de palabras para buscar en los PAC: las del producto y, si el usuario buscó con otras palabras (por ejemplo «créditos nube»), esas también */
+function pxCq(){ return (S.prodIdx != null && S.chosenFor && S.C.c[S.prodIdx] === S.chosenFor) ? S.chosenQ : ''; }
+function pxSets(){ const a = pxToks(), out = a.length ? [a] : [], cq = pxCq(); if(cq){ const b = [...new Set(toks2(cq))]; if(b.length && b.join(' ') !== a.join(' ')) out.push(b); } return out; }
+function loadPx(p){ window.AS_PACX = window.AS_PACX || {}; return window.AS_PACX[p] ? Promise.resolve() : loadScript(AB + 'pacx/x_' + p + '.js' + ver()).catch(() => null); }
+function ensurePacx(){
+  const sets = pxSets(), key = sets.map(x => x.join(' ')).join('|');
+  if(!sets.length){ S.px = null; return; }
+  if(S.px && S.px.key === key) return;
+  const px = S.px = {key, ready: false, cand: []}, all = [].concat(...sets);
+  Promise.all([...new Set(all.map(t => t.slice(0, 2)))].map(loadPx)).then(() => {
+    if(S.px !== px) return;
+    const u = {};
+    sets.forEach(qt => {
+      const need = qt.length >= 3 ? qt.length - 1 : qt.length, m = {};
+      qt.forEach(t => { const sh = (window.AS_PACX || {})[t.slice(0, 2)], ps = sh && sh.t[t]; if(!ps) return; ps.forEach(x => { const k = x[0] + '|' + sh.d[x[1]], e = m[k] || (m[k] = {org: x[0], desc: sh.d[x[1]], ms: x[2], cc: x[3] || '', n: 0}); e.n++; }); });
+      Object.values(m).forEach(e => { if(e.n >= need) u[e.org + '|' + e.desc] = e; });
+    });
+    px.cand = Object.values(u); px.g = ((window.AS_PACX || {})[all[0].slice(0, 2)] || {}).g || '';
+    px.ready = true; update();
+  });
+}
 function demandaHtml(){
-  if(S.prodIdx == null || !S.segData) return '';
-  const reg = orgRegion(), d = S.segData.dm[reg + '|' + S.prodIdx];
-  if(!d) return '<div class="as-sec"><h3>Demanda que podrías consolidar</h3><p>No encontré otros organismos de tu región con compras relevantes de este producto en 12 meses.</p></div>';
-  const lst = d.slice(3).filter(x => x[0] >= 0 && S.O.o[x[0]] && S.O.o[x[0]][0] !== (S.org && S.org[0]));
-  return `<div class="as-sec"><h3>Demanda que podrías consolidar</h3><p>${fmt(d[0])} organismos de ${esc(regEn(reg))} compraron este producto por ${mm(d[1])} en los últimos 12 meses.${d[2] ? ' Ya existen compras coordinadas de este producto por ' + mm(d[2]) + '.' : ''} Agregar demanda mediante Compra Coordinada puede mejorar el precio y reducir los costos de transacción de todos.</p>
-   <div class="as-tw"><table class="as-t"><tr><th>Organismo</th><th class="n">OC</th><th class="n">Monto 12 meses</th></tr>${lst.map(x => `<tr><td>${esc(S.O.o[x[0]][1])}</td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td></tr>`).join('')}</table></div>
-   ${citas([{n: 'DS 661/2024', t: 'art. 4 N° 7 (definición de Compra Coordinada); art. 35 (representación por la Dirección de Compras)'}])}</div>`;
+  if(!pxSets().length) return '';
+  const head = '<div class="as-sec"><h3>Otros organismos con este producto en su PAC</h3>', px = S.px;
+  if(!px || !px.ready) return head + '<div class="as-load">Revisando el PAC 2026 de los demás organismos…</div></div>';
+  const reg = orgRegion(), mesMin = pxMesMin(), cq_ = pxCq(), nm = sentence(consultaTexto()) + (cq_ && norm(cq_) !== norm(consultaTexto()) ? '» o «' + cq_ : ''), cit = citas([{n: 'DS 661/2024', t: 'art. 4 N° 7 (definición de Compra Coordinada); art. 35 (representación por la Dirección de Compras); arts. 166 y 167 (Plan Anual de Compras)'}]);
+  if(mesMin > 12) return head + `<p>Ya no quedan meses de 2026 para planificar una compra conjunta. El PAC 2027 se publica hasta el 31 de enero de 2027 (DS 661, art. 167).</p>${cit}</div>`;
+  const por = {}, sets_ = pxSets(), SERV0 = ['mantencion', 'mantenimiento', 'arriendo', 'reparacion', 'soporte', 'suscripcion', 'licencia', 'capacitacion', 'curso', 'asesoria', 'consultoria', 'catering', 'servicio', 'instalacion', 'traslado'];
+  let fuera = 0;
+  px.cand.forEach(e => {
+    if(S.orgIdx != null && e.org === S.orgIdx) return; const o = S.O.o[e.org]; if(!o) return;
+    /* El ítem cuenta si la descripción parte con el producto (primeras 3 palabras); en bienes se descartan los que parten con un servicio (mantención de mesas quirúrgicas, arriendo de mesas) */
+    const tk = toks2(e.desc), cab = tk.slice(0, 3);
+    if(!sets_.some(qt => qt.some(t => cab.includes(t))) || (!isServicio() && (SERV0.includes(tk[0]) || (e.cc && !/^(22-0[1-4]|29)/.test(e.cc))))){ fuera++; return; }
+    const ms = {}; e.ms.split(',').forEach(x => { const [mm_, v] = x.split(':'); if(Number(mm_) >= mesMin) ms[Number(mm_)] = Number(v) * 1000; });
+    if(!Object.keys(ms).length) return;
+    const g = por[e.org] || (por[e.org] = {org: e.org, nom: o[1], reg: o[3], ms: {}, items: [], tot: 0});
+    Object.keys(ms).forEach(k => { g.ms[k] = (g.ms[k] || 0) + ms[k]; g.tot += ms[k]; }); const ix = Math.min(...sets_.map(qt => Math.min(...qt.map(t => { const j = tk.indexOf(t); return j < 0 ? 9 : j; })))); g.items.push([ix * 10 + tk.length, e.desc]); g.best = Math.min(g.best == null ? 99 : g.best, ix * 10 + tk.length);
+  });
+  Object.values(por).forEach(g => g.items.sort((a, b) => a[0] - b[0])); const todos = Object.values(por).sort((a, b) => (a.best - b.best) || (b.tot - a.tot)), loc = reg ? todos.filter(g => g.reg === reg) : todos, otras = reg ? todos.filter(g => g.reg !== reg) : [];
+  const mesesTxt = mesMin >= 12 ? 'diciembre' : (MES3[mesMin - 1] + ' a dic');
+  if(!todos.length) return head + `<p>En el PAC 2026 publicado no encontré otros organismos con ítems parecidos a «${esc(nm)}» planificados desde ${mesesTxt}. Puede que el producto se describa con otro nombre en su PAC: prueba con un sinónimo en el paso 2.</p>${cit}</div>`;
+  const resumen = lst => { const c = {}; lst.forEach(g => Object.keys(g.ms).forEach(k => { const e = c[k] || (c[k] = {n: 0, v: 0}); e.n++; e.v += g.ms[k]; })); return c; };
+  const mine = (() => { const it = pacItems(), st = (S.pacOrg === S.orgIdx && it && it.length) ? pacState(activeLine()) : null; return st ? pacResumen(it, st.sel).mesesList.filter(m => m >= mesMin) : []; })();
+  const tabla = lst => '<div class="as-tw"><table class="as-t"><tr><th>Organismo</th><th>Mes y monto planificado</th><th>Ítem del PAC</th></tr>' + lst.slice(0, 25).map(g => `<tr><td>${esc(g.nom)}${!reg ? `<br><span class="as-hint">${esc(regName(g.reg))}</span>` : ''}</td><td>${Object.keys(g.ms).map(Number).sort((a, b) => a - b).map(k => `<span class="as-mes${mine.includes(k) ? ' as-mes-ok' : ''}">${MES3[k - 1]} ${pesos(g.ms[k])}</span>`).join(' ')}</td><td>${esc(g.items[0][1])}${g.items.length > 1 ? `<br><span class="as-hint">y ${g.items.length - 1} ítem(s) más</span>` : ''}</td></tr>`).join('') + '</table></div>' + (lst.length > 25 ? `<p class="as-hint">Se muestran 25 de ${fmt(lst.length)}, primero los ítems cuya descripción es más cercana al producto.</p>` : '');
+  let h = head;
+  if(loc.length){
+    const c = resumen(loc), ks = Object.keys(c).map(Number).sort((a, b) => a - b), best = ks.slice().sort((a, b) => c[b].n - c[a].n || c[b].v - c[a].v)[0];
+    h += `<p><b>${fmt(loc.length)} organismo(s) de ${esc(regEn(reg))}</b> tienen en su PAC 2026 ítems parecidos a «${esc(nm)}» en los meses que quedan (${mesesTxt}), por ${pesos(loc.reduce((a, g) => a + g.tot, 0))} en total.</p>`;
+    h += '<p>' + ks.map(k => `<span class="as-mes${mine.includes(k) ? ' as-mes-ok' : ''}">${MES3[k - 1]} · ${c[k].n} organismo(s) · ${pesos(c[k].v)}</span>`).join(' ') + '</p>';
+    h += `<p>El mes con más organismos es <b>${MES3[best - 1]}</b>.${mine.length ? (mine.includes(best) ? ' Coincide con el mes en que tu propio PAC planifica esta compra: es la ventana más simple para coordinarla.' : ' Tu PAC lo planifica en ' + mine.map(m => MES3[m - 1]).join(', ') + (c[mine[0]] ? `, mes en que otros ${c[mine[0]].n} organismo(s) también lo planifican.` : '; ahí no hay otros organismos de tu región con ese ítem.')) : ' Tu PAC no tiene un ítem marcado para estos meses.'}</p>` + tabla(loc);
+  } else h += `<p>En ${esc(regEn(reg))} no hay otros organismos con ítems parecidos a «${esc(nm)}» planificados desde ${mesesTxt}.</p>`;
+  if(otras.length) h += `<details class="as-det"><summary>Ver ${fmt(otras.length)} organismo(s) de otras regiones</summary>${tabla(otras)}</details>`;
+  h += `<p class="as-hint">Agregar demanda mediante Compra Coordinada puede mejorar el precio y reducir los costos de transacción de todos. Fuente: PAC 2026 de cada organismo (proyectos Publicado y Actualizado, archivo del ${esc(px.g || '20-10-2026')}). Los ítems del PAC son texto libre sin código ONU: la coincidencia es por palabras (la descripción debe partir con el producto${fuera ? '; ' + fmt(fuera) + ' ítems que solo lo mencionan o que el PAC clasifica como servicio, como mantenciones o arriendos, quedaron fuera' : ''}). Revisa cada ítem y recuerda que el PAC puede modificarse.</p>` + cit;
+  return h + '</div>';
 }
 function pacHtml(){
   const nm = S.org ? S.org[1] : '';

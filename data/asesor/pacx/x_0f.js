@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["0f"]={"g":"2026-10-20","d":["A01I0395 -   CATETER UMBILICAL DOBLE LUMEN 5.0FR","CATETER PICC 1,8FR A 2,0FR"],"t":{"0fr":[[75,0,"10:147,11:147,12:147","22-04"],[52,1,"11:102","22-04"]]}};

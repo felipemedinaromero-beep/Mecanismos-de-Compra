@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k7"]={"g":"2026-10-20","d":["INTERRUPTOR K734 12V - 16A"],"t":{"k734":[[67,0,"11:5,12:5","22-04"]]}};

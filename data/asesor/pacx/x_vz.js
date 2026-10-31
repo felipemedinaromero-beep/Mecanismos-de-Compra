@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["vz"]={"g":"2026-10-20","d":["2450001 VZV IGG COD. 310850 L (100 DE","Renovación Plataforma de Monitoreo Vzor Suite 360"],"t":{"vzv":[[5,0,"10:631,11:631,12:631","22-04"]],"vzor":[[290,1,"10:564543","22-11"]]}};

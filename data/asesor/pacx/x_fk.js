@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["fk"]={"g":"2026-10-20","d":["Lima XP-endo Finisher (FKG)"],"t":{"fkg":[[464,0,"11:19","22-04"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["5n"]={"g":"2026-10-20","d":["ETIQUETA 40*70MM (ROLLO*1000) COLOR Y N°/0NEG/1AM/2CEL/3ROS/4VER/5NAR/6MOR/7ROJ/8CAF/9AZ"],"t":{"5nar":[[9,0,"10:84","22-04"]]}};

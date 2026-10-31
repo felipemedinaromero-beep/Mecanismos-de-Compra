@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4w"]={"g":"2026-10-20","d":["Cartridge 300 test/4wks","CRUCETA DE 4WD CMTA. MITSUBISHI L-200"],"t":{"4wks":[[439,0,"10:1714,11:1714,12:1714","22-04"]],"4wd":[[2,1,"12:27","22-04"]]}};

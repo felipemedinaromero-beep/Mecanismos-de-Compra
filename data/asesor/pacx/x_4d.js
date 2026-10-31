@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4d"]={"g":"2026-10-20","d":["ARC SEPTUM 1 X 200 COD. 4D18-03","VIROLOGIA ARC INSUM SEPTUM REF 4D18-03"],"t":{"4d18":[[25,0,"11:1559","22-04"],[9,1,"10:174","22-04"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["kx"]={"g":"2026-10-20","d":["Reparación camión recolector KXSS 45","Repuestos y accesorios camión recolector KXSS 45","Mantención camión recolector KXSS 45"],"t":{"kxss":[[416,0,"10:4500","22-04"],[416,1,"10:2000","22-04"],[416,2,"10:1200","22-06"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["m7"]={"g":"2026-10-20","d":["3448 - KIT TAQ POLIMERASA GOTAQ, 1000 RX Ref.  M7123 Promega"],"t":{"m7123":[[368,0,"12:1085","22-04"]]}};

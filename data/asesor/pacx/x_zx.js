@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["zx"]={"g":"2026-10-20","d":["CINTA IMPRESORA ZEBRA ZXP 3 TRICOLOR"],"t":{"zxp":[[9,0,"10:114,11:114,12:114","22-04"]]}};

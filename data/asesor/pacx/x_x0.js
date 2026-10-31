@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["x0"]={"g":"2026-10-20","d":["LIAISON® XL Cuvettes ([REF]  X0016).","LIAISON® XL Disposable Tips ([REF]  X0015)."],"t":{"x0016":[[40,0,"10:337,11:337,12:337","22-04"]],"x0015":[[40,1,"10:539,11:539,12:539","22-04"]]}};

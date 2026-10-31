@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["qb"]={"g":"2026-10-20","d":["BALON DILATACION BILIAR QBD-10X3 UD 10 MM X 3 CM"],"t":{"qbd":[[31,0,"11:982","22-04"]]}};

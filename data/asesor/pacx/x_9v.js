@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["9v"]={"g":"2026-10-20","d":["B03E0176 -   PILAS ALCALINAS BATERIA 9VOL","BATERIA-9VOLTS-UNIDAD"],"t":{"9vol":[[75,0,"10:54","22-04"]],"9volt":[[67,1,"10:12,11:12,12:12","22-04"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["yk"]={"g":"2026-10-20","d":["ELECTRODO YKDMED TIPO PERA DE SUCCION ADULTO PARA ELECTROCARDIOGRAFO"],"t":{"ykdmed":[[41,0,"10:37","22-04"]]}};

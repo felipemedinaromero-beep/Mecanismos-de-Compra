@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["f2"]={"g":"2026-10-20","d":["3471 - FETAL BOVINE SERUM/CULTIVO/ FILTRADO Ref.  sigma F2442-500ML"],"t":{"f2442":[[368,0,"10:497","22-04"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["fy"]={"g":"2026-10-20","d":["MANTENCION Y REPARACION DE CAMIONETA CHEVROLET DMAX PATENTE FYHT 71"],"t":{"fyht":[[410,0,"11:600,12:600","22-04"]]}};

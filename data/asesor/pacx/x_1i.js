@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1i"]={"g":"2026-10-20","d":["CREMA DE LECHE PARA BATIR 1ITRO"],"t":{"1itro":[[112,0,"10:12","22-01"]]}};

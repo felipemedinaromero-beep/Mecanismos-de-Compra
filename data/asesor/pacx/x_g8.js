@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["g8"]={"g":"2026-10-20","d":["3499 - GLICINA 1KG Ref.  G8898-1kg, Merck","6671533 DISCO FLAP 4,5\" G80+","GUANTE DE NITRILO DESECHABLES G80 VERDE N°8"],"t":{"g8898":[[368,0,"12:169","22-04"]],"g80":[[5,1,"10:24,11:24,12:24","22-04"],[303,2,"10:19,12:19","22-04"]]}};

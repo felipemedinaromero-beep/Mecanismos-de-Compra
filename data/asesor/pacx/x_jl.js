@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["jl"]={"g":"2026-10-20","d":["1166-MANTENCIÓN VEHÍCULO JLHC-45, DR-MANTENCIÓN DE VEHÍCULOS                              ","SUV Patente JLKY-14 Mantención 240 mil km","JLEA DIET SABOR PIÑA 24X200"],"t":{"jlhc":[[54,0,"12:500","22-06"]],"jlky":[[637,1,"11:400","22-06"]],"jlea":[[9,2,"10:114,11:114,12:114","22-01"]]}};

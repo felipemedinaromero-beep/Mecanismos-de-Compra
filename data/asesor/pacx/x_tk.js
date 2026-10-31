@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["tk"]={"g":"2026-10-20","d":["TONER-KYOCERA-NEGRO-TK1175-UNIDAD"],"t":{"tk1175":[[67,0,"10:13,11:13,12:13","22-04"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["2o"]={"g":"2026-10-20","d":["B03E0004 -   ARCHIVADOR PALANCA 1/2OFICIO","DORZOLAMIDA 2OMG - TIMOLOL 5MG SOLUCIÓN OFTÁLMICA 5ML"],"t":{"2oficio":[[75,0,"10:2","22-04"]],"2omg":[[91,1,"12:135","22-04"]]}};

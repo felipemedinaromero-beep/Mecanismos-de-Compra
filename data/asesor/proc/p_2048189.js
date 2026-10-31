@@ -1,0 +1,1 @@
+window.AS_PROC=window.AS_PROC||{};window.AS_PROC["2048189"]={"pl":["Producción de eventos"],"pv":["Grupo celeste"],"r":[["td",603,"1467974-1-TD25","",487000001,1,[0],101,"La 11° Conferencia Internacional de Geoparques Mundiales de la UNESCO 2025 es un","",0]]};

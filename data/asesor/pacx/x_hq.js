@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["hq"]={"g":"2026-10-20","d":["Cap distal de 15 mm - compatible con CF-HQ190L"],"t":{"hq190l":[[41,0,"10:1081","22-04"]]}};

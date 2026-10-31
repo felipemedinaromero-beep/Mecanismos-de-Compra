@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["vx"]={"g":"2026-10-20","d":["Server Lenovo ThinkAgile VX650 V3 Integrated System, equivalente o similar"],"t":{"vx650":[[542,0,"12:74100","29-06"]]}};

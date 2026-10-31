@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["g4"]={"g":"2026-10-20","d":["DISCO CORTE PROPÓSITO GRAL. 4.5X1.6MMX22.23 G46 (U)"],"t":{"g46":[[117,0,"10:8","22-04"]]}};

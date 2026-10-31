@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["u2"]={"g":"2026-10-20","d":["CEMENT0 RELYX U200","CATGUT CROMADO 4/0 C/AGUJA (U203T)"],"t":{"u200":[[9,0,"10:258,12:516","22-04"]],"u203t":[[29,1,"10:77","22-04"]]}};

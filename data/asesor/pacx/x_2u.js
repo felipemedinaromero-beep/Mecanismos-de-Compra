@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["2u"]={"g":"2026-10-20","d":["Clindamicina 2ug","Sensidiscos 2UG, 15UG,300UG, 20-10UG, 5UG, 100-10UG","BOTA-DE-OPERAR-LONA-2UDS-UNIDAD","PAÑO JABONOSO DISP X 2UD"],"t":{"2ug":[[373,0,"10:18","22-04"],[373,1,"11:246,12:148","22-04"]],"2uds":[[67,2,"10:78,11:78,12:78","22-02"]],"2ud":[[76,3,"10:216,11:216,12:216","22-04"]]}};

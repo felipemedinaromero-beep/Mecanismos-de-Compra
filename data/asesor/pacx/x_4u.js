@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4u"]={"g":"2026-10-20","d":["PROTEINA TOTAL RGT SS 3200T REF: 4U44-30","PAÑO MULTIUSO 4UN","VIRUTILLA-MAGO-PAD-4UDS-PAQUETE"],"t":{"4u44":[[25,0,"10:1052,11:1052","22-04"]],"4un":[[112,1,"11:3","22-04"]],"4uds":[[67,2,"10:6,11:6,12:6","22-04"]]}};

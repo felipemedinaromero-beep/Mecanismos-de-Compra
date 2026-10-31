@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ew"]={"g":"2026-10-20","d":["SER-1835 DET. REORDENAMIENTO EWSR1 FISH SARCOMA EWING PARAFINA"],"t":{"ewing":[[34,0,"10:1,11:1,12:1","22-04"]],"ewsr1":[[34,0,"10:1,11:1,12:1","22-04"]]}};

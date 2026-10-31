@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["6s"]={"g":"2026-10-20","d":["CATETER DRENAJE MULTIPROPOSITO 8.5 FR 15 CM. CATETER DE PARACENTECIS 8.5 FR *15 CM,CON 6 O"],"t":{"6sclm":[[25,0,"10:617,11:617","22-04"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["i3"]={"g":"2026-10-20","d":["4881 - ISONIAZID ANALYTICAL STANDARD, ?99% (TLC) Ref.  Sigma Aldrich I3377-5G"],"t":{"i3377":[[368,0,"10:30","22-04"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["s4"]={"g":"2026-10-20","d":["PROTESIS VASC. RECTA 6MM X 40 ( S4006-1103012)"],"t":{"s4006":[[9,0,"10:365,11:365,12:365","22-04"]]}};

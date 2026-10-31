@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1n"]={"g":"2026-10-20","d":["MICROCATETER FINECROSS 130 CM REF: 1NC-F863A","ARRIENDO DE SSHH QUIMICOS 1NOV."],"t":{"1nc":[[25,0,"10:1300,11:1300","22-04"]],"1nov":[[146,1,"10:2000","22-09"]]}};

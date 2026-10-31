@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ym"]={"g":"2026-10-20","d":["B03E0407 - CINTA DE IMPRESION MOD. YMCKT-KT PARA CP60 (14270)(CREDENDIALES)"],"t":{"ymckt":[[75,0,"10:166","22-04"]]}};

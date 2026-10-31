@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["3d"]={"g":"2026-10-20","d":["Autodesk 3DS Max"],"t":{"3ds":[[99,0,"12:2200","29-07"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["xf"]={"g":"2026-10-20","d":["XFR HEX DIRECT SCR-V 3.5MM M NECK 4.5MM IMP","XFR HEX DIRECT SCR-V 4.5MM M NECK 4.5MM IMP"],"t":{"xfr":[[76,0,"10:24,11:24,12:24","22-04"],[76,1,"10:24,11:24,12:24","22-04"]]}};

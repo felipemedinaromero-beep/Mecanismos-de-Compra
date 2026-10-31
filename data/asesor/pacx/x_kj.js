@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["kj"]={"g":"2026-10-20","d":["DAF: Mantención vehículos institucionales Chevrolet Traverse KJTF-89 y KJTF-90."],"t":{"kjtf":[[130,0,"12:1000","22-06"]]}};

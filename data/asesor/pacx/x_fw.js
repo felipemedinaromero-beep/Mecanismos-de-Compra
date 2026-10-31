@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["fw"]={"g":"2026-10-20","d":["1139. OP Pesticides in Drinking Water ( FWOP1-DRW1)","1138. OC Pesticides in Drinking Water ( FWOC1-DRW1)"],"t":{"fwop1":[[368,0,"10:500","22-11"]],"fwoc1":[[368,1,"10:500","22-11"]]}};

@@ -1,0 +1,1 @@
+window.AS_PROC=window.AS_PROC||{};window.AS_PROC["1828266"]={"pl":["Accesorios para urinarios o aseos"],"pv":["IGMA ANTOFAGASTA SPA"],"r":[["ca",462,"1242021-2-AG25","",333890,1,[0],91,"","",0]]};

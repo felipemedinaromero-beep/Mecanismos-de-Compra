@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["xg"]={"g":"2026-10-20","d":["Renovación de licenciamiento de la solución EndPoint de Sophos, del Firewall Sophos XG450 ","Licencias Firewall Standard Protection for XGS 4500 UTM, de Firewall Sophos en HA para seg"],"t":{"xg450":[[674,0,"11:136802","22-11"]],"xgs":[[66,1,"11:33872","29-07"]]}};

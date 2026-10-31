@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["wl"]={"g":"2026-10-20","d":["DT-42-Soporte y Mantención de Equipos Cisco y Licencias WLC-9800-CL - Dic 2026 - Nov 2028","CIRCUITO DESECHABLE PEDIATRICO DE ALTO FLUJO NASAL (WLENDER)"],"t":{"wlc":[[74,0,"12:6950","22-06"]],"wlender":[[36,1,"10:843,11:843,12:843","22-04"]]}};

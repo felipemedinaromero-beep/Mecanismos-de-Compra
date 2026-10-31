@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["7u"]={"g":"2026-10-20","d":["TUBO DE CEMENTACION DIRECTA 7UL","TUBO DE CEMENTACION DIRECTA 7UR"],"t":{"7ul":[[36,0,"10:43,11:43,12:43","22-04"]],"7ur":[[36,1,"10:43,11:43,12:43","22-04"]]}};

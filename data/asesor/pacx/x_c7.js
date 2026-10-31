@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["c7"]={"g":"2026-10-20","d":["3450 - CHELEX Ref.  sigma C7901-50G","Tintas y mantención C7025"],"t":{"c7901":[[368,0,"10:1065","22-04"]],"c7025":[[1022,1,"10:500","22-04"]]}};

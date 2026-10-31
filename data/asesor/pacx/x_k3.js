@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k3"]={"g":"2026-10-20","d":["2232403 TUBO EXTRAC.SANGRE C/K3EDTA 6M","CORREA ACCESORIO 332/K3830"],"t":{"k3edta":[[5,0,"10:440,11:440,12:440","22-04"]],"k3830":[[2,1,"11:1","22-04"]]}};

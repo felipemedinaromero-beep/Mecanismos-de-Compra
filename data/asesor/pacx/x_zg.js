@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["zg"]={"g":"2026-10-20","d":["GUIA HIDROFILICA RECTA 450 CM 0,035 REF: VDK-ZGW-88-450-A"],"t":{"zgw":[[25,0,"10:1013,11:1013","22-04"]]}};

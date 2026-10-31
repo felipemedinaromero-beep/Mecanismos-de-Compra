@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["bg"]={"g":"2026-10-20","d":["CONTROL TINCIÓN DE GRAM : control CG+ Y BGN, placas.","GABA 75 MG + GABOB  37 MG + BGM 75 MG + VITAMINA B6 37 MG POR ENVASE DE 60 COMPRIMIDOS REC"],"t":{"bgn":[[552,0,"11:11329","22-04"]],"bgm":[[663,1,"10:175,11:175,12:175","22-04"]]}};

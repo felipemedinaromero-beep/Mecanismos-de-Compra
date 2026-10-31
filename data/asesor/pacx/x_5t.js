@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["5t"]={"g":"2026-10-20","d":["Desinfectante amonio cuaternario 5ta Generacion similar a Quick Fill 920 Ecolab","Reposición 5ta comisaria yumbel, pcsp 2013","MEDICO QUIRURGICO 5TO.PISO"],"t":{"5ta":[[439,0,"10:210,11:210,12:420","22-04"],[3,1,"12:112800","31-02"]],"5to":[[9,2,"10:742,11:742,12:742","22-06"]]}};

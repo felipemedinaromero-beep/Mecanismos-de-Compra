@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["3e"]={"g":"2026-10-20","d":["(PAC N°01-018-2026) -  Adquisición de carátulas de expedientes para el 1er, 2do y 3er juzg","ADQUISICION DE EQUIPAMIENTO Y MATERIALES PARA LA SALA DE REUNIONES 3ER. PISO DIGCAR"],"t":{"3er":[[316,0,"10:4000","22-04"],[3,1,"10:5386","22-05"]]}};

@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["bj"]={"g":"2026-10-20","d":["EQUIPO CISTOSTOMIA (SUPRAPUBICO) 12 FR REF: BJ8012"],"t":{"bj8012":[[25,0,"10:735,12:735","22-04"]]}};

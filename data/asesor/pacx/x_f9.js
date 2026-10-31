@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["f9"]={"g":"2026-10-20","d":["Compra de activos fijos priorizada - dos baterías Sony mod: NP-F970 para las cámaras de vi"],"t":{"f970":[[90,0,"12:360","22-04"]]}};

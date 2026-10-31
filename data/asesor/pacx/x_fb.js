@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["fb"]={"g":"2026-10-20","d":["FENOBARBITAL ARCHITECT 300 T. REF: KIT-FBA-CC-1"],"t":{"fba":[[25,0,"11:2020","22-04"]]}};

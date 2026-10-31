@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4o"]={"g":"2026-10-20","d":["ELASTICOS INTRAORALES 1/8 MEDIUM 4oZ","ELASTICO INTRAORAL 3/16 (4OZ) MEDIUM"],"t":{"4oz":[[21,0,"10:7,11:7,12:7","22-04"],[52,1,"11:144","22-04"]]}};

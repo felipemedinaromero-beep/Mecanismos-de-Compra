@@ -1,0 +1,1 @@
+window.AS_PROC=window.AS_PROC||{};window.AS_PROC["1978370"]={"pl":["RECOLECCIÓN, DESTRUCCIÓN, TRANSFORMACIÓN O ELIMINACIÓN DE BASURAS"],"pv":["COSEMAR SPA"],"r":[["l",924,"1395835-4-LR26","Operación Relleno Sanitario Provincia del Huasco",100000000,1,[0],1999,"Recolección, destrucción, transformación o eliminación de basuras","Pes",0]]};

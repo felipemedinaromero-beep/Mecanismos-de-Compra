@@ -1,0 +1,1 @@
+window.AS_PROC=window.AS_PROC||{};window.AS_PROC["1872627"]={"pl":["Restaurantes"],"pv":["JUAN JOSÉ UGALDE NÚÑEZ"],"r":[["ca",399,"1287209-1-AG25","",400001,1,[0],909,"","",0]]};
