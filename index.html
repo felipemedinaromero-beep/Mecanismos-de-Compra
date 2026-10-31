@@ -370,6 +370,62 @@
   footer.cc-footer { border-top:1px solid var(--border); }
   @media (max-width:520px){ .pie-col-inner { flex-direction:column; align-items:stretch; } .pie-legend .pl-row { flex-wrap:wrap; } .pie-col svg { align-self:center; } }
   @media (max-width:640px){ header.cc-header { padding:2rem 1rem 5rem; } section.block { padding:1.2rem 1.1rem; } }
+
+  /* ===== Rediseño del home (upd16) ===== */
+  section.block.block-mecs { background:transparent; box-shadow:none; border:0; padding:0; margin-bottom:1.6rem; }
+  section.block.block-mecs > h2, section.block.block-mecs > .block-note { padding-left:2px; }
+  #grid { grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:20px; margin-bottom:0; }
+  .mcard { --mc:var(--cc-blue); --mt:rgba(11,120,204,.08); background:var(--surface-card); border:1px solid var(--border); border-radius:20px; padding:20px 22px 18px; display:flex; flex-direction:column; gap:14px; box-shadow:0 1px 2px rgba(0,35,59,.05); transition:box-shadow .18s ease, transform .18s ease; scroll-margin-top:70px; }
+  .mcard:hover { box-shadow:0 14px 34px rgba(0,35,59,.12); transform:translateY(-2px); }
+  .mc-head { display:flex; align-items:center; gap:12px; }
+  .mc-ico { flex:0 0 auto; width:42px; height:42px; border-radius:50%; background:var(--mt); color:var(--mc); display:flex; align-items:center; justify-content:center; }
+  .mc-ico svg { width:22px; height:22px; }
+  .mc-title { margin:0; font-size:16px; line-height:1.25; font-weight:800; color:var(--cc-dark); }
+  .mc-def { margin:0; font-size:12.5px; line-height:1.55; color:var(--text-secondary); display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .mc-stats { display:grid; grid-template-columns:auto 1fr; gap:14px 22px; }
+  .mc-n { display:block; white-space:nowrap; font-size:22px; line-height:1.1; font-weight:800; color:var(--cc-dark); font-variant-numeric:tabular-nums; }
+  .mc-l { display:block; margin-top:3px; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-secondary); font-weight:600; }
+  .mc-bars { display:flex; flex-direction:column; gap:8px; }
+  .mc-bar { display:grid; grid-template-columns:92px 1fr 46px; align-items:center; gap:8px; font-size:11px; color:var(--text-secondary); }
+  .mc-bar .tr { height:8px; border-radius:99px; background:var(--surface-page); overflow:hidden; }
+  .mc-bar .tr i { display:block; height:100%; border-radius:99px; background:var(--mc); }
+  .mc-bar b { text-align:right; color:var(--cc-dark); font-variant-numeric:tabular-nums; }
+  .mc-spark svg { width:100%; height:46px; display:block; }
+  .mc-spark small { display:flex; justify-content:space-between; font-size:10px; color:var(--text-secondary); margin-top:2px; }
+  .mc-meta { margin:0; font-size:12px; color:var(--text-secondary); }
+  .mc-meta b { color:var(--cc-dark); }
+  .mc-more { font-size:12px; color:var(--text-secondary); border-top:1px solid var(--border); padding-top:10px; }
+  .mc-more summary { cursor:pointer; font-weight:700; color:var(--cc-navy); list-style:none; }
+  .mc-more summary::-webkit-details-marker { display:none; }
+  .mc-more summary::after { content:' +'; }
+  .mc-more[open] summary::after { content:' −'; }
+  .mc-more p { margin:8px 0 0; line-height:1.5; }
+  .mc-more .cita { margin-top:6px; }
+  .mc-btn { margin-top:auto; display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:10px 18px; border-radius:99px; background:var(--mc); color:var(--mi,#fff); font-size:12.5px; font-weight:700; text-decoration:none; }
+  .mc-btn:hover { filter:brightness(1.1); }
+  .mc-btn:focus-visible, .mc-more summary:focus-visible { outline:2px solid var(--cc-blue); outline-offset:2px; border-radius:6px; }
+  .sticky-ribbon { position:fixed; top:0; left:0; right:0; z-index:60; display:flex; justify-content:center; flex-wrap:wrap; gap:6px 28px; padding:8px 18px; background:var(--cc-dark); color:#fff; font-size:12px; transform:translateY(-110%); transition:transform .2s ease; box-shadow:0 4px 16px rgba(0,35,59,.25); }
+  .sticky-ribbon.show { transform:translateY(0); }
+  .sticky-ribbon span { opacity:.75; margin-right:6px; }
+  .sticky-ribbon b { font-variant-numeric:tabular-nums; }
+  @media (max-width:640px){ #grid { grid-template-columns:1fr; } .sticky-ribbon { gap:4px 14px; font-size:11px; } }
+
+  /* ===== Paneles extra Compra Ágil / Convenio Marco (upd16) ===== */
+  .mx-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin:10px 0 14px; }
+  .mx-kpi { background:var(--surface-page); border-radius:14px; padding:12px 14px; }
+  .mx-kpi .l { font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-secondary); font-weight:600; }
+  .mx-kpi .v { font-size:20px; font-weight:800; color:var(--cc-dark); margin-top:3px; font-variant-numeric:tabular-nums; }
+  .mx-kpi .s { font-size:11px; color:var(--text-secondary); margin-top:2px; }
+  .mx-two { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  @media (max-width:860px){ .mx-two { grid-template-columns:1fr; } }
+  .mx-tbl { max-height:none; }
+  .mx-tbl td.num, .mx-tbl th.num { white-space:nowrap; }
+  .mx-bar { display:inline-block; height:8px; border-radius:99px; background:var(--cc-blue); vertical-align:middle; min-width:2px; }
+  .mx-legend { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:11.5px; margin-top:8px; color:var(--text-secondary); }
+  .mx-legend i { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .mx-warn { font-size:12px; color:var(--cc-wine); background:var(--surface-page); border-left:4px solid var(--cc-amber); border-radius:10px; padding:9px 13px; margin:10px 0 0; line-height:1.5; }
+  .mx-h3 { font-size:13.5px; font-weight:700; color:var(--cc-navy); margin:18px 0 6px; }
+  .mx-stack svg { width:100%; height:auto; display:block; }
 </style>
 </head>
 <body>
@@ -385,6 +441,7 @@
   </div>
 </header>
 <div id="mainView">
+<div class="sticky-ribbon" id="stickyRibbon" aria-hidden="true"></div>
 <div class="wrap">
 
   <div class="kpis" id="kpiRow"></div>
@@ -415,34 +472,44 @@
     <div id="dlPieMec"></div>
   </section>
 
+  <section class="block block-mecs" id="mecSection">
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Los siete mecanismos</h2>
+    <p class="block-note">Cada ficha resume un mecanismo en el período elegido: órdenes de compra, monto, peso dentro del total y evolución mensual. Abre «Ver detalle» para el análisis completo.</p>
+    <div id="grid"></div>
+  </section>
+
   <section class="block">
-    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Mecanismos de la Ley 21.634 aún sin registro en este panel</h2>
-    <p class="block-note">La Ley N° 21.634 (que modificó la Ley 19.886) y su Reglamento, el Decreto N° 661 de 2024, incorporaron nuevos procedimientos de compra. Compra Ágil (con su tope ampliado a 100 UTM) y Contratación por Cotización ya están en las fichas de este panel. Los tres procedimientos siguientes entraron en vigencia el <b>12 de junio de 2025</b>. Para Subasta Inversa Electrónica se encontraron dos subastas y una OC (ver su vista); Diálogos Competitivos y Contratos para la Innovación no tienen ninguna OC en los datos de <span id="pendPeriodo"></span>. Economía Circular no se mide con Órdenes de Compra sino con un reporte de ChileCompra, y al abrir su caja se muestran esos datos.</p>
-    <div class="pend-grid">
-      <a class="pend-card pend-card-link" href="#subasta-inversa" target="_blank" rel="noopener" title="Abrir las subastas identificadas">
-        <div class="pend-card-head"><span class="pend-card-title">Subasta Inversa Electrónica</span><span class="pend-badge ok">2 subastas · 1 OC</span></div>
-        <p class="pend-card-desc">Procedimiento abierto para bienes y servicios estandarizados, donde los proveedores compiten ofreciendo precios cada vez más bajos, mediante un módulo dedicado en Mercado Público.</p>
-        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
-        <span class="pend-card-cta">Ver subastas y OC →</span>
-      </a>
-      <div class="pend-card">
-        <div class="pend-card-head"><span class="pend-card-title">Diálogos Competitivos</span><span class="pend-badge">0 OC detectadas</span></div>
-        <p class="pend-card-desc">Procedimiento especial para necesidades públicas complejas, mediante un diálogo estructurado en fases sucesivas con los proveedores para definir y ajustar la solución.</p>
-        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
-      </div>
-      <div class="pend-card">
-        <div class="pend-card-head"><span class="pend-card-title">Contratos para la Innovación</span><span class="pend-badge">0 OC detectadas</span></div>
-        <p class="pend-card-desc">Procedimiento orientado a la adquisición de soluciones innovadoras para desafíos públicos, en el marco de la Compra Pública de Innovación (CPI).</p>
-        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
-      </div>
-      <a class="pend-card pend-card-link" href="#economia-circular" target="_blank" rel="noopener" title="Abrir los datos de Economía Circular">
-        <div class="pend-card-head"><span class="pend-card-title">Economía Circular</span><span class="pend-badge ok">1.182 reservas</span></div>
-        <p class="pend-card-desc">Organismos que publican productos para que otros organismos los reserven. No son Órdenes de Compra: los datos vienen de un reporte propio de ChileCompra y tienen su vista aparte.</p>
-        <p class="pend-card-meta">Datos al <b>26/10/2026</b> · reporte Power BI de ChileCompra</p>
-        <span class="pend-card-cta">Ver datos →</span>
-      </a>
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></span>Evolución mensual por mecanismo · N° de Órdenes de Compra</h2>
+    <p class="block-note">N° de Órdenes de Compra por mes. Haz clic en la leyenda para mostrar u ocultar una serie.</p>
+    <div id="chartWrap">
+      <svg id="lineChartOc" viewBox="0 0 1160 340"></svg>
+      <div class="tooltip" id="ttOc"></div>
     </div>
-    <div class="note-box" style="margin:12px 0 0;">Se buscó en los 22 meses de OC (ene-2025 a oct-2026; octubre parcial) el sufijo "SIE" en el código de licitación, la glosa y el nombre de la OC, y las menciones de "subasta inversa", "diálogo competitivo" e "innovación" en Tipo, DescripcionTipoOC y ProcedenciaOC. Solo apareció una OC de subasta (5240-235-SE25, subasta 6153-1-SIE25, Carabineros); la subasta 6153-5-SIE25 se agregó por indicación del equipo y no tiene OC en los datos abiertos. Esto vale para los organismos y el período de este panel y no permite concluir que los demás mecanismos no se hayan usado en otro lugar del país. Para confirmarlo a nivel nacional conviene revisar <a href="https://www.chilecompra.cl/subasta-inversa-electronica/" target="_blank" rel="noopener">chilecompra.cl</a> o consultar al Centro de Ayuda de Mercado Público.</div>
+    <div class="legend" id="legendOc"></div>
+    <div id="dlLineOc"></div>
+  </section>
+
+  <section class="block">
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Evolución mensual por mecanismo · Monto (USD)</h2>
+    <p class="block-note">Monto transado por mes, en dólares (dólar observado diario según la fecha de emisión de cada OC). Haz clic en la leyenda para mostrar u ocultar una serie.</p>
+    <div id="chartWrap">
+      <svg id="lineChartMonto" viewBox="0 0 1160 340"></svg>
+      <div class="tooltip" id="ttMonto"></div>
+    </div>
+    <div class="legend" id="legendMonto"></div>
+    <div id="dlLineMonto"></div>
+  </section>
+
+  <section class="block">
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 3 5-8"/></svg></span>Evolución de mecanismo por sector</h2>
+    <p class="block-note">Elige un sector para ver cómo evoluciona mes a mes la mezcla de mecanismos de compra dentro de los organismos de ese sector. Se calcula a partir de los organismos compradores individuales, por lo que puede tener pequeñas diferencias frente a los gráficos generales de arriba si hay OC sin organismo o proveedor identificado (excluidas de esa base). "Sin sector asignado" agrupa los organismos que tu archivo de sectores no clasifica.</p>
+    <div class="filter-row" style="margin-bottom:4px;">
+      <div class="filter-field">
+        <label for="selSectorEvo">Sector</label>
+        <select id="selSectorEvo"></select>
+      </div>
+    </div>
+    <div id="sectorEvoBody"></div>
   </section>
 
   <section class="block">
@@ -540,40 +607,34 @@
     </div>
   </section>
 
-  <div id="grid"></div>
-
   <section class="block">
-    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></span>Evolución mensual por mecanismo · N° de Órdenes de Compra</h2>
-    <p class="block-note">N° de Órdenes de Compra por mes. Haz clic en la leyenda para mostrar u ocultar una serie.</p>
-    <div id="chartWrap">
-      <svg id="lineChartOc" viewBox="0 0 1160 340"></svg>
-      <div class="tooltip" id="ttOc"></div>
-    </div>
-    <div class="legend" id="legendOc"></div>
-    <div id="dlLineOc"></div>
-  </section>
-
-  <section class="block">
-    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Evolución mensual por mecanismo · Monto (USD)</h2>
-    <p class="block-note">Monto transado por mes, en dólares (dólar observado diario según la fecha de emisión de cada OC). Haz clic en la leyenda para mostrar u ocultar una serie.</p>
-    <div id="chartWrap">
-      <svg id="lineChartMonto" viewBox="0 0 1160 340"></svg>
-      <div class="tooltip" id="ttMonto"></div>
-    </div>
-    <div class="legend" id="legendMonto"></div>
-    <div id="dlLineMonto"></div>
-  </section>
-
-  <section class="block">
-    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 3 5-8"/></svg></span>Evolución de mecanismo por sector</h2>
-    <p class="block-note">Elige un sector para ver cómo evoluciona mes a mes la mezcla de mecanismos de compra dentro de los organismos de ese sector. Se calcula a partir de los organismos compradores individuales, por lo que puede tener pequeñas diferencias frente a los gráficos generales de arriba si hay OC sin organismo o proveedor identificado (excluidas de esa base). "Sin sector asignado" agrupa los organismos que tu archivo de sectores no clasifica.</p>
-    <div class="filter-row" style="margin-bottom:4px;">
-      <div class="filter-field">
-        <label for="selSectorEvo">Sector</label>
-        <select id="selSectorEvo"></select>
+    <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Mecanismos de la Ley 21.634 aún sin registro en este panel</h2>
+    <p class="block-note">La Ley N° 21.634 (que modificó la Ley 19.886) y su Reglamento, el Decreto N° 661 de 2024, incorporaron nuevos procedimientos de compra. Compra Ágil (con su tope ampliado a 100 UTM) y Contratación por Cotización ya están en las fichas de este panel. Los tres procedimientos siguientes entraron en vigencia el <b>12 de junio de 2025</b>. Para Subasta Inversa Electrónica se encontraron dos subastas y una OC (ver su vista); Diálogos Competitivos y Contratos para la Innovación no tienen ninguna OC en los datos de <span id="pendPeriodo"></span>. Economía Circular no se mide con Órdenes de Compra sino con un reporte de ChileCompra, y al abrir su caja se muestran esos datos.</p>
+    <div class="pend-grid">
+      <a class="pend-card pend-card-link" href="#subasta-inversa" target="_blank" rel="noopener" title="Abrir las subastas identificadas">
+        <div class="pend-card-head"><span class="pend-card-title">Subasta Inversa Electrónica</span><span class="pend-badge ok">2 subastas · 1 OC</span></div>
+        <p class="pend-card-desc">Procedimiento abierto para bienes y servicios estandarizados, donde los proveedores compiten ofreciendo precios cada vez más bajos, mediante un módulo dedicado en Mercado Público.</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
+        <span class="pend-card-cta">Ver subastas y OC →</span>
+      </a>
+      <div class="pend-card">
+        <div class="pend-card-head"><span class="pend-card-title">Diálogos Competitivos</span><span class="pend-badge">0 OC detectadas</span></div>
+        <p class="pend-card-desc">Procedimiento especial para necesidades públicas complejas, mediante un diálogo estructurado en fases sucesivas con los proveedores para definir y ajustar la solución.</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
       </div>
+      <div class="pend-card">
+        <div class="pend-card-head"><span class="pend-card-title">Contratos para la Innovación</span><span class="pend-badge">0 OC detectadas</span></div>
+        <p class="pend-card-desc">Procedimiento orientado a la adquisición de soluciones innovadoras para desafíos públicos, en el marco de la Compra Pública de Innovación (CPI).</p>
+        <p class="pend-card-meta">Vigente desde <b>12-06-2025</b> · Ley 21.634 / Decreto 661 de 2024</p>
+      </div>
+      <a class="pend-card pend-card-link" href="#economia-circular" target="_blank" rel="noopener" title="Abrir los datos de Economía Circular">
+        <div class="pend-card-head"><span class="pend-card-title">Economía Circular</span><span class="pend-badge ok">1.182 reservas</span></div>
+        <p class="pend-card-desc">Organismos que publican productos para que otros organismos los reserven. No son Órdenes de Compra: los datos vienen de un reporte propio de ChileCompra y tienen su vista aparte.</p>
+        <p class="pend-card-meta">Datos al <b>26/10/2026</b> · reporte Power BI de ChileCompra</p>
+        <span class="pend-card-cta">Ver datos →</span>
+      </a>
     </div>
-    <div id="sectorEvoBody"></div>
+    <div class="note-box" style="margin:12px 0 0;">Se buscó en los 22 meses de OC (ene-2025 a oct-2026; octubre parcial) el sufijo "SIE" en el código de licitación, la glosa y el nombre de la OC, y las menciones de "subasta inversa", "diálogo competitivo" e "innovación" en Tipo, DescripcionTipoOC y ProcedenciaOC. Solo apareció una OC de subasta (5240-235-SE25, subasta 6153-1-SIE25, Carabineros); la subasta 6153-5-SIE25 se agregó por indicación del equipo y no tiene OC en los datos abiertos. Esto vale para los organismos y el período de este panel y no permite concluir que los demás mecanismos no se hayan usado en otro lugar del país. Para confirmarlo a nivel nacional conviene revisar <a href="https://www.chilecompra.cl/subasta-inversa-electronica/" target="_blank" rel="noopener">chilecompra.cl</a> o consultar al Centro de Ayuda de Mercado Público.</div>
   </section>
 
 
@@ -1581,47 +1642,56 @@ function renderMain(homeRange){
   setDl('lineMonto', ['Mes'].concat(ORDER), rangeCats.map((mm,i)=> [mm].concat(ORDER.map(m=>seriesRange(m,true)[i]))));
   document.getElementById('dlLineMonto').innerHTML = dlBtn('lineMonto', 'evolucion_mensual_monto.csv', 'Descargar serie mensual Monto USD (CSV)');
 
-  // ---------- Cards ----------
+  // ---------- Cinta fija de cifras ----------
+  const rib = document.getElementById('stickyRibbon');
+  if(rib){
+    rib.innerHTML = '<div><span>Órdenes de compra</span><b>' + fmt(homeNOc) + '</b></div><div><span>Monto</span><b>' + usdCompacto(homeMontoUsd) + '</b></div><div><span>Organismos</span><b>' + fmt(homeNOrganismos) + '</b></div><div><span>Período</span><b>' + esc(rangeLabel(homeRange)) + '</b></div>';
+    if(!rib.dataset.obs && 'IntersectionObserver' in window){
+      rib.dataset.obs = '1';
+      new IntersectionObserver(es => { const e = es[0]; rib.classList.toggle('show', !e.isIntersecting && e.boundingClientRect.top < 0); }, {threshold:0}).observe(document.getElementById('kpiRow'));
+    }
+  }
+
+  // ---------- Tarjetas de mecanismos ----------
   const grid = document.getElementById('grid');
+  const idxRango = []; for(let i=homeRange[0]; i<=homeRange[1]; i++) idxRango.push(i);
   grid.innerHTML = ORDER.map(m=>{
     const md = DATA.mecanismos[m], meta = META[m];
     const s = mecStatsRange(m,homeRange);
-    const sharePct = homeNOc>0 ? (100*s.nOc/homeNOc).toFixed(1) : '0.0';
+    const shareOc = homeNOc>0 ? 100*s.nOc/homeNOc : 0;
+    const shareMo = homeMontoUsd>0 ? 100*s.montoUsd/homeMontoUsd : 0;
     const montosRango = mecMontosEnRango(m,homeRange);
     const clpEntry = montosRango.find(x=>x.moneda==='CLP');
     const otras = montosRango.filter(x=>x.moneda!=='CLP' && x.moneda!=='USD');
     const nOrg = organismosEnRango(CP_MECS.indexOf(m), homeRange);
+    const serie = seriesForOc(m).slice(homeRange[0], homeRange[1]+1);
     return `
-    <div class="card" id="card-${slug(m)}">
-      <div class="tile-head" style="background:${meta.tint}">
-        <div class="tile-icon" style="background:${meta.tint}">
-          <svg class="icon" style="color:var(${meta.color})" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${meta.icon}</svg>
-        </div>
-        <div class="tile-head-text">
-          <p class="card-title">${esc(m)}</p>
-          <span class="badge-share" style="background:${meta.tint}; color:var(${meta.color});">${sharePct}% del total · ${fmt(s.nOc)} OC</span>
-        </div>
+    <article class="mcard" id="card-${slug(m)}" style="--mc:var(${meta.color}); --mt:${meta.tint};${meta.color==='--cc-lightblue' ? ' --mi:var(--cc-dark);' : ''}">
+      <div class="mc-head">
+        <span class="mc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${meta.icon}</svg></span>
+        <h3 class="mc-title">${esc(m)}</h3>
       </div>
-      <div class="tile-body">
-        <p class="def-text">${esc(meta.def)}</p>
+      <p class="mc-def">${esc(meta.def)}</p>
+      <div class="mc-stats">
+        <div><span class="mc-n">${fmt(s.nOc)}</span><span class="mc-l">órdenes de compra</span></div>
+        <div><span class="mc-n">${usdCompacto(s.montoUsd)}</span><span class="mc-l">monto transado</span></div>
+      </div>
+      <div class="mc-bars">
+        <div class="mc-bar"><span>Del total de OC</span><span class="tr"><i style="width:${Math.max(shareOc,0.6).toFixed(1)}%"></i></span><b>${shareOc.toFixed(1)}%</b></div>
+        <div class="mc-bar"><span>Del monto total</span><span class="tr"><i style="width:${Math.max(shareMo,0.6).toFixed(1)}%"></i></span><b>${shareMo.toFixed(1)}%</b></div>
+      </div>
+      <div class="mc-spark">${sparkSvg(serie, cssvar(meta.color), DATA.meses.slice(homeRange[0], homeRange[1]+1))}<small><span>${esc(DATA.meses[homeRange[0]])}</span><span>OC por mes</span><span>${esc(DATA.meses[homeRange[1]])}</span></small></div>
+      <p class="mc-meta"><b>${fmt(md.nProveedores)}</b> proveedores · <b>${fmt(nOrg)}</b> organismos</p>
+      <details class="mc-more">
+        <summary>Definición, cita legal y montos</summary>
+        <p>${esc(meta.def)}</p>
         <p class="cita">${esc(meta.cita)}</p>
-        <div class="mini-kpis">
-          <div class="mini-kpi"><div class="l">Monto (USD)</div><div class="v">${fmtUsd(s.montoUsd)}</div></div>
-          <div class="mini-kpi"><div class="l">Proveedores</div><div class="v">${fmt(md.nProveedores)}</div></div>
-          <div class="mini-kpi"><div class="l">Organismos</div><div class="v">${fmt(nOrg)}</div></div>
-          <div class="mini-kpi"><div class="l">Ref. CLP / otras</div><div class="v" style="font-size:11px; font-weight:600;">$${fmt(clpEntry?clpEntry.monto:0)}${otras.length? ' + ' + montosTxt(otras) : ''}</div></div>
-        </div>
-        <div class="estado-badge">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          ${fmt(s.nOc)} OC Conforme/Aceptada
-        </div>
-        <a class="detail-btn" style="background:var(${meta.color});" href="#detalle=${encodeURIComponent(m)}" target="_blank" rel="noopener">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
-          Ver detalle transaccional
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="font-size:13px;"><path d="M14 3h7v7"/><path d="M10 14 21 3"/><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg>
-        </a>
-      </div>
-    </div>`;
+        <p>Monto nominal: $${fmt(clpEntry?clpEntry.monto:0)} CLP${otras.length? ' + ' + montosTxt(otras) : ''}.</p>
+      </details>
+      <a class="mc-btn" href="#detalle=${encodeURIComponent(m)}" target="_blank" rel="noopener">Ver detalle transaccional
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </a>
+    </article>`;
   }).join('');
 
   const noteEl = document.getElementById('homeRangeNote');
@@ -1630,6 +1700,27 @@ function renderMain(homeRange){
       ? 'Mostrando el período completo (' + DATA.periodo + ').'
       : 'Filtrando por fecha: ' + rangeLabel(homeRange) + '. "Proveedores únicos" siempre muestra el período completo (no es posible recalcularlo de forma exacta por sub-período); el resto de las cifras y gráficos de esta página reflejan el rango elegido.';
   }
+}
+
+
+// ---------- Auxiliares del rediseño (upd16) ----------
+function usdCompacto(v){
+  v = Number(v||0);
+  if(v >= 1e8) return 'US$ ' + fmt(Math.round(v/1e6)) + ' M';
+  if(v >= 1e6) return 'US$ ' + (v/1e6).toLocaleString('es-CL',{maximumFractionDigits:1}) + ' M';
+  return fmtUsd(v);
+}
+function sparkSvg(vals, color, cats){
+  const w = 300, h = 46, p = 3, n = vals.length;
+  if(!n) return '';
+  const mx = Math.max(...vals, 1);
+  const x = i => p + (n>1 ? (w-2*p)*i/(n-1) : (w-2*p)/2);
+  const y = v => h - p - (h-2*p)*v/mx;
+  const pts = vals.map((v,i)=> x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ');
+  const area = x(0).toFixed(1)+','+(h-p)+' '+pts+' '+x(n-1).toFixed(1)+','+(h-p);
+  let dots = '';
+  vals.forEach((v,i)=>{ dots += '<circle cx="'+x(i).toFixed(1)+'" cy="'+y(v).toFixed(1)+'" r="6" fill="transparent"><title>'+esc(cats[i])+': '+fmt(v)+' OC</title></circle>'; });
+  return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" role="img" aria-label="Órdenes de compra por mes"><polygon points="'+area+'" fill="'+color+'" opacity=".12"/><polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>'+dots+'</svg>';
 }
 
 // ---------- Mini bar chart (per-card evolución mensual) ----------
@@ -1696,6 +1787,201 @@ function wireSortableHeaders(theadEl, state, onSort){
   updateSortArrows(theadEl, state);
 }
 
+// ---------- Paneles complementarios de Compra Ágil y Convenio Marco (upd16) ----------
+// Datos: data/mec/extra.js (window.MEC_EXTRA), generado por build_mec_extra.py. Los montos de ese archivo vienen en CLP.
+window.MECX_PAINT = null;
+const MX_TR = ['Hasta 10 UTM','Más de 10 y hasta 30 UTM','Más de 30 y hasta 100 UTM','Más de 100 UTM'];
+const MX_TRC = ['#AED7FF','#5FA9E8','#0B78CC','#00233B'];
+function mxM(v){ return '$' + fmt(Math.round(v/1e6)) + ' M'; }
+function mxPct(a,b,d){ if(!(b>0)) return '—'; const p = 100*a/b; return (p > 0 && p < 0.1 && (d==null || d>0)) ? '<0.1%' : p.toFixed(d==null?1:d) + '%'; }
+function mxSum(a){ return a.reduce((s,x)=>s+x,0); }
+function mxRango(range){ const r = []; for(let i=range[0]; i<=range[1]; i++) r.push(i); return r; }
+function mxMesCorto(mm){ return mm.slice(0,3) + ' ' + mm.slice(-2); }
+
+function mecxLoad(m){
+  const host = document.getElementById('mecxHost'); if(!host) return;
+  const tok = window.MECX_TOK = {};
+  host.innerHTML = '<section class="block"><h2>Análisis complementario</h2><p class="block-note">Cargando datos…</p></section>';
+  const go = () => {
+    if(window.MECX_TOK !== tok || !document.getElementById('mecxHost')) return;
+    window.MECX_PAINT = (mm, range) => mecxPaint(mm, range);
+    mecxPaint(m, currentRange());
+  };
+  if(window.MEC_EXTRA){ go(); return; }
+  const sc = document.createElement('script');
+  sc.src = 'data/mec/extra.js?v=' + encodeURIComponent(DATA.generado);
+  sc.onload = go;
+  sc.onerror = () => { if(window.MECX_TOK === tok) host.innerHTML = '<section class="block"><h2>Análisis complementario</h2><p class="block-note">No se pudo cargar data/mec/extra.js.</p></section>'; };
+  document.head.appendChild(sc);
+}
+
+function mxShareSeries(m, range){
+  const idx = mxRango(range), tot = ORDER.map(x=>seriesForOc(x)), totM = ORDER.map(x=>seriesForMonto(x));
+  const s = seriesForOc(m), sm = seriesForMonto(m);
+  return {
+    cats: idx.map(i=>DATA.meses[i]),
+    oc: idx.map(i=>{ const t = tot.reduce((a,x)=>a+x[i],0); return t>0 ? 100*s[i]/t : 0; }),
+    mo: idx.map(i=>{ const t = totM.reduce((a,x)=>a+x[i],0); return t>0 ? 100*sm[i]/t : 0; })
+  };
+}
+
+function mxStackSvg(cats, rows, colors, names){
+  const W=1160, H=250, ML=44, MB=26, MT=10, MR=10, pw=W-ML-MR, ph=H-MT-MB, n=cats.length, gap=n>14?8:14, bw=(pw-gap*(n-1))/n;
+  let o = '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Distribución mensual de OC por tramo de monto">';
+  [0,25,50,75,100].forEach(v=>{ const y = MT+ph-ph*v/100; o += '<line x1="'+ML+'" y1="'+y+'" x2="'+(W-MR)+'" y2="'+y+'" stroke="#E1E1E1"/><text x="'+(ML-8)+'" y="'+(y+4)+'" font-size="10" fill="#605E5C" text-anchor="end">'+v+'%</text>'; });
+  cats.forEach((c,i)=>{
+    const tot = mxSum(rows[i]) || 1, x = ML + i*(bw+gap); let y = MT+ph;
+    rows[i].forEach((v,t)=>{
+      const h = ph*v/tot; if(h <= 0) return; y -= h;
+      o += '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" fill="'+colors[t]+'" stroke="#fff" stroke-width="1.5"><title>'+esc(c)+' · '+esc(names[t])+': '+fmt(v)+' OC ('+(100*v/tot).toFixed(1)+'%)</title></rect>';
+    });
+    o += '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-8)+'" font-size="10" fill="#605E5C" text-anchor="middle">'+esc(mxMesCorto(c))+'</text>';
+  });
+  return o + '</svg>';
+}
+
+function mxProvConc(m){
+  const md = DATA.mecanismos[m]; if(md._conc) return md._conc;
+  const v = md.topProveedores.map(p=>p.montoUsd||0).sort((a,b)=>b-a), tot = mxSum(v);
+  let acc = 0, k50 = 0, k80 = 0;
+  v.forEach((x,i)=>{ acc += x; if(!k50 && acc >= tot*.5) k50 = i+1; if(!k80 && acc >= tot*.8) k80 = i+1; });
+  md._conc = {n:v.length, top1:v[0]/tot, top10:mxSum(v.slice(0,10))/tot, top100:mxSum(v.slice(0,100))/tot, k50, k80};
+  return md._conc;
+}
+
+function mxChartBox(svgId, ttId){ return '<div class="big-chart-wrap"><svg id="'+svgId+'" data-cz="1" viewBox="0 0 1160 340"></svg><div class="tooltip" id="'+ttId+'"></div></div>'; }
+
+function mxCaHtml(ex, range){
+  const ca = ex.ca, idx = mxRango(range);
+  const n4 = [0,0,0,0], m4 = [0,0,0,0];
+  idx.forEach(i=>{ for(let t=0;t<4;t++){ n4[t] += ca.tr_n[i][t]; m4[t] += ca.tr_m[i][t]; } });
+  const N = mxSum(n4), M = mxSum(m4);
+  const filas = MX_TR.map((nm,t)=> '<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+MX_TRC[t]+';margin-right:7px"></i>'+esc(nm)+'</td><td class="num">'+fmt(n4[t])+'</td><td class="num">'+mxPct(n4[t],N)+'</td><td class="num">'+mxM(m4[t])+'</td><td class="num">'+mxPct(m4[t],M)+'</td></tr>').join('');
+  setDl('mxTramos', ['Tramo (UTM del mes de la OC)','N° OC','% N° OC','Monto CLP','% monto'], MX_TR.map((nm,t)=>[nm, n4[t], N>0?(100*n4[t]/N).toFixed(2):0, m4[t], M>0?(100*m4[t]/M).toFixed(2):0]));
+  setDl('mxTramosMes', ['Mes'].concat(MX_TR.map(x=>'N° OC '+x), MX_TR.map(x=>'Monto CLP '+x)), idx.map(i=>[ca.meses[i]].concat(ca.tr_n[i], ca.tr_m[i])));
+
+  const prodMax = Math.max(...ca.prod.map(p=>p[2]), 1), rubMax = Math.max(...ca.rub.map(p=>p[2]), 1);
+  const tot22 = mxSum(ca.tr_m.map(r=>mxSum(r)));
+  const filaBar = (nom, n, v, mx) => '<tr><td>'+esc(nom)+'</td><td class="num">'+fmt(n)+'</td><td class="num">'+mxM(v)+'</td><td style="width:90px"><span class="mx-bar" style="width:'+Math.max(3, Math.round(80*v/mx))+'px"></span></td><td class="num">'+mxPct(v,tot22)+'</td></tr>';
+  setDl('mxProd', ['Producto','N° OC','Monto CLP','% del monto de Compra Ágil (22 meses)'], ca.prod.map(p=>[p[0], p[1], p[2], tot22>0?(100*p[2]/tot22).toFixed(2):0]));
+  setDl('mxRub', ['Rubro › familia','N° OC','Monto CLP','% del monto de Compra Ágil (22 meses)'], ca.rub.map(p=>[p[0], p[1], p[2], tot22>0?(100*p[2]/tot22).toFixed(2):0]));
+
+  const pc = mxProvConc('Compra Ágil'), dom = ca.dom, fr = ca.frag;
+  const bandNames = ['Menos de 5%','5% a 10%','10% a 20%','20% o más'];
+  const domFilas = dom.sec.map(r=>'<tr><td>'+esc(r[0])+'</td><td class="num">'+fmt(r[1])+'</td><td class="num">'+fmt(r[2])+'</td><td class="num">'+mxPct(r[2],r[1],0)+'</td></tr>').join('');
+  const frFilas = fr.sec.map(r=>'<tr><td>'+esc(r[0])+'</td><td class="num">'+fmt(r[1])+'</td><td class="num">'+fmt(r[2])+'</td><td class="num">'+mxPct(r[2],r[1],0)+'</td><td class="num">'+fmt(r[3])+'</td><td class="num">'+fmt(Math.round(r[4]))+'</td></tr>').join('');
+  setDl('mxFrag', ['Sector','Organismos con CA','Organismos con al menos un caso','Casos (organismo × producto × trimestre)','UTM sumadas en los casos'], fr.sec);
+  setDl('mxDom', ['Sector','Organismos con 20 o más CA','Organismos con un proveedor de 20% o más de sus CA'], dom.sec);
+
+  return `
+  <section class="block">
+    <h2>Compras Ágiles por tramo de monto</h2>
+    <p class="block-note">Cada OC se clasifica según su monto dividido por el valor de la UTM del mes en que se emitió. La Compra Ágil procede hasta 100 UTM (Art. 7 d) N° 1 Ley 19.886, modificada por la Ley 21.634); el tramo de 30 a 100 UTM es el que exige más cotizaciones. Cifras del rango elegido; montos en millones de pesos (M).</p>
+    <div class="table-wrap mx-tbl"><table class="dt"><thead><tr><th>Tramo</th><th class="num">N° OC</th><th class="num">% N° OC</th><th class="num">Monto (CLP)</th><th class="num">% monto</th></tr></thead><tbody>${filas}</tbody></table></div>
+    ${dlBtn('mxTramos', 'ca_tramos_monto.csv', 'Descargar tramos (CSV)')}
+    <h3 class="mx-h3">Mezcla mensual por tramo (% de las OC de cada mes)</h3>
+    <div class="mx-stack">${mxStackSvg(idx.map(i=>DATA.meses[i]), idx.map(i=>ca.tr_n[i]), MX_TRC, MX_TR)}</div>
+    <div class="mx-legend">${MX_TR.map((nm,t)=>'<span><i style="background:'+MX_TRC[t]+'"></i>'+esc(nm)+'</span>').join('')}</div>
+    ${dlBtn('mxTramosMes', 'ca_tramos_por_mes.csv', 'Descargar serie mensual por tramo (CSV)')}
+    <p class="mx-warn">${fmt(n4[3])} OC del rango superan las 100 UTM. El monto de la OC incluye impuestos y la UTM se toma del mes de emisión, así que una parte puede ser una diferencia de cálculo y no un exceso. Conviene revisarlas caso a caso en Mercado Público.</p>
+  </section>
+
+  <section class="block">
+    <h2>Ticket promedio y peso en el total</h2>
+    <p class="block-note">Monto promedio por OC de Compra Ágil en cada mes (CLP) y el peso de este mecanismo dentro del total de OC y del monto transado.</p>
+    <h3 class="mx-h3" style="margin-top:12px">Ticket promedio por OC (miles de pesos)</h3>${mxChartBox('mxTicket','mxTtTicket')}
+    <h3 class="mx-h3">Peso de Compra Ágil en el total (%)</h3>${mxChartBox('mxSh','mxTtSh')}
+    <div class="legend" id="mxShLeg"></div>
+  </section>
+
+  <section class="block">
+    <h2>Qué se compra por Compra Ágil</h2>
+    <p class="block-note">Productos y familias de rubro con más monto en los 22 meses del panel (no cambia con el filtro de fechas). El producto se toma de la primera línea de cada OC.</p>
+    <div class="mx-two">
+      <div><h3 class="mx-h3" style="margin-top:0">Productos</h3>
+        <div class="table-wrap mx-tbl" style="max-height:420px"><table class="dt"><thead><tr><th>Producto</th><th class="num">N° OC</th><th class="num">Monto</th><th></th><th class="num">%</th></tr></thead><tbody>${ca.prod.slice(0,12).map(p=>filaBar(p[0],p[1],p[2],prodMax)).join('')}</tbody></table></div>
+        ${dlBtn('mxProd', 'ca_productos.csv', 'Descargar productos (CSV)')}</div>
+      <div><h3 class="mx-h3" style="margin-top:0">Rubros (familia)</h3>
+        <div class="table-wrap mx-tbl" style="max-height:420px"><table class="dt"><thead><tr><th>Rubro › familia</th><th class="num">N° OC</th><th class="num">Monto</th><th></th><th class="num">%</th></tr></thead><tbody>${ca.rub.slice(0,10).map(p=>filaBar(p[0],p[1],p[2],rubMax)).join('')}</tbody></table></div>
+        ${dlBtn('mxRub', 'ca_rubros.csv', 'Descargar rubros (CSV)')}</div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Concentración de proveedores</h2>
+    <p class="block-note">Qué tan repartidas están las ventas por Compra Ágil entre proveedores (período completo) y cuánto depende cada organismo de un mismo proveedor.</p>
+    <div class="mx-kpis">
+      <div class="mx-kpi"><div class="l">Proveedores con ventas</div><div class="v">${fmt(pc.n)}</div></div>
+      <div class="mx-kpi"><div class="l">Los 10 mayores</div><div class="v">${(100*pc.top10).toFixed(1)}%</div><div class="s">del monto transado</div></div>
+      <div class="mx-kpi"><div class="l">Para llegar al 50% del monto</div><div class="v">${fmt(pc.k50)}</div><div class="s">proveedores</div></div>
+      <div class="mx-kpi"><div class="l">Para llegar al 80%</div><div class="v">${fmt(pc.k80)}</div><div class="s">proveedores</div></div>
+    </div>
+    <h3 class="mx-h3">Dependencia de un solo proveedor por organismo</h3>
+    <p class="block-note">Para cada organismo con 20 o más Compras Ágiles (${fmt(dom.orgs)} organismos), se mide qué parte de sus compras fue al proveedor más frecuente. La mediana es ${(100*dom.mediana).toFixed(1)}%.</p>
+    <div class="mx-kpis">${dom.bands.map((b,i)=>'<div class="mx-kpi"><div class="l">'+bandNames[i]+'</div><div class="v">'+fmt(b)+'</div><div class="s">'+mxPct(b,dom.orgs,0)+' de los organismos</div></div>').join('')}</div>
+    <div class="table-wrap mx-tbl" style="max-height:300px"><table class="dt"><thead><tr><th>Sector</th><th class="num">Organismos</th><th class="num">Con un proveedor de 20% o más</th><th class="num">%</th></tr></thead><tbody>${domFilas}</tbody></table></div>
+    ${dlBtn('mxDom', 'ca_dependencia_proveedor.csv', 'Descargar por sector (CSV)')}
+  </section>
+
+  <section class="block">
+    <h2>Posible fragmentación de compras</h2>
+    <p class="block-note">Se cuenta un caso cuando un organismo hizo 3 o más Compras Ágiles del mismo producto dentro de un trimestre y, sumadas, superan las 100 UTM. El Reglamento prohíbe dividir una compra para eludir el procedimiento que le corresponde (DS 661/2024, Art. 16). Este filtro sirve para decidir qué revisar y no prueba una infracción: las compras recurrentes legítimas, como colaciones o insumos de uso mensual, también aparecen. No se muestran nombres de organismos.</p>
+    <div class="mx-kpis">
+      <div class="mx-kpi"><div class="l">Casos detectados</div><div class="v">${fmt(fr.casos)}</div><div class="s">organismo × producto × trimestre</div></div>
+      <div class="mx-kpi"><div class="l">Organismos con algún caso</div><div class="v">${fmt(fr.orgs)}</div><div class="s">de ${fmt(fr.orgsCA)} con Compra Ágil (${mxPct(fr.orgs,fr.orgsCA,0)})</div></div>
+      <div class="mx-kpi"><div class="l">UTM sumadas en los casos</div><div class="v">${fmt(fr.utm_total)}</div></div>
+    </div>
+    <div class="table-wrap mx-tbl" style="max-height:320px"><table class="dt"><thead><tr><th>Sector</th><th class="num">Organismos con CA</th><th class="num">Con algún caso</th><th class="num">%</th><th class="num">Casos</th><th class="num">UTM sumadas</th></tr></thead><tbody>${frFilas}</tbody></table></div>
+    ${dlBtn('mxFrag', 'ca_posible_fragmentacion_sector.csv', 'Descargar por sector (CSV)')}
+    <p class="mx-warn">Umbral amplio: ${mxPct(fr.orgs,fr.orgsCA,0)} de los organismos tiene al menos un caso, por lo que la señal más útil es la comparación entre sectores y la cantidad de casos por organismo, y no la presencia de un caso aislado.</p>
+  </section>`;
+}
+
+function mxCmHtml(ex, range){
+  const cv = ex.cm.conv, tot = ex.cm.total;
+  const md = DATA.mecanismos['Convenio Marco'], clp = (md.montos.find(x=>x.moneda==='CLP')||{monto:0}).monto;
+  const pocos = cv.filter(r=>r[4] <= 5).length;
+  const t1 = cv.slice().map(r=>r[5]).sort((a,b)=>a-b), med = t1[Math.floor(t1.length/2)];
+  const top3 = mxSum(cv.slice(0,3).map(r=>r[3]));
+  const filas = cv.map(r=>'<tr><td>'+esc(r[1] || r[0])+'<div style="font-size:10px;color:var(--text-secondary)">'+esc(r[0])+'</div></td><td class="num">'+fmt(r[2])+'</td><td class="num">'+mxM(r[3])+'</td><td class="num">'+mxPct(r[3],tot)+'</td><td class="num">'+fmt(r[4])+'</td><td class="num">'+(100*r[5]).toFixed(0)+'%</td><td class="num">'+(100*r[6]).toFixed(0)+'%</td></tr>').join('');
+  setDl('mxConv', ['Código convenio','Convenio','N° OC','Monto CLP','Proveedores','% del primer proveedor','% de los 3 primeros'], cv.map(r=>[r[0], r[1], r[2], r[3], r[4], r[5], r[6]]));
+  const dif = clp>0 ? (100*(tot-clp)/clp).toFixed(1) : '0';
+  return `
+  <section class="block">
+    <h2>Gasto por convenio marco</h2>
+    <p class="block-note">Órdenes de compra y monto de cada convenio en los 22 meses del panel (no cambia con el filtro de fechas), sumados desde las fichas de proveedores. «Primer proveedor» y «3 primeros» son la parte del monto del convenio que concentran sus mayores proveedores. Montos en millones de pesos (M).</p>
+    <div class="mx-kpis">
+      <div class="mx-kpi"><div class="l">Convenios con ventas</div><div class="v">${fmt(cv.length)}</div></div>
+      <div class="mx-kpi"><div class="l">Los 3 mayores</div><div class="v">${mxPct(top3,tot,0)}</div><div class="s">del monto de Convenio Marco</div></div>
+      <div class="mx-kpi"><div class="l">Convenios con 5 proveedores o menos</div><div class="v">${fmt(pocos)}</div><div class="s">de ${fmt(cv.length)}</div></div>
+      <div class="mx-kpi"><div class="l">Mediana del primer proveedor</div><div class="v">${(100*med).toFixed(0)}%</div><div class="s">del monto de su convenio</div></div>
+    </div>
+    <div class="table-wrap mx-tbl" style="max-height:480px"><table class="dt"><thead><tr><th>Convenio</th><th class="num">N° OC</th><th class="num">Monto (CLP)</th><th class="num">% del total CM</th><th class="num">Proveedores</th><th class="num">Primer proveedor</th><th class="num">3 primeros</th></tr></thead><tbody>${filas}</tbody></table></div>
+    ${dlBtn('mxConv', 'cm_gasto_por_convenio.csv', 'Descargar por convenio (CSV)')}
+    <p class="mx-warn">El total de esta tabla (${mxM(tot)}) es ${dif}% mayor que el monto nominal en pesos de Convenio Marco del resto de la página (${mxM(clp)}), porque se arma con otra fuente (fichas de proveedores) que asigna cada OC a un convenio. Úsalo para comparar convenios entre sí y no como cifra oficial del total.</p>
+  </section>
+
+  <section class="block">
+    <h2>Peso de Convenio Marco en el total</h2>
+    <p class="block-note">Parte de las OC y del monto transado que corresponde a Convenio Marco en cada mes del rango elegido.</p>
+    ${mxChartBox('mxSh','mxTtSh')}
+    <div class="legend" id="mxShLeg"></div>
+  </section>`;
+}
+
+function mecxPaint(m, range){
+  const host = document.getElementById('mecxHost'); if(!host || !window.MEC_EXTRA) return;
+  const ex = window.MEC_EXTRA;
+  host.innerHTML = m === 'Compra Ágil' ? mxCaHtml(ex, range) : mxCmHtml(ex, range);
+  const color = cssvar(META[m].color), sh = mxShareSeries(m, range);
+  makeLineChart({svgId:'mxSh', legendId:'mxShLeg', ttId:'mxTtSh', categories:sh.cats, series:[{key:'oc', label:'% de las OC', color, values:sh.oc},{key:'mo', label:'% del monto transado', color:'#3D5466', values:sh.mo}], fmtAxis:v=>(Math.round(v*10)/10).toString().replace('.',',')+'%', fmtTip:v=>v.toFixed(1)+'%', unitLabel:'', showPoints:false});
+  if(m === 'Compra Ágil'){
+    const idx = mxRango(range), ca = ex.ca;
+    const tk = idx.map(i=>{ const n = mxSum(ca.tr_n[i]); return n>0 ? mxSum(ca.tr_m[i])/n/1000 : 0; });
+    makeLineChart({svgId:'mxTicket', legendId:null, ttId:'mxTtTicket', categories:idx.map(i=>DATA.meses[i]), series:[{key:m, label:m, color, values:tk}], fmtAxis:v=>'$'+fmt(v)+'k', fmtTip:v=>'$'+fmt(v*1000), unitLabel:'', showPoints:false});
+  }
+}
+
 // ---------- Detail page (opens via #detalle=<mecanismo>, target="_blank") ----------
 function goHome(e){
   if(e) e.preventDefault();
@@ -1705,6 +1991,7 @@ function goHome(e){
 }
 
 function renderDetailPage(m){
+  window.MECX_PAINT = null;
   const md = DATA.mecanismos[m], meta = META[m];
   const clpEntry = md.montos.find(x=>x.moneda==='CLP');
   const otras = md.montos.filter(x=>x.moneda!=='CLP' && x.moneda!=='USD');
@@ -2065,6 +2352,7 @@ function renderDetailPage(m){
       ${dlBtn('detailLineMonto', 'evolucion_monto_'+fileSlug+'.csv', 'Descargar serie mensual (CSV)')}
     </section>
 
+    ${m === 'Compra Ágil' || m === 'Convenio Marco' ? '<div id="mecxHost"></div>' : ''}
     ${m === 'Licitación Pública' || m === 'Licitación Privada' ? licSectionHtml(m) : ''}
     ${m === 'Compra Coordinada' ? '' : topSections}
     ${causalesSection}
@@ -2104,6 +2392,7 @@ function renderDetailPage(m){
     setDl('detailLineOc', ['Mes','N° OC'], cats.map((mm,i)=>[mm, seriesForOc(m).slice(range[0],range[1]+1)[i]]));
     setDl('detailLineMonto', ['Mes','Monto (USD)'], cats.map((mm,i)=>[mm, seriesForMonto(m).slice(range[0],range[1]+1)[i]]));
     if(document.getElementById('licBlock')) licPaint(m, range);
+    if(window.MECX_PAINT) window.MECX_PAINT(m, range);
   }
   CURRENT_APPLY_RANGE = function(){ applyDetailRange(currentRange()); };
   if(m === 'Compra Coordinada' && typeof CC_OC !== 'undefined'){
@@ -2119,6 +2408,7 @@ function renderDetailPage(m){
     };
   }
   applyDetailRange(currentRange());
+  if(m === 'Compra Ágil' || m === 'Convenio Marco') mecxLoad(m);
 
   {
     const topProvSort = {key:'n', dir:'desc'};
