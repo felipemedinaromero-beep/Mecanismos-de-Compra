@@ -3809,7 +3809,7 @@ function renderAsesorPage(payload){
   const h = document.getElementById('asesorHost');
   const go = () => window.AsesorCompras && window.AsesorCompras.init(h, payload || '');
   if(window.AsesorCompras) return go();
-  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r27';
+  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r28';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el asesor. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -6788,8 +6788,11 @@ function licPaint(m, range){
   setDl('licCOrg', ['Organismo', 'Código', 'Sector', 'Adjudicadas comparables', 'Sin OC', 'Cuadra (95%-105%)', 'OC menor (<95%)', 'OC mayor (>105%)', 'Adjudicado (millones $)', 'OC neto (millones $)', 'OC / adjudicado'], CL.map(o => [o.nm, o.k, o.sec, o.bN, o.bSin, o.bCu, o.bMe, o.bMa, Math.round(o.bAdj), Math.round(o.bOC), o.bAdj ? o.bOC / o.bAdj : '']));
 }
 
+let ROUTE_PREV = null, HOME_Y = 0;
 function route(){
   const raw = location.hash || '';
+  const eraHome = document.getElementById('mainView').style.display === 'block';
+  if(eraHome) HOME_Y = window.scrollY;
   const detalleMatch = raw.match(/^#detalle=(.+)$/);
   const m = detalleMatch ? decodeURIComponent(detalleMatch[1]) : null;
   const compradorMatch = raw.match(/^#comprador(?:=(.+))?$/);
@@ -6872,6 +6875,13 @@ function route(){
     CURRENT_APPLY_RANGE = function(){ renderMain(currentRange()); };
   }
   document.body.classList.toggle('is-sub', document.getElementById('mainView').style.display !== 'block');
+  /* Al cambiar de vista se parte desde arriba; al volver al inicio se recupera donde estaba. */
+  if(ROUTE_PREV !== null){
+    const aHome = document.getElementById('mainView').style.display === 'block';
+    const y = aHome && !eraHome ? HOME_Y : 0;
+    window.scrollTo(0, y); requestAnimationFrame(() => window.scrollTo(0, y));
+  }
+  ROUTE_PREV = raw;
   { const fb = document.getElementById('homeFab'); if(fb) fb.style.display = document.getElementById('mainView').style.display === 'block' ? 'none' : 'inline-flex'; }
 }
 window.addEventListener('hashchange', route);
