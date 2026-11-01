@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r22' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r24' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -280,6 +280,7 @@ table.as-t th{background:#F2F6FD;}
 .as-reco .as-chipcap{margin:14px 0 6px;font-size:12px;font-weight:700;color:#D7E6F7;}
 .as-chip.as-lb{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;border-radius:12px;padding:6px 12px;line-height:1.3;}
 .as-chip.as-lb small{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--cc-lime);font-weight:800;}
+.as-chip-pz{max-width:340px;}.as-chip-bad{background:#FFE9C7!important;border-color:#F2A33A!important;color:#5A3300!important;}.as-chip-bad small{color:#8A4B00!important;}.as-reco p.as-pzbad,.as-reco p.as-pzbad b{color:#4A2A00!important;opacity:1!important;}.as-pzbad{margin:10px 0 0;padding:9px 12px;border-radius:10px;background:#FFE9C7;color:#4A2A00;font-size:13px;line-height:1.45;}.as-chip-s{display:block;font-style:normal;font-weight:500;font-size:10.5px;opacity:.9;margin-top:2px;}
 /* upd26: ficha, forma de compra y productos del Convenio Marco en el recuadro azul */
 .as-rc-fm{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:10px 0 0 !important;font-size:13px;color:#fff;}
 .as-rc-bg{display:inline-flex;align-items:center;padding:3px 12px;border-radius:99px;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);}
@@ -543,7 +544,7 @@ function vereditoHtml(vd, o){
     h += `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM corresponde <b>${esc(p.nom)}</b>. El detalle de cómo se hace y el orden de revisión están más abajo.</p>`;
   }
   const maestras = window.AS_CMCAT ? 'maestras de ' + window.AS_CMCAT.cms.length + ' convenio(s) al ' + esc(window.AS_CMCAT.gen || '') + ', ' : '';
-  h += `<p class="as-hint">Cómo lo determiné: ${maestras}objeto y palabras clave de los 18 convenios vigentes y compras de los últimos 12 meses.${V ? ` Si quieres revisarlo tú mismo: <a href="${V.tienda}" rel="noopener">Tienda de Convenio Marco</a>${principal && vp.url ? ` · <a href="${esc(vp.url)}" rel="noopener">tienda de este convenio</a>` : ''} · <a href="${ECO_URL}" rel="noopener">catálogo de Economía Circular</a>.` : ''}</p></div>`;
+  h += `<p class="as-hint">Cómo lo determiné: ${maestras}objeto y palabras clave de los 18 convenios vigentes y compras de los últimos 12 meses. Para la consulta de economía circular, el Asesor no la exige en servicios, software, bienes de consumo o de un solo uso ni de uso personal (vestuario, calzado), según el código ONU y las palabras del producto; en el resto de los bienes la exige, salvo que marques que no puede reutilizarse ni compartirse (art. 28, inciso segundo).${V ? ` Si quieres revisarlo tú mismo: <a href="${V.tienda}" rel="noopener">Tienda de Convenio Marco</a>${principal && vp.url ? ` · <a href="${esc(vp.url)}" rel="noopener">tienda de este convenio</a>` : ''} · <a href="${ECO_URL}" rel="noopener">catálogo de Economía Circular</a>.` : ''}</p></div>`;
   return h;
 }
 
@@ -553,9 +554,10 @@ function esNoMueble(){
 }
 function esConsumible(){
   const t = (S.st.t || 'bien') !== 'servicio'; if(!t) return false;
+  if((S.st.s || []).includes('ec_exime')) return true;
   const code = S.prodIdx != null ? S.C.c[S.prodIdx] : '', seg = code.slice(0, 2);
-  if(['10', '11', '12', '14', '15', '47', '50', '51'].includes(seg)) return true;
-  return /alimento|vivere|colaci|aseo|papel higi|toalla|detergente|cloro|desinfect|jab[oó]n|insumo|medicament|f[aá]rmaco|combustible|bencina|di[eé]sel|petr[oó]leo|gas licuado|reactivo|mascarilla|guante|pa[ñn]al|cartucho|t[oó]ner|resma|agua purificada|bolsa/i.test(norm(consultaTexto()));
+  if(['10', '11', '12', '14', '15', '47', '50', '51', '53'].includes(seg)) return true;
+  return /uniforme|vestuario|prenda|buzo|\bropa|polera|polar|casaca|parka|chaleco|pantal[oó]n|camisa|calzado|zapato|bota\b|botas|guardapolvo|delantal|overol|alimento|vivere|colaci|aseo|papel higi|toalla|detergente|cloro|desinfect|jab[oó]n|insumo|medicament|f[aá]rmaco|combustible|bencina|di[eé]sel|petr[oó]leo|gas licuado|reactivo|mascarilla|guante|pa[ñn]al|cartucho|t[oó]ner|resma|agua purificada|bolsa/i.test(norm(consultaTexto()));
 }
 function btDetect(){
   const R_ = R(), q = ' ' + norm(consultaTexto()) + ' ', code = S.prodIdx != null ? S.C.c[S.prodIdx] : '', serv = (S.st.t || 'bien') === 'servicio';
@@ -578,7 +580,7 @@ function compute(){
   const consumible = esConsumible();
   const noMueble = esNoMueble();
   const nProvN = nProvNacional();
-  const inp = {nProv: nProvN, seg: S.prodIdx != null ? S.C.c[S.prodIdx].slice(0, 2) : '', txt: norm(consultaTexto()), bt: btDetect(), consumible, noMueble, montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmIds: cmSi ? vd.cms.slice(0, 2).map(c => c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
+  const inp = {nProv: nProvN, seg: S.prodIdx != null ? S.C.c[S.prodIdx].slice(0, 2) : '', txt: norm(consultaTexto()), bt: btDetect(), consumible, noMueble, montoClp: S.st.m, utm: utmNow(), tipo: S.st.t || 'bien', simple: !!S.st.simple, nd: S.st.nd || null, sit: S.st.s || [], cm: cmSi, cmNombres: cmSi ? vd.cms.slice(0, 2).map(c => (c.v && c.v.nombre) || c.id) : [], cmIds: cmSi ? vd.cms.slice(0, 2).map(c => c.id) : [], cmCerteza: (vd.nivel === 'catalogo' || vd.nivel === 'oc') ? 'alta' : 'media',
     sector: S.org ? S.org[2] : '', demanda: dm ? {no: dm[0], mm: dm[1]} : null,
     hist: h ? {noCmUtm: h.noCmUtm, totalUtm: h.totalUtm} : null, fueraCm: fueraCmMM()};
   S.inp = inp;
@@ -1147,9 +1149,9 @@ function heroCmHtml(o){
 function resultHtml(o){
   const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
-  let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>${(o.escalera && o.escalera.ecOpcion) ? `<div class="as-ecn"><span class="as-ecn-k">Paso previo · DS 661, art. 28</span><b class="as-ecn-t">Primero, consulta economía circular</b><p>Es un bien mueble y el Asesor no puede comprobar si otro organismo tiene uno disponible. Consúltalo en la plataforma antes de comprar. Si no existe o no está disponible, deja constancia de «producto no disponible en economía circular» y sigue con este procedimiento.</p><a class="as-ecn-go" href="${ECO_URL}" rel="noopener">Ver el catálogo de economía circular</a></div>` : ''}
+  let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>${(o.escalera && o.escalera.ecOpcion) ? `<div class="as-ecn"><span class="as-ecn-k">Paso previo · DS 661, art. 28</span><b class="as-ecn-t">Primero, consulta economía circular</b><p>El Asesor lo trata como un bien mueble que otro organismo podría tener y no puede comprobar si lo hay. Consúltalo en la plataforma antes de comprar. Si no existe o no está disponible, deja constancia de «producto no disponible en economía circular» y sigue con este procedimiento. Si por su diseño, uso o función específica no puede reutilizarse ni compartirse, el art. 28 permite eximirte: marca esa situación en el paso 3 y queda registrado.</p><a class="as-ecn-go" href="${ECO_URL}" rel="noopener">Ver el catálogo de economía circular</a></div>` : ''}
     <p class="as-chipcap">Esta recomendación se basa en lo que le pediste al Asesor:</p>
-    <div class="as-chips"><span class="as-chip as-lb"><small>Producto o servicio</small>${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip as-lb"><small>Cantidad${st_.l.length > 1 ? ' (línea activa)' : ''}</small>${fmt(activeLine().n)} ${esc(umPlural(lineUm(activeLine()), activeLine().n))}</span>` : ''}<span class="as-chip as-lb"><small>Monto${st_.l.length > 1 ? ' total del proceso' : ' total'}, IVA incluido</small>${S.st.m ? clp(S.st.m) + ' · ' : ''}${dec(o.montoUtm, 1)} UTM</span><span class="as-chip as-lb"><small>Tramo de monto</small>${esc(o.tramoNom)}</span><span class="as-chip as-lb"><small>Región de la compra</small>${esc(regName(orgRegion()))}</span></div>${heroCmHtml(o)}</div>`;
+    <div class="as-chips"><span class="as-chip as-lb"><small>Producto o servicio</small>${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip as-lb"><small>Cantidad${st_.l.length > 1 ? ' (línea activa)' : ''}</small>${fmt(activeLine().n)} ${esc(umPlural(lineUm(activeLine()), activeLine().n))}</span>` : ''}<span class="as-chip as-lb"><small>Monto${st_.l.length > 1 ? ' total del proceso' : ' total'}, IVA incluido</small>${S.st.m ? clp(S.st.m) + ' · ' : ''}${dec(o.montoUtm, 1)} UTM</span>${plazoChip(o)}<span class="as-chip as-lb"><small>Tramo de monto</small>${esc(o.tramoNom)}</span><span class="as-chip as-lb"><small>Región de la compra</small>${esc(regName(orgRegion()))}</span></div>${plazoNota(o)}${heroCmHtml(o)}</div>`;
   const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
   const vdHtml = procesoHtml(o) + vereditoHtml(S.vd || veredictoCm(), o);
   /* Todo lo que sigue va en pestañas bajo la tarjeta de Convenio Marco. */
@@ -1200,6 +1202,20 @@ function ahorroHtml(a, tit){
   if(!a || !a.length) return '';
   const ic = {dcto: 'Descuento', ac: 'Acuerdo', cot: 'Cotización', extra: 'Dato útil', gran: 'Volumen'};
   return `<div class="as-ah"><b>${esc(tit || 'Ahorro y eficiencia dentro del Convenio Marco')}</b>` + a.map(c => `<div class="as-ah-c">${a.length > 1 ? `<div class="as-ah-n">${esc(c.conv)}</div>` : ''}<ul>${c.lineas.map(l => `<li><span class="as-ah-t as-ah-${l.k}">${ic[l.k] || ''}</span>${esc(l.t)}</li>`).join('')}</ul></div>`).join('') + `<p class="as-hint">Fuente: fichas de los convenios (resumen de las bases, al 31-10-2026). Verifica las condiciones vigentes en la Tienda.</p></div>`;
+}
+/* Fecha más temprana según el plazo mínimo de la norma, contada desde hoy y sin descontar feriados. */
+function plazoChip(o){
+  const pm = o.plazoMin;
+  if(!pm) return '<span class="as-chip as-lb as-chip-pz"><small>Fecha estimada</small>Sin plazo mínimo fijado en el reglamento para este procedimiento</span>';
+  const fm = R().fechaMin(pm);
+  const f = fm.d.toLocaleDateString('es-CL', {weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric'});
+  const etiqueta = pm.cierre ? 'Cierre de ofertas, lo más pronto' : 'Puedes resolver, lo más pronto';
+  return `<span class="as-chip as-lb as-chip-pz${pm.falla ? ' as-chip-bad' : ''}" title="${esc(pm.n + ' días ' + pm.un + ' ' + pm.que)}"><small>${etiqueta} · si publicas hoy</small>${esc(f)}${fm.nota}<em class="as-chip-s">${pm.n} días ${pm.un} ${esc(pm.que)} · ${esc(pm.arts.map(x => 'DS 661, ' + x.t).join('; '))}</em></span>`;
+}
+function plazoNota(o){
+  if(!o.plazoMin) return '';
+  const bad = o.plazoMin.falla ? `<p class="as-pzbad"><b>Tu fecha no cumple la norma.</b> ${esc(o.plazoMin.falla.t)}</p><p class="as-chipcap" style="margin:6px 0 0;font-weight:500">${esc(o.plazoMin.falla.acc)}</p>` : '';
+  return bad + '<p class="as-chipcap" style="margin:8px 0 0;font-weight:500">La adjudicación viene después, tras evaluar las ofertas, dentro del plazo que fijen tus bases (DS 661, art. 58). La fecha se cuenta desde hoy, sin descontar feriados, y el cierre no puede vencer en día inhábil ni, antes de las 15:00, en lunes o en el día siguiente a un inhábil (art. 46).</p>';
 }
 function escaleraHtml(o){
   const e = o.escalera; if(!e) return '';

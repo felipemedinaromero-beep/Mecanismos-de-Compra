@@ -35,7 +35,8 @@ const SITUACIONES = [
   {k: 'estandar',   t: 'Bien o servicio estandarizado, de especificación objetiva, que no está en Convenio Marco', ar: 'Subasta Inversa Electrónica'},
   {k: 'innova',     t: 'La necesidad no tiene un producto o servicio adecuado en el mercado',         ar: 'Contrato para la Innovación'},
   {k: 'dialogo',    t: 'Necesidad pública compleja que exige un diálogo estructurado con proveedores', ar: 'Diálogo Competitivo de Innovación'},
-  {k: 'coordina',   t: 'Otros organismos necesitan lo mismo y se quiere agregar demanda',             ar: 'Compra Coordinada'}
+  {k: 'coordina',   t: 'Otros organismos necesitan lo mismo y se quiere agregar demanda',             ar: 'Compra Coordinada'},
+  {k: 'ec_exime',   t: 'Por su diseño, uso o función específica, el bien no puede reutilizarse ni compartirse con otros organismos', ar: 'Exime de la consulta de economía circular'}
 ];
 
 /* Catálogo de todos los mecanismos: cuándo procede, requisitos clave y artículos. */
@@ -184,6 +185,18 @@ const BASES_TIPO = [
 const R = (x, d) => { const f = Math.pow(10, d || 0); return Math.round(x * f) / f; };
 
 /* Plan de procedimiento por tramo para la licitación pública (arts. 36, 46, 54, 31, 52, 119, 121). */
+/* Fecha más temprana que permite un plazo mínimo de la norma, contada desde hoy (sin descontar feriados). */
+function fechaMin(pm, hoy){
+  const d = new Date(hoy || Date.now()); d.setHours(12, 0, 0, 0);
+  if(pm.un === 'corridos') d.setDate(d.getDate() + pm.n);
+  else { let k = 0; while(k < pm.n){ d.setDate(d.getDate() + 1); if(d.getDay() !== 0 && d.getDay() !== 6) k++; } }
+  let nota = '';
+  if(pm.cierre){
+    if(d.getDay() === 6) d.setDate(d.getDate() + 2); else if(d.getDay() === 0) d.setDate(d.getDate() + 1);
+    if(d.getDay() === 1) nota = ' (después de las 15:00)';
+  }
+  return {d, nota};
+}
 function planLicitacion(u, simple){
   const t = tramoUtm(u), p = {tramo: t, req: [], plazos: [], arts: [ds('arts. 36, 37, 41, 45, 46')]};
   if(t === 0){
@@ -244,7 +257,7 @@ function recomendar(inp){
   let ecTxt = null;
   if(bien){
     if(inp.consumible || inp.noMueble){
-      ecTxt = inp.noMueble ? 'La economía circular se consulta para bienes muebles; un terreno, edificio o estructura no lo es, así que la consulta previa no aplica.' : 'Por su naturaleza, este bien (de consumo o de un solo uso) no puede reutilizarse ni compartirse, así que la consulta previa no aplica y puedes seguir con el paso siguiente.';
+      ecTxt = inp.noMueble ? 'La economía circular se consulta para bienes muebles; un terreno, edificio o estructura no lo es, así que la consulta previa no aplica.' : 'Por su naturaleza (bien de consumo, de un solo uso o de uso personal, o porque marcaste que no puede reutilizarse ni compartirse), la consulta previa no aplica según el art. 28, inciso segundo, y puedes seguir con el paso siguiente. Si crees que otro organismo podría tener uno que sirva, consúltalo igual.';
       paso('Economía circular', 'no aplica', ecTxt, [ds('art. 28')]);
     } else {
       ecTxt = 'Antes de adquirir bienes muebles debes consultar la plataforma de economía circular por si otro organismo tiene uno que sirva a tu necesidad (art. 28). El Asesor no puede comprobar esa disponibilidad. Si en la plataforma no existe o no está disponible, deja constancia con esta frase: "producto no disponible en economía circular", y sigue con el procedimiento que corresponde según lo que pediste. Si existe, puedes pedirlo en traspaso en vez de comprar.';
@@ -368,6 +381,36 @@ function recomendar(inp){
   if(pr.k === 'SPE'){ pr.arts = mec.arts.slice(); }
   if(pr.vig) pr.vigencia = pr.vig; else if(mec.vig) pr.vigencia = mec.vig;
 
+  /* Plazo mínimo que fija la norma antes de poder decidir (se usa para la fecha más temprana junto al total).
+     Solo se informa donde el reglamento fija un plazo; en el resto no se inventa uno. */
+  { const tr = tramoUtm(u), sm = !!inp.simple; let pm = null;
+    if(pr.k === 'LP'){
+      const n = [5, sm ? 5 : 10, sm ? 10 : 20, 30][tr];
+      pm = {n, un: 'corridos', que: 'entre la publicación del llamado y el cierre de ofertas', arts: [ds('art. 46')], cierre: true};
+    } else if(pr.k === 'CM' && pr.gran){
+      pm = {n: 10, un: 'hábiles', que: 'para recibir ofertas de los proveedores de la categoría (Gran Compra)', arts: [ds('art. 90')], cierre: true};
+    } else if(pr.k === 'TD' && u > 1000 && (pr.causal === 'unico' || pr.causal === 'confianza')){
+      pm = {n: 5, un: 'hábiles', que: 'de publicación de la intención de contratar antes de poder resolver', arts: [ds('art. 78')], cierre: false};
+    }
+    out.plazoMin = pm;
+    if(pm && inp.nd){
+      const fm = fechaMin(pm), need = new Date(inp.nd + 'T12:00:00'), fmt = d => d.toLocaleDateString('es-CL', {weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric'});
+      const dias = Math.round((need - new Date().setHours(12, 0, 0, 0)) / 864e5);
+      pm.fecha = fm.d; pm.nota = fm.nota;
+      if(fm.d > need){
+        const red = !sm && (tr === 1 || tr === 2);
+        pm.falla = {
+          t: 'Por el monto (' + R(u, 1).toLocaleString('es-CL') + ' UTM) corresponde ' + pr.nom + ', pero la fecha que indicaste (' + fmt(need) + ', en ' + dias + ' días) no alcanza: ' + (pm.cierre ? 'el plazo mínimo de ' + pm.n + ' días ' + pm.un + ' ' + pm.que + ' lo fija el ' + pm.arts[0].t + ' del DS 661 y, publicando hoy, el cierre de ofertas ocurre recién el ' + fmt(fm.d) + fm.nota + '. La adjudicación viene después, tras evaluar las ofertas.' : 'se requieren ' + pm.n + ' días ' + pm.un + ' ' + pm.que + ' (DS 661, ' + pm.arts[0].t + '), por lo que lo más pronto es el ' + fmt(fm.d) + '.') + ' La norma fija el plazo, no el calendario: ajusta la fecha o inicia el proceso con más anticipación.',
+          acc: (red ? 'Si el bien o servicio es de simple y objetiva especificación, marca esa opción: el art. 46 permite reducir el plazo mínimo. ' : '') + 'Si existe una urgencia real que no sea imputable a tu entidad, la causal de emergencia, urgencia o imprevisto (art. 74) exige acreditarla en resolución fundada; la falta de planificación no la justifica (art. 83).'
+        };
+        out.alertas.unshift({nivel: 'alto', t: pm.falla.t, accion: pm.falla.acc, arts: pm.arts});
+      } else {
+        const resto = Math.round((need - fm.d) / 864e5);
+        out.alertas.push({nivel: 'info', t: 'El plazo mínimo de publicación cabe en tu fecha: el cierre de ofertas puede ser desde el ' + fmt(fm.d) + fm.nota + ' y te quedan ' + resto + ' días corridos para evaluar y adjudicar antes del ' + fmt(need) + '. Verifica que ese margen alcance para las consultas, la evaluación y el acto de adjudicación de tus bases (DS 661, art. 58).', arts: pm.arts});
+      }
+    }
+  }
+
   // Pasos siguientes según lo que se decidió
   if(pr.k === 'CM') paso('Compra por Convenio Marco', 'obligatorio', 'Emite la orden de compra al proveedor del Catálogo que mejor se ajuste a tu necesidad' + (pr.gran ? ' y realiza la Gran Compra: comunica la intención a todos los proveedores de la categoría, arma el cuadro comparativo con los criterios de las bases del convenio y adjúntalo a la orden de compra.' : '.'), [ds('arts. 89, 90, 91')]);
   else if(pr.k === 'CA') paso('Compra Ágil', 'recomendado', 'Pide al menos tres cotizaciones por el Sistema. Si eliges una que no es la de menor precio, funda la decisión en la orden de compra. No necesitas acto administrativo.', [ley('art. 7 letra d) N° 1; art. 56'), ds('arts. 97, 98')]);
@@ -383,7 +426,7 @@ function recomendar(inp){
   if(sit.has('coordina') && pr.k !== 'CC') alt('CC', 'Marcaste que otros organismos necesitan lo mismo: solicita a la Dirección de Compras que te represente.');
 
   // Escalera de opciones: Convenio Marco -> fuera de Convenio Marco -> excepcional
-  const esc = {previo: bien ? ((inp.consumible || inp.noMueble) ? (inp.noMueble ? 'No es un bien mueble: la consulta de economía circular no aplica.' : 'El bien es de consumo: la consulta de economía circular no aplica.') : 'Antes de comprar, consulta economía circular (el Asesor no puede comprobar la disponibilidad). Si no está, deja constancia: "producto no disponible en economía circular", y sigue con el procedimiento que corresponde.') : 'Servicio: no corresponde la consulta de economía circular.', opciones: []};
+  const esc = {previo: bien ? ((inp.consumible || inp.noMueble) ? (inp.noMueble ? 'No es un bien mueble: la consulta de economía circular no aplica.' : 'Por su naturaleza (consumo, un solo uso o uso personal) el bien no se reutiliza ni se comparte: la consulta de economía circular no aplica.') : 'Antes de comprar, consulta economía circular (el Asesor no puede comprobar la disponibilidad). Si no está, deja constancia: "producto no disponible en economía circular", y sigue con el procedimiento que corresponde.') : 'Servicio: no corresponde la consulta de economía circular.', opciones: []};
   const enCm = !!inp.cm;
   const ecOp = bien && !inp.consumible && !inp.noMueble, off = 0;
   esc.ecOpcion = ecOp;
@@ -516,6 +559,22 @@ function recomendar(inp){
   const vivas = ev.filter(x => x.estado !== 'descartada').map(x => Object.assign(conN(x.k), {estado: x.estado, motivo: x.motivo, crit: x.crit}));
   const descartadas = ev.filter(x => x.estado === 'descartada').map(x => Object.assign(conN(x.k), {estado: x.estado, motivo: x.motivo, crit: x.crit}));
   esc.opciones.push({n: fuera.n + 1, k: 'TD', tag: 'excepcional', titulo: 'Trato Directo (solo con causal)', texto: 'No reemplaza al procedimiento ordinario: exige una causal del art. 8 bis de la Ley o, bajo 30 UTM, el art. 60 (art. 71 del Reglamento), acreditada en un acto fundado y publicado. Cada causal se revisa contra todo lo que exige la norma: primero el monto y el tipo de contratación' + (enCm_ ? ', luego el Convenio Marco' : '') + ' y los proveedores que venden el producto. Estas son las que podrían calzar y las que descarté:', causales: vivas, descartadas, comun: COMUN_TD, arts: [ley('art. 7 letra c); art. 8 bis; art. 60'), ds('arts. 71 a 84')]});
+  /* Compra por Cotización: solo dos casos (Ley art. 8 quáter; DS arts. 99 y 100). Siempre visible, con estado según lo marcado. */
+  { const c1 = sit.has('termino'), c2 = sit.has('extranjero');
+    const uC = R(u, 1).toLocaleString('es-CL');
+    const subsC = [
+      {k: 'CO1', nom: 'Reemplazo de un contrato terminado anticipadamente',
+       est: c1 ? (u <= 1000 ? 'procede' : 'descartada') : (u > 1000 ? 'descartada' : 'condicional'),
+       texto: 'Procede cuando un contrato debió resolverse o terminarse anticipadamente por incumplimiento del contratante u otras causales y el remanente no supera 1.000 UTM (DS art. 100 N° 1).' + (u > 1000 ? ' Esta compra es de ' + uC + ' UTM: sobre el tope no procede.' : (c1 ? '' : ' Solo si es tu caso; márcalo en el paso 3.'))},
+      {k: 'CO2', nom: 'Servicio con persona jurídica extranjera que se ejecuta fuera de Chile',
+       est: bien ? 'descartada' : (c2 ? 'procede' : 'condicional'),
+       texto: bien ? 'Es solo para convenios de prestación de servicios; esta compra es de un bien (DS art. 100 N° 2).' : 'Convenios de prestación de servicios con personas jurídicas extranjeras que deban ejecutarse fuera del territorio nacional (DS art. 100 N° 2).' + (c2 ? '' : ' Solo si es tu caso; márcalo en el paso 3.')}
+    ];
+    const viva = subsC.some(x => x.est === 'procede');
+    esc.opciones.push({n: esc.opciones.length + 1, k: 'CO', tag: viva ? 'recomendado' : 'excepcional', titulo: 'Compra por Cotización (solo en dos casos)',
+      texto: 'No reemplaza al procedimiento ordinario. Abre un espacio de negociación con un mínimo de tres cotizaciones previas, sin los requisitos de la licitación (DS art. 99). Las circunstancias que la justifican deben constar en un acto administrativo fundado (DS art. 100).' + (enCm && u > 100 ? ' Sobre 100 UTM el art. 89 del reglamento exige consultar el Catálogo de Convenio Marco antes de licitar, tratar directo u otro procedimiento especial, salvo Compra Ágil: confirma con la Dirección de Compras cómo se aplica en tu caso.' : ''),
+      subs: subsC, arts: [ley('art. 7 letra d) N° 2; art. 8 quáter'), ds('arts. 99, 100')]});
+  }
   out.escalera = esc;
 
   // Alertas de datos
@@ -608,6 +667,6 @@ function consolidar(inp, pac){
   return out;
 }
 
-root.AsesorReglas = {ahorroCm, REGLA_PRECIO, consolidar, BASES_TIPO, BT_FUENTE, recomendar, tramoUtm, planLicitacion, TRAMOS, SITUACIONES, MECANISMOS, MEC_BY, CAUSALES, COMUN_TD, URL_LEY, URL_DS,
+root.AsesorReglas = {fechaMin, ahorroCm, REGLA_PRECIO, consolidar, BASES_TIPO, BT_FUENTE, recomendar, tramoUtm, planLicitacion, TRAMOS, SITUACIONES, MECANISMOS, MEC_BY, CAUSALES, COMUN_TD, URL_LEY, URL_DS,
   TEXTO_BASE: 'Ley N° 19.886 (texto consolidado BCN, última versión del 05-02-2026, con las modificaciones de las leyes 21.634 y 21.806) y Reglamento DS N° 661/2024 de Hacienda (publicado el 12-12-2024).'};
 })(typeof window !== 'undefined' ? window : globalThis);
