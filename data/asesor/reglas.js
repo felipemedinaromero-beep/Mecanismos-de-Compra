@@ -36,7 +36,7 @@ const SITUACIONES = [
   {k: 'innova',     t: 'La necesidad no tiene un producto o servicio adecuado en el mercado',         ar: 'Contrato para la Innovación'},
   {k: 'dialogo',    t: 'Necesidad pública compleja que exige un diálogo estructurado con proveedores', ar: 'Diálogo Competitivo de Innovación'},
   {k: 'coordina',   t: 'Otros organismos necesitan lo mismo y se quiere agregar demanda',             ar: 'Compra Coordinada'},
-  {k: 'ec_exime',   t: 'Por su diseño, uso o función específica, el bien no puede reutilizarse ni compartirse con otros organismos', ar: 'Exime de la consulta de economía circular'}
+  {k: 'ec_exime',   t: 'Este bien no puede ser reutilizado (Economía Circular)', ar: 'Exime de la consulta de economía circular'}
 ];
 
 /* Catálogo de todos los mecanismos: cuándo procede, requisitos clave y artículos. */
