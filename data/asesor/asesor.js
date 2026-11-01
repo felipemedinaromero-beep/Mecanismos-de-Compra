@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r25' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r27' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -280,7 +280,7 @@ table.as-t th{background:#F2F6FD;}
 .as-reco .as-chipcap{margin:14px 0 6px;font-size:12px;font-weight:700;color:#D7E6F7;}
 .as-chip.as-lb{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;border-radius:12px;padding:6px 12px;line-height:1.3;}
 .as-chip.as-lb small{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--cc-lime);font-weight:800;}
-.as-chip-pz{max-width:340px;}.as-chip-bad{background:#FFE9C7!important;border-color:#F2A33A!important;color:#5A3300!important;}.as-chip-bad small{color:#8A4B00!important;}.as-reco p.as-pzbad,.as-reco p.as-pzbad b{color:#4A2A00!important;opacity:1!important;}.as-pzbad{margin:10px 0 0;padding:9px 12px;border-radius:10px;background:#FFE9C7;color:#4A2A00;font-size:13px;line-height:1.45;}.as-chip-s{display:block;font-style:normal;font-weight:500;font-size:10.5px;opacity:.9;margin-top:2px;}
+.as-chip-pz{max-width:340px;}.as-chip-bad{background:#FFE9C7!important;border-color:#F2A33A!important;color:#5A3300!important;}.as-chip-bad small{color:#8A4B00!important;}.as-reco p.as-pzbad,.as-reco p.as-pzbad b{color:#4A2A00!important;opacity:1!important;}.as-pacal{margin:10px 0 0;padding:10px 14px;border-radius:12px;background:#FDECEA;border:1px solid #E5A29C;}.as-pacal-medio{background:#FFF6E5;border-color:#E8C26A;}.as-reco .as-pacal b,.as-reco .as-pacal p{color:#4A1410!important;opacity:1!important;}.as-reco .as-pacal p{margin:4px 0 8px;font-size:13px;line-height:1.45;}.as-pacal .as-btn{font-size:12.5px;padding:6px 12px;}.as-pacal-b{display:flex;gap:8px;flex-wrap:wrap;}.as-reco .as-pacal b.as-pacal-k{display:inline;}.as-pzbad{margin:10px 0 0;padding:9px 12px;border-radius:10px;background:#FFE9C7;color:#4A2A00;font-size:13px;line-height:1.45;}.as-chip-s{display:block;font-style:normal;font-weight:500;font-size:10.5px;opacity:.9;margin-top:2px;}
 /* upd26: ficha, forma de compra y productos del Convenio Marco en el recuadro azul */
 .as-rc-fm{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:10px 0 0 !important;font-size:13px;color:#fff;}
 .as-rc-bg{display:inline-flex;align-items:center;padding:3px 12px;border-radius:99px;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);}
@@ -1007,6 +1007,8 @@ function wireResult(){
     const pq = $('as-pq'); if(pq) pq.addEventListener('input', () => { S.procQ = pq.value; const bx = $('as-pres'); if(bx) bx.innerHTML = procTabla(); }); }
   S.host.querySelectorAll('.as-pk').forEach(c => c.addEventListener('change', () => { const k = Number(c.dataset.k), s_ = st(); if(c.checked) s_.sel.add(k); else s_.sel.delete(k); update(); }));
   S.host.querySelectorAll('.as-pj').forEach(c => c.addEventListener('change', () => { const s_ = st(); c.dataset.ks.split(',').forEach(k => { if(c.checked) s_.sel.add(Number(k)); else s_.sel.delete(Number(k)); }); update(); }));
+  S.host.querySelectorAll('.as-gotab').forEach(bt => bt.addEventListener('click', () => { S.rtab = bt.dataset.rt; update(); setTimeout(() => { const e = S.host.querySelector('.as-rtabs'); if(e) e.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 50); }));
+  S.host.querySelectorAll('.as-gopac').forEach(bt => bt.addEventListener('click', () => { S.rtab = 'plan'; update(); setTimeout(() => { const e = $('as-pacc'); if(e) e.scrollIntoView({behavior: 'smooth', block: 'start'}); }, 50); }));
   const pe = $('as-pend'); if(pe) pe.addEventListener('change', () => { S.pendOnly = pe.checked; update(); });
   const b = $('as-usepac');
   if(b) b.addEventListener('click', () => { const s_ = st(), P = S.pac, l = activeLine(), oc_ = ocMeses(l), pl_ = pacResumen(s_.matches.map(k => ({k, it: P.i[k]})), s_.sel).mesesList, sk_ = (oc_ && S.pendOnly !== false) ? new Set(pl_.filter(m => oc_[m])) : null, rs = pacResumen(s_.matches.map(k => ({k, it: P.i[k]})), s_.sel, sk_); l.n = 0; l.pu = 0; l.m = rs.totalClp; recalc(); paintLines(); update(); });
@@ -1146,12 +1148,79 @@ function heroCmHtml(o){
   h += `<p class="as-rc-go-w">${v.url ? `<a class="as-rc-go" href="${esc(v.url)}" rel="noopener">Entrar al catálogo del convenio</a>` : ''}${V && V.fuente ? `<a class="as-rc-go as-rc-go2" href="${esc(V.fuente)}" rel="noopener">Ver la ficha pública (busca ${esc(c.id)})</a>` : ''}</p>`;
   return h + '</div>';
 }
+/* Fragmentación: lo ya ocurrido (compras del organismo por mecanismos simples) y lo posible según el PAC. */
+function fragPasada(){
+  if(S.od == null || S.prodIdx == null) return null;
+  const fr = S.od.frag.filter(f => f[0] === S.prodIdx), h = histProd(), noCm = h ? h.noCmUtm : 0;
+  return {fr, noCm, hay: fr.length > 0 || noCm > 100};
+}
+function fragFutura(o){
+  if(S.orgIdx == null || S.prodIdx == null) return null;
+  if(S.pacOrg !== S.orgIdx) return {est: 'carga'};
+  if(!S.pac) return {est: 'sinpac'};
+  const l = activeLine(), st = pacState(l); if(!st || !st.matches.length) return {est: 'sinitems'};
+  const items = st.matches.map(k => ({k, it: S.pac.i[k]})), plannedAll = pacResumen(items, st.sel).mesesList, oc = ocMeses(l);
+  const skip = oc ? new Set(plannedAll.filter(m => oc[m])) : null, rs = pacResumen(items, st.sel, skip);
+  if(rs.n < 1) return {est: 'sinsel'};
+  if(rs.meses < 2 && rs.n < 2) return {est: 'unico', rs};
+  const cons = R().consolidar(S.inp, rs), uCons = cons.totalUtm, uEsta = o.montoUtm;
+  const distinto = R().tramoUtm(uCons) > R().tramoUtm(uEsta) || cons.rec.principal.k !== o.principal.k;
+  const ms = rs.mesesList.map(m => MES3[m - 1]).join(', ');
+  const t = `En tu PAC 2026 el Asesor asoció ${rs.n} ítem(s) con este producto, planificados en ${rs.meses} mes(es)${ms ? ' (' + ms + ')' : ''} sin compra registrada, por ${pesos(rs.totalClp)} en total (${dec(uCons, 1)} UTM, ${cons.tramoNom}). Esta compra es de ${dec(uEsta, 1)} UTM. ` +
+    (distinto ? (cons.rec.principal.k !== o.principal.k ? `Si cada mes se compra por separado, el procedimiento sería ${o.principal.nom}; el total corresponde a ${cons.rec.principal.nom}. ` : `El total pasa del tramo «${o.tramoNom}» al tramo «${cons.tramoNom}», que tiene exigencias y plazos mayores. `) + `Fraccionar de modo que se evite un procedimiento o se acorte el plazo de publicación es contrario a la norma (DS 661, art. 16). ` : 'Comprar cada mes por separado fragmenta la demanda y pierde poder de negociación (DS 661, art. 16). ') +
+    'Consolida la demanda en una sola compra con entregas parciales, o fundamenta por qué son necesidades distintas.';
+  return {est: 'ok', rs, cons, distinto, ms, t};
+}
+function textoPasado(p){
+  const uni = n => dec(n, 0) + ' UTM';
+  let t = p.fr.length ? `En ${p.fr.length} trimestre(s) tu organismo compró este producto tres o más veces por Compra Ágil, Trato Directo o Cotización, y las compras de cada trimestre suman más de 100 UTM.` + (p.noCm > 100 ? ` En los últimos 12 meses van ${uni(p.noCm)} por esos mecanismos.` : '')
+    : `En los últimos 12 meses tu organismo compró este producto por ${uni(p.noCm)} mediante Compra Ágil, Trato Directo o Cotización, sobre el límite de 100 UTM de la Compra Ágil.`;
+  return t + ' Es una señal para revisar, no una conclusión de infracción (DS 661, art. 16).';
+}
+function alertaFrag(o){
+  const p = fragPasada(), f = fragFutura(o), hayP = !!(p && p.hay), hayF = !!(f && f.est === 'ok');
+  if(!hayP && !hayF) return null;
+  const nivel = (hayP && p.fr.length) || (hayF && f.distinto) ? 'alto' : 'medio';
+  return {nivel, p: hayP ? p : null, f: hayF ? f : null, tp: hayP ? textoPasado(p) : '', tf: hayF ? f.t : '',
+    t: [hayP ? 'Ya ocurrido: ' + textoPasado(p) : '', hayF ? 'A futuro, según tu PAC: ' + f.t : ''].filter(Boolean).join(' '),
+    accion: 'Revisa las pestañas «Fragmentación realizada» y «Fragmentación posible (PAC)». El Asesor asoció los ítems del PAC por el nombre del producto: confirma cuáles son la misma necesidad.',
+    arts: [{n: 'DS 661/2024', t: 'arts. 16, 165, 166'}, {n: 'Ley 19.886', t: 'art. 12'}], pac: true};
+}
+function fragPasadaHtml(o){
+  if(S.orgIdx == null || S.prodIdx == null) return '';
+  const head = '<div class="as-sec" id="as-fragp"><h3>Fragmentación ya realizada en este producto</h3>';
+  if(S.od == null) return head + '<div class="as-load">Revisando las compras de tu organismo…</div></div>';
+  const p = fragPasada(), h = histProd();
+  let x = head + '<p>El Asesor revisa las órdenes de compra de tu organismo de este producto (22 meses) hechas por Compra Ágil, Trato Directo y Cotización. La señal de alerta es tener tres o más compras en un trimestre que juntas superan 100 UTM, o acumular más de 100 UTM en 12 meses por esos mecanismos.</p>';
+  if(!p.hay) return x + `<p><b>Sin hallazgos.</b> No hay trimestres con esa señal en este producto${h && h.row ? ` y en 12 meses suma ${dec(p.noCm, 0)} UTM por esos mecanismos` : ' (tu organismo no registra compras de este producto en el historial)'}.</p>` + citas([{n: 'DS 661/2024', t: 'art. 16'}]) + '</div>';
+  x += `<div class="as-al as-al-${p.fr.length ? 'alto' : 'medio'}"><b>${p.fr.length ? 'Atención' : 'Revisa'}</b>${esc(textoPasado(p))}</div>`;
+  x += `<div class="as-kpis"><div class="as-k"><div class="l">Por mecanismos simples (12 meses)</div><div class="v">${dec(p.noCm, 0)} UTM</div><div class="s">Compra Ágil, Trato Directo, Cotización</div></div><div class="as-k"><div class="l">Trimestres con la señal</div><div class="v">${p.fr.length}</div><div class="s">de los últimos 22 meses</div></div></div>`;
+  if(p.fr.length) x += '<div class="as-tw"><table class="as-t"><tr><th>Trimestre</th><th class="n">Compras</th><th class="n">Suma (UTM)</th><th>Mecanismos</th></tr>' + p.fr.map(f => `<tr><td>${qLab(f[1])}</td><td class="n">${f[2]}</td><td class="n">${fmt(f[3])}</td><td>${esc(f[4].match(/../g).map(m => MEC_NOM[m] || m).join(', '))}</td></tr>`).join('') + '</table></div>';
+  x += '<p><b>Qué hacer.</b> Revisa si esas compras respondían a una misma necesidad y a qué procedimiento habría correspondido el total: la fragmentación es contraria a la norma cuando elude la licitación pública, acorta el plazo de publicación o varía de otro modo el procedimiento (DS 661, art. 16). Desde ahora, planifica la demanda del producto en el PAC y compra en una sola contratación con entregas parciales (Ley art. 12; DS 661, art. 166). Deja constancia de la fundamentación si las necesidades eran distintas.</p>';
+  return x + citas([{n: 'DS 661/2024', t: 'arts. 16, 166'}, {n: 'Ley 19.886', t: 'art. 12'}]) + '</div>';
+}
+function fragFuturaHtml(o){
+  if(S.orgIdx == null || S.prodIdx == null) return '';
+  const head = '<div class="as-sec" id="as-fragf"><h3>Fragmentación posible con tu PAC</h3>';
+  const f = fragFutura(o), nm = S.org ? encodeURIComponent(S.org[1]) : '';
+  const lead = '<p>El Asesor busca en el PAC 2026 de tu organismo los ítems de este producto planificados en varios meses y los suma, descontando los meses que ya tienen compra registrada.</p>';
+  if(f.est === 'carga') return head + '<div class="as-load">Revisando el PAC 2026 de tu organismo…</div></div>';
+  if(f.est === 'sinpac') return head + lead + `<p><b>Sin PAC publicado.</b> No encontré PAC 2026 de tu organismo en el archivo del 20-10-2026, así que no puedo anticipar fragmentación. Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley art. 12; DS 661, art. 27). Revisa el <a href="#pac26=${nm}" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
+  if(f.est === 'sinitems') return head + lead + '<p><b>Sin ítems asociados.</b> En el PAC no aparece un ítem que coincida con este producto. Si lo vas a comprar, agrégalo al PAC con una modificación fundada (DS 661, arts. 166 y 169).</p></div>';
+  if(f.est === 'sinsel') return head + lead + '<p>Hay ítems posibles, pero ninguno marcado. Márcalos en la pestaña «PAC y presupuesto» para evaluar la consolidación.</p><p><button type="button" class="as-btn as-gopac">Abrir el detalle del PAC</button></p></div>';
+  if(f.est === 'unico') return head + lead + `<p><b>Sin fragmentación a la vista.</b> El PAC planifica este producto en un solo ítem y un solo mes (${pesos(f.rs.totalClp)}).</p></div>`;
+  let x = head + lead + `<div class="as-al as-al-${f.distinto ? 'alto' : 'medio'}"><b>${f.distinto ? 'Atención' : 'Revisa'}</b>${esc(f.t)}</div>` + distHtml(f.rs);
+  x += `<div class="as-pk-sum"><b>Compra consolidada sugerida: ${pesos(f.cons.totalClp)} (${dec(f.cons.totalUtm, 1)} UTM, ${esc(f.cons.tramoNom)})</b><br>Una sola compra en lugar de ${f.rs.meses} (${esc(f.ms)}).<br>Procedimiento para ese monto: <b>${esc(f.cons.rec.principal.nom)}</b>.</div>`;
+  x += '<p><button type="button" class="as-btn as-gopac">Ver los ítems y ajustar la selección</button></p>';
+  return x + citas(f.cons.arts.concat([{n: 'DS 661/2024', t: 'arts. 16, 165, 166'}, {n: 'Ley 19.886', t: 'art. 12'}])) + '</div>';
+}
 function resultHtml(o){
   const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
+  o.alertas = (o.alertas || []).filter(x => !x.pac); const apf = alertaFrag(o); if(apf) o.alertas.unshift(apf);
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
   let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>${(o.escalera && o.escalera.ecOpcion) ? `<div class="as-ecn"><span class="as-ecn-k">Paso previo · DS 661, art. 28</span><b class="as-ecn-t">Primero, consulta economía circular</b><p>El Asesor lo trata como un bien mueble que otro organismo podría tener y no puede comprobar si lo hay. Consúltalo en la plataforma antes de comprar. Si no existe o no está disponible, deja constancia de «producto no disponible en economía circular» y sigue con este procedimiento. Si por su diseño, uso o función específica no puede reutilizarse ni compartirse, el art. 28 permite eximirte: marca «Este bien no puede ser reutilizado (Economía Circular)» en el paso 3 y queda registrado.</p><a class="as-ecn-go" href="${ECO_URL}" rel="noopener">Ver el catálogo de economía circular</a></div>` : ''}
     <p class="as-chipcap">Esta recomendación se basa en lo que le pediste al Asesor:</p>
-    <div class="as-chips"><span class="as-chip as-lb"><small>Producto o servicio</small>${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip as-lb"><small>Cantidad${st_.l.length > 1 ? ' (línea activa)' : ''}</small>${fmt(activeLine().n)} ${esc(umPlural(lineUm(activeLine()), activeLine().n))}</span>` : ''}<span class="as-chip as-lb"><small>Monto${st_.l.length > 1 ? ' total del proceso' : ' total'}, IVA incluido</small>${S.st.m ? clp(S.st.m) + ' · ' : ''}${dec(o.montoUtm, 1)} UTM</span>${plazoChip(o)}<span class="as-chip as-lb"><small>Tramo de monto</small>${esc(o.tramoNom)}</span><span class="as-chip as-lb"><small>Región de la compra</small>${esc(regName(orgRegion()))}</span></div>${plazoNota(o)}${heroCmHtml(o)}</div>`;
+    <div class="as-chips"><span class="as-chip as-lb"><small>Producto o servicio</small>${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip as-lb"><small>Cantidad${st_.l.length > 1 ? ' (línea activa)' : ''}</small>${fmt(activeLine().n)} ${esc(umPlural(lineUm(activeLine()), activeLine().n))}</span>` : ''}<span class="as-chip as-lb"><small>Monto${st_.l.length > 1 ? ' total del proceso' : ' total'}, IVA incluido</small>${S.st.m ? clp(S.st.m) + ' · ' : ''}${dec(o.montoUtm, 1)} UTM</span>${plazoChip(o)}<span class="as-chip as-lb"><small>Tramo de monto</small>${esc(o.tramoNom)}</span><span class="as-chip as-lb"><small>Región de la compra</small>${esc(regName(orgRegion()))}</span></div>${plazoNota(o)}${apf ? `<div class="as-pacal as-pacal-${apf.nivel}"><b>Posible fragmentación en este producto</b>${apf.tp ? `<p><b class="as-pacal-k">Ya ocurrido.</b> ${esc(apf.tp)}</p>` : ''}${apf.tf ? `<p><b class="as-pacal-k">A futuro, según tu PAC.</b> ${esc(apf.tf)}</p>` : ''}<span class="as-pacal-b">${apf.tp ? '<button type="button" class="as-btn as-gotab" data-rt="fragp">Ver lo ya realizado</button>' : ''}${apf.tf ? '<button type="button" class="as-btn as-gotab" data-rt="fragf">Ver lo posible con tu PAC</button>' : ''}</span></div>` : ''}${heroCmHtml(o)}</div>`;
   const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
   const vdHtml = procesoHtml(o) + vereditoHtml(S.vd || veredictoCm(), o);
   /* Todo lo que sigue va en pestañas bajo la tarjeta de Convenio Marco. */
@@ -1160,6 +1229,7 @@ function resultHtml(o){
   { const x = escaleraHtml(o); add('esc', 'Orden de opciones para esta compra', x); }
   { const x = refHtml(o); add('ref', h3t(x), x); }
   { const x = pacConsHtml(o); add('pacc', 'Tu PAC 2026 y la consolidación', x); }
+  if(S.orgIdx != null && S.prodIdx != null){ add('fragp', 'Fragmentación realizada', fragPasadaHtml(o), (apf && apf.p) ? (apf.p.fr.length || 1) : 0); add('fragf', 'Fragmentación posible (PAC)', fragFuturaHtml(o), (apf && apf.f) ? 1 : 0); }
   if(o.alertas.length) add('alertas', 'Alertas', '<div class="as-sec"><h3>Alertas</h3>' + o.alertas.map(a => `<div class="as-al as-al-${a.nivel}"><b>${a.nivel === 'alto' ? 'Atención' : (a.nivel === 'medio' ? 'Revisa' : 'Para tener presente')}</b>${esc(a.t)}${a.accion ? `<span class="as-acc">${esc(a.accion)}</span>` : ''}${a.arts ? citas(a.arts).replace('as-cite', 'as-cite" style="color:inherit;opacity:.85') : ''}</div>`).join('') + '</div>', o.alertas.length);
   { // detalle del procedimiento
     let x = `<div class="as-sec"><h3>Cómo se hace: ${esc(p.nom)}</h3>`;
@@ -1181,7 +1251,7 @@ function resultHtml(o){
   if(o.alternativas.length) add('alt', 'Otras vías', '<div class="as-sec"><h3>Otras vías que puedes evaluar</h3>' + o.alternativas.map(a => `<p><b>${esc(a.nom)}.</b> ${esc(a.texto)}</p>${citas(a.arts)}`).join('') + '</div>');
   if(S.od == null) html += '<div class="as-load">Cargando las compras del organismo para cruzarlas con la recomendación…</div>';
   /* Ocho pestañas como máximo, en una sola fila */
-  const GR = [['esc', 'Orden de opciones', ['esc']], ['ref', null, ['ref']], ['alertas', 'Alertas', ['alertas']], ['org', 'Tu organismo', ['datos', 'procs']], ['mer', 'Precios y proveedores', ['precios', 'cm', 'prov']], ['vias', 'Otras vías y demanda', ['alt', 'dem']], ['plan', 'PAC y presupuesto', ['pacc', 'pac']], ['como', 'Cómo se hace', ['como', 'pasos']]];
+  const GR = [['esc', 'Orden de opciones', ['esc']], ['ref', null, ['ref']], ['alertas', 'Alertas', ['alertas']], ['fragp', 'Fragmentación realizada', ['fragp']], ['fragf', 'Fragmentación posible (PAC)', ['fragf']], ['org', 'Tu organismo', ['datos', 'procs']], ['mer', 'Precios y proveedores', ['precios', 'cm', 'prov']], ['vias', 'Otras vías y demanda', ['alt', 'dem']], ['plan', 'PAC y presupuesto', ['pacc', 'pac']], ['como', 'Cómo se hace', ['como', 'pasos']]];
   const tabs = GR.map(g => { const mem = g[2].map(k => secs.find(z => z.k === k)).filter(Boolean); return mem.length ? {k: g[0], label: g[1] || mem[0].label.split(':')[0], x: mem.map(z => z.x).join(''), bdg: mem[0].bdg} : null; }).filter(Boolean);
   /* El presupuesto y el veredicto de Convenio Marco viven dentro de sus pestañas; nada se abre hasta que se hace clic. */
   { const m = tabs.find(z => z.k === 'mer'); if(m) m.x = vdHtml + m.x; else if(vdHtml) tabs.push({k: 'mer', label: 'Convenio Marco', x: vdHtml});
