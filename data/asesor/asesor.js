@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r27' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r28' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -266,6 +266,11 @@ table.as-t th{background:#F2F6FD;}
 .as-grid>*{min-width:0;}
 @media(max-width:900px){.as-grid{grid-template-columns:minmax(0,1fr);} .as-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;} .as-tab{flex:0 0 auto;white-space:nowrap;padding:9px 16px;}}
 .as-rtabs{position:sticky;top:0;z-index:60;margin:0 0 14px;border-radius:0 0 18px 18px;box-shadow:0 8px 20px rgba(0,35,59,.18);} @media(max-width:1150px){.as-rtabs{padding-right:116px;}} @media(max-width:600px){.as-rtabs{padding-right:56px;}}
+/* Pestañas de resultado: dos líneas, todas visibles, sin desplazamiento lateral (columnas = mitad de las pestañas) */
+.as-rtabs{display:grid!important;grid-template-columns:repeat(var(--c,5),minmax(0,1fr));overflow:visible!important;gap:4px;padding:6px!important;border-radius:20px!important;-webkit-mask-image:none!important;mask-image:none!important;}
+.as-rtabs .as-rtab{white-space:normal;text-align:center;display:flex;align-items:center;justify-content:center;gap:2px;padding:7px 6px;font-size:12px;line-height:1.2;}
+@media(max-width:1150px){.as-rtabs{padding-right:116px!important;}}
+@media(max-width:600px){.as-rtabs{grid-template-columns:repeat(2,minmax(0,1fr));padding-right:56px!important;}}
 .as-tabhint{margin:2px 4px 10px;font-size:12.5px;}
 /* upd22: Convenio Marco dentro del recuadro azul */
 .as-rc{margin-top:16px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);}
@@ -1259,7 +1264,7 @@ function resultHtml(o){
   const heroHtml = html; html = '';
   if(tabs.length){
     const sel = tabs.some(z => z.k === S.rtab) ? S.rtab : '';
-    html += '<div class="as-tabs as-rtabs" role="tablist" aria-label="Más información de esta compra">' + tabs.map(z => `<button class="as-rtab" role="tab" data-rt="${z.k}" aria-selected="${z.k === sel}">${esc(z.label)}${z.bdg ? `<span class="as-bdg">${z.bdg}</span>` : ''}</button>`).join('') + '</div>';
+    html += '<div class="as-tabs as-rtabs" role="tablist" style="--c:' + Math.ceil(tabs.length / 2) + '" aria-label="Más información de esta compra">' + tabs.map(z => `<button class="as-rtab" role="tab" data-rt="${z.k}" aria-selected="${z.k === sel}">${esc(z.label)}${z.bdg ? `<span class="as-bdg">${z.bdg}</span>` : ''}</button>`).join('') + '</div>';
     html += `<p class="as-hint as-tabhint as-noprint"${sel ? ' hidden' : ''}>Haz clic en una pestaña para ver el detalle aquí mismo. Haz clic de nuevo para cerrarla.</p>`;
     html += tabs.map(z => `<div class="as-pan" role="tabpanel" data-rp="${z.k}"${z.k === sel ? '' : ' hidden'}>${z.x}</div>`).join('');
     html += heroHtml;
