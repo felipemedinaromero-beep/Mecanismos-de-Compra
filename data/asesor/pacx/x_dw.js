@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["dw"]={"g":"2026-10-20","d":["Adaptador USB Wireless Marca D-Link DWA-125","PLACA POZO PROFUNDO DWP PP 2ML PCR PARA EQUIPO NIMBUS UNIDAD"],"t":{"dwa":[[236,0,"10:45","22-04"]],"dwp":[[158,1,"10:5,11:5,12:5","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["dw"]={"g":"2026-11-02","d":["PLACA POZO PROFUNDO DWP PP 2ML PCR PARA EQUIPO NIMBUS UNIDAD"],"t":{"dwp":[[159,0,"11:5,12:5","22-04"]]}};

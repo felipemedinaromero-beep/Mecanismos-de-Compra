@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["9n"]={"g":"2026-10-20","d":["TUBO MINI COLLECT CELESTE 1 ML 9NC COAGULACION 3.2%  CJ X 100"],"t":{"9nc":[[9,0,"10:8,11:8,12:8","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["9n"]={"g":"2026-11-02","d":["TUBO MINI COLLECT CELESTE 1 ML 9NC COAGULACION 3.2%  CJ X 100"],"t":{"9nc":[[9,0,"11:8,12:8","22-04"]]}};

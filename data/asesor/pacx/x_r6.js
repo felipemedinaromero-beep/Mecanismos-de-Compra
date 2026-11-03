@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["r6"]={"g":"2026-10-20","d":["CURSO HELICOPTERO R66"],"t":{"r66":[[88,0,"10:11000","22-11"]]}};

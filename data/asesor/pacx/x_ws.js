@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ws"]={"g":"2026-10-20","d":["3414 - FLOW CELL WASH KIT XL Ref.  EXP-WSH004-XL,Nanopore"],"t":{"wsh004":[[368,0,"12:822","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ws"]={"g":"2026-11-02","d":["3414 - FLOW CELL WASH KIT XL Ref.  EXP-WSH004-XL,Nanopore"],"t":{"wsh004":[[367,0,"12:822","22-04"]]}};

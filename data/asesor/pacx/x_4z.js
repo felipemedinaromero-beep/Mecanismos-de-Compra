@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4z"]={"g":"2026-10-20","d":["IMPRESORA-LASER-HP-PROM107W-4ZB78A-UNIDAD o SIMILAR"],"t":{"4zb78a":[[67,0,"10:153,11:153,12:153","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4z"]={"g":"2026-11-02","d":["IMPRESORA-LASER-HP-PROM107W-4ZB78A-UNIDAD o SIMILAR"],"t":{"4zb78a":[[70,0,"11:153,12:153","22-04"]]}};

@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["8v"]={"g":"2026-10-20","d":["Reparación con prueba dinamométrica motor Detroit 8V92T Maquinaria Oshkosh"],"t":{"8v92t":[[88,0,"12:33500","22-06"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["8v"]={"g":"2026-11-02","d":["Reparación con prueba dinamométrica motor Detroit 8V92T Maquinaria Oshkosh"],"t":{"8v92t":[[87,0,"12:33500","22-06"]]}};

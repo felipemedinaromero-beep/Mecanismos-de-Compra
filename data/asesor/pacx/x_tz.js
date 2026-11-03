@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["tz"]={"g":"2026-10-20","d":["Mantención obligatoria de vehículos fiscales KGSF-35, HPDF-59, TZPD-12  (La Serena y Ovall","Servicio de mantenciones preventivas por kilomentraje para vehículos de la Flota Municipal"],"t":{"tzpd":[[295,0,"10:500","22-06"]],"tzhp":[[405,1,"11:400","22-06"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["tz"]={"g":"2026-11-02","d":["Servicio de mantenciones preventivas por kilomentraje para vehículos de la Flota Municipal"],"t":{"tzhp":[[408,0,"11:400","22-06"]]}};

@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["qw"]={"g":"2026-10-20","d":["1057. PTs-QWAS| Participación en la Ronda WT342, Muestra 412"],"t":{"qwas":[[368,0,"10:1166","22-11"]]}};

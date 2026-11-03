@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1s"]={"g":"2026-10-20","d":["BARRERA BIOAD GEN MUCOS GEL.OR 15 ML 1SO (GELCLAIR)"],"t":{"1so":[[25,0,"10:1800,11:1800,12:1800","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1s"]={"g":"2026-11-02","d":["BARRERA BIOAD GEN MUCOS GEL.OR 15 ML 1SO (GELCLAIR)"],"t":{"1so":[[25,0,"11:1800,12:1800","22-04"]]}};

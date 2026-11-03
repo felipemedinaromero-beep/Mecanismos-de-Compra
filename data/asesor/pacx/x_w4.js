@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["w4"]={"g":"2026-10-20","d":["PROTESIS VASCULAR CONICA ESCALONADA PTFE 40 CM X 4-6 MM (W40T0406S)"],"t":{"w40t0406":[[11,0,"10:1932","22-04"]]}};

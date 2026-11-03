@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["dq"]={"g":"2026-10-20","d":["dquisición de insumos computacionales, teclados, alzador, mouse, accesorios"],"t":{"dquisicion":[[974,0,"10:2000","22-04"]]}};

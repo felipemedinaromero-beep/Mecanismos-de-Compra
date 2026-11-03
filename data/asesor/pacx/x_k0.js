@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k0"]={"g":"2026-10-20","d":["3379 - GENEJET FFPE DNA PURIFICATION KIT Ref. Catalogo K0881, ThermoFisher Scientific"],"t":{"k0881":[[368,0,"12:660","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k0"]={"g":"2026-11-02","d":["3379 - GENEJET FFPE DNA PURIFICATION KIT Ref. Catalogo K0881, ThermoFisher Scientific"],"t":{"k0881":[[367,0,"12:660","22-04"]]}};

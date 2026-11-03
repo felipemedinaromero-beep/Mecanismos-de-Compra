@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4r"]={"g":"2026-10-20","d":["3394 - ESTANDAR SECUENCIADOR V3.1, 3500, 4RX Ref. Catalogo 4404312, Applied Biosystems, Th","INI26-AD-MAGALLANES-RFA-MANTENCION Y REPARACION VEHICULO TOYOTA 4RUNNER"],"t":{"4rx":[[368,0,"10:597","22-04"]],"4runner":[[80,1,"12:6000","22-06"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4r"]={"g":"2026-11-02","d":["INI26-AD-MAGALLANES-RFA-MANTENCION Y REPARACION VEHICULO TOYOTA 4RUNNER"],"t":{"4runner":[[80,0,"12:6000","22-06"]]}};

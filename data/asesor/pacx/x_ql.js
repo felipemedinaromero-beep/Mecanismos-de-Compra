@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ql"]={"g":"2026-10-20","d":["Test strips qLabs PT-INR","DET-TI-11  RENOVACIÓN DE SOPORTE Y SUSCRIPCIÓN DE: QLIK CLOUD ANALYTICS"],"t":{"qlab":[[526,0,"10:560,11:560,12:560","22-04"]],"qlik":[[662,1,"11:225000","22-11"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ql"]={"g":"2026-11-02","d":["Test strips qLabs PT-INR","DET-TI-11  RENOVACIÓN DE SOPORTE Y SUSCRIPCIÓN DE: QLIK CLOUD ANALYTICS"],"t":{"qlab":[[525,0,"11:560,12:560","22-04"]],"qlik":[[663,1,"11:225000","22-11"]]}};

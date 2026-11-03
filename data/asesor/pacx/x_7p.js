@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["7p"]={"g":"2026-10-20","d":["6672739 JUEGO BROCAS DIAMANTADAS 7PZAS","ALINITY C CRP VARIO WR CAL  REF: 7P56-01"],"t":{"7pza":[[5,0,"10:55,11:55,12:55","22-04"]],"7p56":[[25,1,"10:820","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["7p"]={"g":"2026-11-02","d":["6672739 JUEGO BROCAS DIAMANTADAS 7PZAS"],"t":{"7pza":[[5,0,"11:55,12:55","22-04"]]}};

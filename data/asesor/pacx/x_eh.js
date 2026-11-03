@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["eh"]={"g":"2026-10-20","d":["tarjeta ehternet usb","SET DE ESPEJOS PARA FOTOGRAFÍA DENTAL, IGUAL O SUPERIOR A EHROS."],"t":{"ehternet":[[99,0,"10:240","22-04"]],"ehro":[[663,1,"10:20,11:20,12:20","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["eh"]={"g":"2026-11-02","d":["SET DE ESPEJOS PARA FOTOGRAFÍA DENTAL, IGUAL O SUPERIOR A EHROS."],"t":{"ehro":[[652,0,"11:20,12:20","22-04"]]}};

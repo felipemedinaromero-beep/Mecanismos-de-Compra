@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["wg"]={"g":"2026-11-02","d":["Licenciamiento Google Workspace Standard WGS (189 users) a contar de diciembre 2025 (valor"],"t":{"wgs":[[740,0,"12:27405","29-07"]]}};

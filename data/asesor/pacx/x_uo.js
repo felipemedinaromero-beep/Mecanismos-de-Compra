@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["uo"]={"g":"2026-10-20","d":["ADQUISICION DE DISPOSITIVOS PARA LA CONEXIÓN CON LA UOCT"],"t":{"uoct":[[391,0,"12:100000",""]]}};

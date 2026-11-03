@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["e8"]={"g":"2026-10-20","d":["GUíA DE BIOPSIAS DESECHABLES PARA E8C-RS 116-18GA UNIDAD"],"t":{"e8c":[[158,0,"10:247,11:247,12:247","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["e8"]={"g":"2026-11-02","d":["GUíA DE BIOPSIAS DESECHABLES PARA E8C-RS 116-18GA UNIDAD"],"t":{"e8c":[[159,0,"11:247,12:247","22-04"]]}};

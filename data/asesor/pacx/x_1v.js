@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1v"]={"g":"2026-10-20","d":["051-0490 051-0490 CARTUCHO TINTA HP GT53 BLACK (1VV22AL)"],"t":{"1vv22al":[[34,0,"10:7,11:7,12:7","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1v"]={"g":"2026-11-02","d":["051-0490 051-0490 CARTUCHO TINTA HP GT53 BLACK (1VV22AL)"],"t":{"1vv22al":[[33,0,"11:7,12:7","22-04"]]}};

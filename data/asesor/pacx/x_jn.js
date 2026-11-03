@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["jn"]={"g":"2026-10-20","d":["CERRADURA MULTIPLE JNF 601"],"t":{"jnf":[[67,0,"11:95,12:95","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["jn"]={"g":"2026-11-02","d":["CERRADURA MULTIPLE JNF 601"],"t":{"jnf":[[70,0,"11:95,12:95","22-04"]]}};

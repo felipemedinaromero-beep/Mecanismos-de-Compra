@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["e3"]={"g":"2026-10-20","d":["e32 test"],"t":{"e32":[[112,0,"11:380","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["e3"]={"g":"2026-11-02","d":["6674400 TUBO FLUORESCENTE 4FT E36T8 24","e32 test"],"t":{"e36t8":[[5,0,"12:71","22-06"]],"e32":[[112,1,"11:380","22-04"]]}};

@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["vy"]={"g":"2026-10-20","d":["Sotura Tipo Vycril","SONDA NASOGASTRICA VYGON PEDIATRICA ALIMENTACION ENTERAL ENFIT 8FR X 40CM","PAC-DR_VIII26-27 - FERIA VYVA"],"t":{"vycril":[[552,0,"11:938","22-04"]],"vygon":[[41,1,"10:355","22-04"]],"vyva":[[499,2,"10:7100",""]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["vy"]={"g":"2026-11-02","d":["Sotura Tipo Vycril"],"t":{"vycril":[[553,0,"11:938","22-04"]]}};

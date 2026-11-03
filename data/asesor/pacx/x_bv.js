@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["bv"]={"g":"2026-10-20","d":["LINEA AV SET ONLINE PLUS BVM PAED 5008R"],"t":{"bvm":[[52,0,"10:1071,11:1071,12:1071","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["bv"]={"g":"2026-11-02","d":["LINEA AV SET ONLINE PLUS BVM PAED 5008R"],"t":{"bvm":[[52,0,"11:1071,12:1071","22-04"]]}};

@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["3d"]={"g":"2026-10-20","d":["Autodesk 3DS Max"],"t":{"3ds":[[99,0,"12:2200","29-07"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["3d"]={"g":"2026-11-02","d":["2224900 SONDA T KEHR 10FR 3,3DIAM.","Autodesk 3DS Max"],"t":{"3diam":[[5,0,"12:190","22-04"]],"3ds":[[101,1,"12:2200","29-07"]]}};

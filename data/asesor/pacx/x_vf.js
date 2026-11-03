@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["vf"]={"g":"2026-10-20","d":["VORICONAZOL , HPLC VFEND MICODOX"],"t":{"vfend":[[41,0,"10:131","22-12"]]}};

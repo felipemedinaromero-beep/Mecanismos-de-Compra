@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["r4"]={"g":"2026-10-20","d":["CURSO HELICOPTERO R44","LINEA A/V PEDIATRICA R4008 REF.F00001064"],"t":{"r44":[[88,0,"10:6000","22-11"]],"r4008":[[52,1,"10:785,11:524,12:524","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["r4"]={"g":"2026-11-02","d":["LINEA A/V PEDIATRICA R4008 REF.F00001064"],"t":{"r4008":[[52,0,"11:524,12:524","22-04"]]}};

@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4k"]={"g":"2026-10-20","d":["EXTINTORES PORTATILES 4KG PQS"],"t":{"4kg":[[236,0,"11:111","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4k"]={"g":"2026-11-02","d":["EXTINTORES PORTATILES 4KG PQS","6573686 EXTINTOR 4KG DE PQS"],"t":{"4kg":[[232,0,"11:111","22-04"],[5,1,"11:641","22-04"]]}};

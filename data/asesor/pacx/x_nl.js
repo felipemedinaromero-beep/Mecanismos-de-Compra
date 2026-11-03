@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["nl"]={"g":"2026-10-20","d":["Renovación suscripción IDEA - NLS Virtual"],"t":{"nls":[[579,0,"10:2400,12:2400","22-08"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["nl"]={"g":"2026-11-02","d":["Renovación suscripción IDEA - NLS Virtual"],"t":{"nls":[[575,0,"12:2400","22-08"]]}};

@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["h4"]={"g":"2026-10-20","d":["4579 - SUERO AB HUMANO 100 ML Ref.  H4522-100ML Sigma Aldrich","SOFTCARE H42 FOAM SACHET 1.3 LITROS"],"t":{"h4522":[[368,0,"10:451","22-04"]],"h42":[[76,1,"10:17,11:17,12:17","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["h4"]={"g":"2026-11-02","d":["SOFTCARE H42 FOAM SACHET 1.3 LITROS"],"t":{"h42":[[76,0,"11:17,12:17","22-04"]]}};

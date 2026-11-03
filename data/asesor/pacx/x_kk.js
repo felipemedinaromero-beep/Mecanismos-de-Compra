@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["kk"]={"g":"2026-10-20","d":["REPUESTO Y ACC. KKCX-87"],"t":{"kkcx":[[458,0,"10:117,11:117","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["kk"]={"g":"2026-11-02","d":["REPUESTO Y ACC. KKCX-87"],"t":{"kkcx":[[457,0,"11:117","22-04"]]}};

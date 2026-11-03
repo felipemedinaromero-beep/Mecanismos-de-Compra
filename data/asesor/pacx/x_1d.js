@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1d"]={"g":"2026-10-20","d":["SALBUTAMOL INHALADOR 100 MCG/1DO","IPRATROPIO BROMURO INH. PRES. 20 MCG/1DO FC 200 - 270 DOSIS"],"t":{"1do":[[41,0,"10:458","22-04"],[91,1,"12:183","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1d"]={"g":"2026-11-02","d":["IPRATROPIO BROMURO INH. PRES. 20 MCG/1DO FC 200 - 270 DOSIS"],"t":{"1do":[[91,0,"12:183","22-04"]]}};

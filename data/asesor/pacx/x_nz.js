@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["nz"]={"g":"2026-10-20","d":["LIMPIADOR DE HERIDAS VASHE NZT 5.5 SOLUCIÓN DE ACIDO HIPOCLOROSO PH6 FRASCO"],"t":{"nzt":[[99,0,"10:9200","22-04"]]}};

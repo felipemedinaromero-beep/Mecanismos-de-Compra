@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["lh"]={"g":"2026-10-20","d":["CARTOLA TERAPIA CON ANÁLOGO LHRH","CARNET TERAPIA CON ANÁLOGO LHRH"],"t":{"lhrh":[[76,0,"10:12,11:12,12:12","22-04"],[76,1,"10:14,11:14,12:14","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["lh"]={"g":"2026-11-02","d":["CARTOLA TERAPIA CON ANÁLOGO LHRH","CARNET TERAPIA CON ANÁLOGO LHRH"],"t":{"lhrh":[[76,0,"11:12,12:12","22-04"],[76,1,"11:14,12:14","22-04"]]}};

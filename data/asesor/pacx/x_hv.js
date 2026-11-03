@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["hv"]={"g":"2026-10-20","d":["2451463 EXAMENES HEPATITIS C /LAB HVC"],"t":{"hvc":[[5,0,"10:3396,11:3396,12:3396","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["hv"]={"g":"2026-11-02","d":["2451463 EXAMENES HEPATITIS C /LAB HVC","DAF SERVICIO DE REPARACION CAMION RECOLECTOR HVLP-84"],"t":{"hvc":[[5,0,"11:3396,12:3396","22-04"]],"hvlp":[[396,1,"11:3000","22-06"]]}};

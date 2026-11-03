@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["mz"]={"g":"2026-11-02","d":["Tarjetas de alimentación MZS"],"t":{"mzs":[[2,0,"11:3120","22-01"]]}};

@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["6r"]={"g":"2026-10-20","d":["MULTILIGADOR VARICES ESOFAGICAS BARRIL 6REF: MBL-6-I"],"t":{"6ref":[[25,0,"10:1461,11:1461","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["6r"]={"g":"2026-11-02","d":["MULTILIGADOR VARICES ESOFAGICAS BARRIL 6REF: MBL-6-I"],"t":{"6ref":[[25,0,"11:1461","22-04"]]}};

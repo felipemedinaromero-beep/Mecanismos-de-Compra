@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["n3"]={"g":"2026-10-20","d":["NAVAJAS DESECHABLES N35HR"],"t":{"n35hr":[[36,0,"10:7,11:7,12:7","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["n3"]={"g":"2026-11-02","d":["NAVAJAS DESECHABLES N35HR"],"t":{"n35hr":[[36,0,"11:7,12:7","22-04"]]}};

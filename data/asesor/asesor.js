@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r29' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r32' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -68,9 +68,12 @@ function procTotal(){ return S.st.l.reduce((a, l) => a + lineTotal(l), 0); }
 const SERV_TXT = /\b(servicios?|nube|cloud|saas|iaas|paas|hosting|alojamiento|suscripcion(es)?|arriendos?|arrendamientos?|mantencion(es)?|mantenimientos?|soporte (tecnico|informatico|de usuarios?|remoto)|capacitacion(es)?|cursos?|asesoria(s)?|consultoria(s)?|auditoria(s)?|outsourcing|monitoreo|vigilancia|catering|traslados?|reparacion(es)?|desarrollo de software|licenciamiento)\b/;
 const servTxt = t => { const m = norm(t || '').match(SERV_TXT); return m ? m[0] : ''; };
 function servNombre(code){ const i = (S.prodByCode && code) ? S.prodByCode[code] : null; if(i == null || !S.C) return false; const n = norm(S.C.n[i]); return /^(servicios?|arriendo|suscripcion|mantencion|mantenimiento) /.test(n) || /\b(nube|cloud|saas)\b/.test(n); }
-function autoTipo(code, tx){ const sg = Number(String(code || '').slice(0, 2)); if(sg >= SERV_CODE && sg <= 94) return 'servicio'; return (servTxt(tx) || servNombre(code)) ? 'servicio' : 'bien'; }
+function autoTipo(code, tx){ if(String(code || '').length >= 9) return 'servicio'; const sg = Number(String(code || '').slice(0, 2)); if(sg >= SERV_CODE && sg <= 94) return 'servicio'; return (servTxt(tx) || servNombre(code)) ? 'servicio' : 'bien'; }
 const autoTipoL = l => autoTipo(l.p, l.tx);
 function lineTipo(l){ return l.t || (l.p ? autoTipoL(l) : (servTxt(l.q) ? 'servicio' : 'bien')); }
+/* Rubro de tres niveles (Nivel 1 › Nivel 2 › Nivel 3) del listado oficial de rubros ONU; si el catálogo no trae 'k', solo el Nivel 1. */
+function rubroTxt(i){ const C = S.C, k = (C.k && C.cats && C.k[i] >= 0) ? C.cats[C.k[i]] : ''; return [C.rubros[C.r[i]] || '', k].filter(Boolean).join(' › '); }
+const sinCompras = i => !S.C.v[i] && !S.C.o[i];
 function lineName(l){ const i = l.p ? S.prodByCode[l.p] : null; return i != null ? sentence(S.C.n[i]) : (l.q || ''); }
 function activeLine(){ return S.st.l[S.li] || S.st.l[0]; }
 function recalc(){ S.st.m = procTotal(); }
@@ -94,7 +97,7 @@ function ensure(){
     loadScript(AB + 'pres.js' + ver()).then(() => { S.pres = window.AS_PRES || null; S.presTried = true; if(S.orgIdx != null) update(); }).catch(() => { S.presTried = true; });
     S.C = window.AS_CAT; S.O = window.AS_ORG;
     S.orgNorm = S.O.o.map(o => norm(o[1]) + ' ' + o[0]);
-    S.prodNorm = S.C.n.map((n, i) => norm(n) + ' ' + S.C.c[i]);
+    S.prodNorm = S.C.n.map((n, i) => norm(n).replace(/[“”‘’«»"]/g, '') + ' ' + S.C.c[i]);
     S.orgByCode = {}; S.O.o.forEach((o, i) => S.orgByCode[o[0]] = i);
     S.prodByCode = {}; S.C.c.forEach((c, i) => S.prodByCode[c] = i);
     S.utmKeys = Object.keys(S.C.utm).sort((a, b) => { const x = a.split('-').map(Number), y = b.split('-').map(Number); return (x[0] - y[0]) || (x[1] - y[1]); });
@@ -712,8 +715,8 @@ function paintLines(){
   const box = $('as-lines'); if(!box) return;
   const l = S.st.l[0]; S.li = 0;
   const pi = l.p ? S.prodByCode[l.p] : null, nm = lineName(l), tipo = lineTipo(l), auto = l.p ? autoTipoL(l) : null, calc = !!(l.n && l.pu), tot = lineTotal(l), um = lineUm(l);
-  const meta = pi != null ? `${esc(S.C.rubros[S.C.r[pi]] || '')} · código ${esc(l.p)}${S.C.cm[pi] ? ' · en Convenio Marco' : ''}` : '';
-  const nota = auto ? `Tipo asignado ${Number(String(l.p).slice(0, 2)) < SERV_CODE && auto === 'servicio' ? (servTxt(l.tx) ? 'como servicio por lo que escribiste («' + esc(servTxt(l.tx)) + '»)' : 'como servicio por el nombre del producto') : 'según el código ONU ' + esc(l.p)}${l.t && l.t !== auto ? '; lo cambiaste a mano' : ''}.` : 'Elige un producto de la lista y el tipo se asigna solo. Mientras tanto, indica si es bien o servicio.';
+  const meta = pi != null ? `${esc(rubroTxt(pi))} · código ${esc(l.p)}${S.C.cm[pi] ? ' · en Convenio Marco' : ''}` : '';
+  const nota = auto ? `Tipo asignado ${String(l.p).length >= 9 ? 'como servicio, porque el código ' + esc(l.p) + ' es una categoría de obras o consultorías' : Number(String(l.p).slice(0, 2)) < SERV_CODE && auto === 'servicio' ? (servTxt(l.tx) ? 'como servicio por lo que escribiste («' + esc(servTxt(l.tx)) + '»)' : 'como servicio por el nombre del producto') : 'según el código ONU ' + esc(l.p)}${l.t && l.t !== auto ? '; lo cambiaste a mano' : ''}.` : 'Elige un producto de la lista y el tipo se asigna solo. Mientras tanto, indica si es bien o servicio.';
   box.innerHTML = `<div class="as-ln" data-i="0">
     ${pi != null ? `<div class="as-ln-h"><div class="as-ln-n"><span><b>${esc(nm)}</b>${meta ? `<small>${meta}</small>` : ''}</span></div><button class="as-x" data-a="chg" data-i="0">cambiar</button></div>` : ''}
     <div class="as-ln-f">
@@ -853,17 +856,27 @@ function searchProd(){
   const hit = i => { const w = S.prodStem[i]; return sq.every(t => w.some(x => x.startsWith(t))); };
   const res = []; for(let i = 0; i < S.prodNorm.length; i++){ if(hit(i)) res.push(i); }
   res.sort(rank_);
+  // rubro: si hay pocos productos con esas palabras en el nombre, se suman los que las tienen en su rubro (Nivel 2 o 3)
+  const sqR = sq.filter(t => !STOP.has(t)), resRub = [];
+  if(res.length < 14 && sqR.length && S.C.k && S.C.cats){
+    const rubW = S.rubStem || (S.rubStem = S.C.k.map(k => k >= 0 ? norm(S.C.cats[k]).split(/[\s›]+/).filter(Boolean).map(stem) : []));
+    const inRes = new Set(res);
+    for(let i = 0; i < S.prodNorm.length; i++){ if(inRes.has(i)) continue; const w = S.prodStem[i].concat(rubW[i]); if(sqR.every(t => w.some(x => x.startsWith(t)))) resRub.push(i); }
+    resRub.sort(rank_);
+  }
   // sinónimos
   const rel = [], notas = []; ALIAS.forEach(al => { if(al.re.test(q)){ notas.push(al.nota); al.cods.forEach(c => { const i = S.codeIdx[c]; if(i != null && !rel.includes(i)) rel.push(i); }); } });
   // si no hay nada, acepta coincidencias parciales (al menos una palabra)
   let par = [];
-  if(!res.length && !rel.length && sq.length > 1){ for(let i = 0; i < S.prodNorm.length; i++){ const w = S.prodStem[i]; if(sq.some(t => t.length >= 4 && w.some(x => x.startsWith(t)))) par.push(i); } par.sort(rank_); }
+  if(!res.length && !rel.length && !resRub.length && sq.length > 1){ for(let i = 0; i < S.prodNorm.length; i++){ const w = S.prodStem[i]; if(sq.some(t => t.length >= 4 && w.some(x => x.startsWith(t)))) par.push(i); } par.sort(rank_); }
   box.hidden = false;
-  const opt = i => `<button class="as-opt" data-i="${i}"><b>${esc(sentence(S.C.n[i]))}</b><small>${esc(S.C.rubros[S.C.r[i]] || '')} · ${esc(S.C.c[i])} · ${mm(S.C.v[i])} en 12 meses${S.C.cm[i] ? ' · en Convenio Marco' : ''}</small></button>`;
+  const opt = i => `<button class="as-opt" data-i="${i}"><b>${esc(sentence(S.C.n[i]))}</b><small>${esc(rubroTxt(i))} · ${esc(S.C.c[i])} · ${sinCompras(i) ? 'sin compras en 12 meses' : mm(S.C.v[i]) + ' en 12 meses'}${S.C.cm[i] ? ' · en Convenio Marco' : ''}</small></button>`;
   let h = '';
   if(rel.length) h += `<p class="as-hint" style="margin:6px 8px">Productos relacionados con ${esc(notas.join(', '))}:</p>` + rel.slice(0, 8).map(opt).join('');
   const resR = res.filter(i => !rel.includes(i));
   if(resR.length) h += (rel.length ? '<p class="as-hint" style="margin:6px 8px">Otros que coinciden con lo escrito:</p>' : '') + resR.slice(0, rel.length ? 8 : 14).map(opt).join('');
+  const resRb = resRub.filter(i => !rel.includes(i));
+  if(resRb.length) h += `<p class="as-hint" style="margin:6px 8px">${(res.length || rel.length) ? 'También en rubros que coinciden con lo escrito:' : 'Productos de rubros que coinciden con lo escrito:'}</p>` + resRb.slice(0, 8).map(opt).join('');
   if(par.length) h += '<p class="as-hint" style="margin:6px 8px">No hay coincidencia exacta. Productos que contienen alguna de tus palabras:</p>' + par.slice(0, 10).map(opt).join('');
   const pb = procBlocks();
   box.innerHTML = (pb.top + h + pb.bot) || '<p class="as-hint">Sin resultados. Prueba con una palabra más corta, un sinónimo (por ejemplo "correo electrónico" en vez de "mail") o el código ONU.</p>';
@@ -970,12 +983,12 @@ function pacConsHtml(o){
   const P = S.pacOrg === S.orgIdx ? S.pac : null, items = pacItems(), nm = S.org ? S.org[1] : '', nmEnc = encodeURIComponent(nm), l = activeLine(), many = S.st.l.length > 1;
   const head = `<div class="as-sec as-pac" id="as-pacc"><h3>Tu PAC 2026 y la consolidación${many ? ' de la línea ' + (S.li + 1) : ' de este producto'}</h3>`;
   if(S.pacOrg !== S.orgIdx) return head + '<div class="as-load">Revisando el PAC 2026 de tu organismo…</div></div>';
-  if(!S.pac) return head + `<p>No encontré PAC 2026 publicado para ${esc(nm)} en el archivo del 20-10-2026 (proyectos Publicado y Actualizado). Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley 19.886 art. 12; DS 661 art. 27). Revisa el <a href="#pac26=${nmEnc}" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
+  if(!S.pac) return head + `<p>No encontré PAC 2026 publicado para ${esc(nm)} en el archivo del 02-11-2026 (proyectos Publicado y Actualizado). Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley 19.886 art. 12; DS 661 art. 27). Revisa el <a href="#pac26=${nmEnc}" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
   const st = pacState(l), nomL = sentence(consultaTexto()) || 'este producto';
   if(!items.length) return head + `<p>En el PAC 2026 de tu organismo no aparece un ítem que coincida con «${esc(nomL)}». Si vas a comprarlo, agrégalo con una modificación del PAC y fundamenta el motivo en el acto administrativo (Ley art. 12; DS 661 arts. 27 y 166). Para revisar el PAC completo: <a href="#pac26=${nmEnc}" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
   const hoy = new Date().getMonth() + 1, oc = ocMeses(l), plannedAll = pacResumen(items, st.sel).mesesList, tieneComprados = !!(oc && plannedAll.some(m => oc[m]));
   const skip = (tieneComprados && S.pendOnly !== false) ? new Set(plannedAll.filter(m => oc[m])) : null, rs = pacResumen(items, st.sel, skip), conPr = !!(P.pr && items.some(x => x.it[7] != null));
-  let h = head + `<p>El Asesor asoció tu producto con ${items.length} ítem(s) del PAC de ${esc(nm)} (versión del 20-10-2026)${conPr ? ', agrupados por proyecto' : ''}. Marca los que corresponden a la misma necesidad: el Asesor suma sus meses y propone una sola compra.</p>`;
+  let h = head + `<p>El Asesor asoció tu producto con ${items.length} ítem(s) del PAC de ${esc(nm)} (versión del 02-11-2026)${conPr ? ', agrupados por proyecto' : ''}. Marca los que corresponden a la misma necesidad: el Asesor suma sus meses y propone una sola compra.</p>`;
   const fila = x => {
     const ms = pacMeses(x.it[5]);
     const mtxt = ms.length ? ms.map(m => `<span class="as-mes${m.m < hoy ? ' as-mes-p' : ''}">${MES3[m.m - 1]} ${pesos(m.v)}</span>`).join(' ') : '<span class="as-hint">sin mes definido</span>';
@@ -1039,7 +1052,7 @@ function orgFinTxt(corto){
   } else if(S.presTried) a = 'El presupuesto de la Ley 2026 aún no está cargado en el Asesor. Revísalo en la vista <a href="#presupuesto" rel="noopener">Presupuesto 2026</a> del sitio.';
   let b = '';
   if(S.pacOrg !== S.orgIdx) b = 'Revisando el PAC 2026…';
-  else if(!pt) b = 'No tiene PAC 2026 publicado en el archivo del 20-10-2026.';
+  else if(!pt) b = 'No tiene PAC 2026 publicado en el archivo del 02-11-2026.';
   else b = `PAC 2026: <b>${pesos(pt.t)}</b> en ${fmt(pt.n)} ítem(s)${pt.pj ? ' y ' + fmt(pt.pj) + ' proyecto(s)' : ''}.`;
   return [a, b, comp.trim()].filter(Boolean).join(' ');
 }
@@ -1210,7 +1223,7 @@ function fragFuturaHtml(o){
   const f = fragFutura(o), nm = S.org ? encodeURIComponent(S.org[1]) : '';
   const lead = '<p>El Asesor busca en el PAC 2026 de tu organismo los ítems de este producto planificados en varios meses y los suma, descontando los meses que ya tienen compra registrada.</p>';
   if(f.est === 'carga') return head + '<div class="as-load">Revisando el PAC 2026 de tu organismo…</div></div>';
-  if(f.est === 'sinpac') return head + lead + `<p><b>Sin PAC publicado.</b> No encontré PAC 2026 de tu organismo en el archivo del 20-10-2026, así que no puedo anticipar fragmentación. Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley art. 12; DS 661, art. 27). Revisa el <a href="#pac26=${nm}" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
+  if(f.est === 'sinpac') return head + lead + `<p><b>Sin PAC publicado.</b> No encontré PAC 2026 de tu organismo en el archivo del 02-11-2026, así que no puedo anticipar fragmentación. Sin PAC, la compra debe justificarse en el acto que la autoriza (Ley art. 12; DS 661, art. 27). Revisa el <a href="#pac26=${nm}" rel="noopener">Buscador PAC 2026</a>.</p></div>`;
   if(f.est === 'sinitems') return head + lead + '<p><b>Sin ítems asociados.</b> En el PAC no aparece un ítem que coincida con este producto. Si lo vas a comprar, agrégalo al PAC con una modificación fundada (DS 661, arts. 166 y 169).</p></div>';
   if(f.est === 'sinsel') return head + lead + '<p>Hay ítems posibles, pero ninguno marcado. Márcalos en la pestaña «PAC y presupuesto» para evaluar la consolidación.</p><p><button type="button" class="as-btn as-gopac">Abrir el detalle del PAC</button></p></div>';
   if(f.est === 'unico') return head + lead + `<p><b>Sin fragmentación a la vista.</b> El PAC planifica este producto en un solo ítem y un solo mes (${pesos(f.rs.totalClp)}).</p></div>`;
@@ -1445,7 +1458,7 @@ function demandaHtml(){
     h += `<p>El mes con más organismos es <b>${MES3[best - 1]}</b>.${mine.length ? (mine.includes(best) ? ' Coincide con el mes en que tu propio PAC planifica esta compra: es la ventana más simple para coordinarla.' : ' Tu PAC lo planifica en ' + mine.map(m => MES3[m - 1]).join(', ') + (c[mine[0]] ? `, mes en que otros ${c[mine[0]].n} organismo(s) también lo planifican.` : '; ahí no hay otros organismos de tu región con ese ítem.')) : ' Tu PAC no tiene un ítem marcado para estos meses.'}</p>` + tabla(loc);
   } else h += `<p>En ${esc(regEn(reg))} no hay otros organismos con ítems parecidos a «${esc(nm)}» planificados desde ${mesesTxt}.</p>`;
   if(otras.length) h += `<details class="as-det"><summary>Ver ${fmt(otras.length)} organismo(s) de otras regiones</summary>${tabla(otras)}</details>`;
-  h += `<p class="as-hint">Agregar demanda mediante Compra Coordinada puede mejorar el precio y reducir los costos de transacción de todos. Fuente: PAC 2026 de cada organismo (proyectos Publicado y Actualizado, archivo del ${esc(px.g || '20-10-2026')}). Los ítems del PAC son texto libre sin código ONU: la coincidencia es por palabras (la descripción debe partir con el producto${fuera ? '; ' + fmt(fuera) + ' ítems que solo lo mencionan o que el PAC clasifica como servicio, como mantenciones o arriendos, quedaron fuera' : ''}). Revisa cada ítem y recuerda que el PAC puede modificarse.</p>` + cit;
+  h += `<p class="as-hint">Agregar demanda mediante Compra Coordinada puede mejorar el precio y reducir los costos de transacción de todos. Fuente: PAC 2026 de cada organismo (proyectos Publicado y Actualizado, archivo del ${esc(px.g || '02-11-2026')}). Los ítems del PAC son texto libre sin código ONU: la coincidencia es por palabras (la descripción debe partir con el producto${fuera ? '; ' + fmt(fuera) + ' ítems que solo lo mencionan o que el PAC clasifica como servicio, como mantenciones o arriendos, quedaron fuera' : ''}). Revisa cada ítem y recuerda que el PAC puede modificarse.</p>` + cit;
   return h + '</div>';
 }
 function pacHtml(){

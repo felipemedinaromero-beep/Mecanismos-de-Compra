@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["9l"]={"g":"2026-10-20","d":["AMPOLLETA LED 9W 9LED 220V E27"],"t":{"9led":[[67,0,"10:11,11:11,12:11","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["9l"]={"g":"2026-11-02","d":["AMPOLLETA LED 9W 9LED 220V E27"],"t":{"9led":[[70,0,"11:11,12:11","22-04"]]}};

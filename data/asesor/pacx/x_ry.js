@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ry"]={"g":"2026-10-20","d":["BALON DE PREDILATACION CORONARIA (RYUREI)"],"t":{"ryurei":[[41,0,"10:410","22-04"]]}};

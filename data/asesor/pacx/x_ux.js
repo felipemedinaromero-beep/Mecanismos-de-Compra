@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ux"]={"g":"2026-10-20","d":["UXPressia y/o similar"],"t":{"uxpressia":[[674,0,"11:1350","22-08"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["ux"]={"g":"2026-11-02","d":["UXPressia y/o similar"],"t":{"uxpressia":[[674,0,"11:1350","22-08"]]}};

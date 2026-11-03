@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["fb"]={"g":"2026-10-20","d":["FENOBARBITAL ARCHITECT 300 T. REF: KIT-FBA-CC-1"],"t":{"fba":[[25,0,"11:2020","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["fb"]={"g":"2026-11-02","d":["3401541 PINZA SATINSKY FB5600R","3401553 PINZA SATINSKY  FB508R","FENOBARBITAL ARCHITECT 300 T. REF: KIT-FBA-CC-1"],"t":{"fb5600r":[[5,0,"12:290","22-04"]],"fb508r":[[5,1,"12:531","22-04"]],"fba":[[25,2,"11:2020","22-04"]]}};

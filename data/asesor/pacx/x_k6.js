@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k6"]={"g":"2026-10-20","d":["KIT NEFRECTOMIA LAPAROSCOPICA REF K6767"],"t":{"k6767":[[31,0,"11:900","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k6"]={"g":"2026-11-02","d":["KIT NEFRECTOMIA LAPAROSCOPICA REF K6767"],"t":{"k6767":[[31,0,"11:900","22-04"]]}};

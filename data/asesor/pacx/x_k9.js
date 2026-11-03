@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k9"]={"g":"2026-10-20","d":["(Insumo) IM08- MASCARILLA TIPO K95"],"t":{"k95":[[513,0,"11:5,12:5","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k9"]={"g":"2026-11-02","d":["(Insumo) IM08- MASCARILLA TIPO K95"],"t":{"k95":[[514,0,"11:5,12:5","22-04"]]}};

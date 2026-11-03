@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1o"]={"g":"2026-10-20","d":["JERINGA INSULINA 1OO UI (1 CC) AGUJA INCORPORADA 29G X 13 MM"],"t":{"1oo":[[11,0,"10:1292,11:1292,12:1292","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["1o"]={"g":"2026-11-02","d":["JERINGA INSULINA 1OO UI (1 CC) AGUJA INCORPORADA 29G X 13 MM"],"t":{"1oo":[[11,0,"11:1292,12:1292","22-04"]]}};

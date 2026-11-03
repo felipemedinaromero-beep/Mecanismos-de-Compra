@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k1"]={"g":"2026-10-20","d":["lima de acero inoxidable para uso endodontico k6 , k15, k8","MULTIVIT A9000, D400, E150, K150 CON ZINC CP"],"t":{"k15":[[373,0,"11:94","22-04"]],"k150":[[52,1,"11:647","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["k1"]={"g":"2026-11-02","d":["lima de acero inoxidable para uso endodontico k6 , k15, k8","MULTIVIT A9000, D400, E150, K150 CON ZINC CP"],"t":{"k15":[[371,0,"11:94","22-04"]],"k150":[[52,1,"11:647","22-04"]]}};

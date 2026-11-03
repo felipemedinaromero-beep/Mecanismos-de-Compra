@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["bk"]={"g":"2026-10-20","d":["3005 MEDIO DE CULTIVO AGAR SABOURAUD - CLORANFENICOL;500G Ref. BK027HA BIOKAR FRANCIA","Mantenciones preventivas Electrógeno BKYS89"],"t":{"bk027ha":[[368,0,"12:223","22-04"]],"bkys89":[[17,1,"10:880","22-06"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["bk"]={"g":"2026-11-02","d":["3005 MEDIO DE CULTIVO AGAR SABOURAUD - CLORANFENICOL;500G Ref. BK027HA BIOKAR FRANCIA"],"t":{"bk027ha":[[367,0,"12:223","22-04"]]}};

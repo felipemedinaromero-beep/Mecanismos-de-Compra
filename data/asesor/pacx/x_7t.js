@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["7t"]={"g":"2026-10-20","d":["SER-1079 EEG DE 48 A 60 HRS + 7TP","340-0344     340-0344    FRESA MIDAS MR8 F2/7TA23S"],"t":{"7tp":[[34,0,"10:1525,11:1525,12:1525","22-12"]],"7ta23":[[34,1,"10:214,12:214","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["7t"]={"g":"2026-11-02","d":["SER-1079 EEG DE 48 A 60 HRS + 7TP","340-0344     340-0344    FRESA MIDAS MR8 F2/7TA23S"],"t":{"7tp":[[33,0,"11:1525,12:1525","22-12"]],"7ta23":[[33,1,"12:214","22-04"]]}};

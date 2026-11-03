@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["j4"]={"g":"2026-10-20","d":["VICRYL 4/0 J496 (DEXON)T"],"t":{"j496":[[52,0,"12:97","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["j4"]={"g":"2026-11-02","d":["VICRYL 4/0 J496 (DEXON)T"],"t":{"j496":[[52,0,"12:97","22-04"]]}};

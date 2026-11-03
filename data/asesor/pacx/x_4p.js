@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4p"]={"g":"2026-10-20","d":["HBA1C DIRECTA CTL REF: 4P52-11"],"t":{"4p52":[[25,0,"10:450,11:450,12:450","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["4p"]={"g":"2026-11-02","d":["6579740 CABLE 5UTP 4PAR. 24 AWG","HBA1C DIRECTA CTL REF: 4P52-11"],"t":{"4par":[[5,0,"12:854","22-04"]],"4p52":[[25,1,"11:450,12:450","22-04"]]}};

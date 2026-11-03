@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["z4"]={"g":"2026-10-20","d":["Kit EGFR cobas z480","Kit Kras cobas z480","Kit PIK3CA cobas z480"],"t":{"z480":[[41,0,"10:1432","22-04"],[41,1,"10:1013","22-04"],[41,2,"10:521","22-04"]]}};

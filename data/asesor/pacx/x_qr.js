@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["qr"]={"g":"2026-10-20","d":["5262 - SUPERSCRIPT III ONE STEP QRT-PCR SYSTEM Ref.  11732088 INVITROGEN","3464 - KITS DE QRT-PCR SUPERSCRIPT™ III PLATINUM™ DE UN PASO Ref. Catalogo 11732088,  Invi"],"t":{"qrt":[[368,0,"10:2600","22-04"],[368,1,"12:621","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["qr"]={"g":"2026-11-02","d":["3464 - KITS DE QRT-PCR SUPERSCRIPT™ III PLATINUM™ DE UN PASO Ref. Catalogo 11732088,  Invi"],"t":{"qrt":[[367,0,"12:621","22-04"]]}};

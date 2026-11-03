@@ -1,0 +1,1 @@
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["9g"]={"g":"2026-11-02","d":["4 Antenas direccional 60ghz 1,9Gb 12KM"],"t":{"9gb":[[127,0,"11:3427","22-08"]]}};

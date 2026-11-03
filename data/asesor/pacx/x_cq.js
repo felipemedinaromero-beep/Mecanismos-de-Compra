@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["cq"]={"g":"2026-10-20","d":["CSS-1h / CQS-1h"],"t":{"cqs":[[30,0,"10:31430,11:22206","31-02"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["cq"]={"g":"2026-11-02","d":["CSS-1h / CQS-1h"],"t":{"cqs":[[30,0,"11:22206","31-02"]]}};

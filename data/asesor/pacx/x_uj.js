@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["uj"]={"g":"2026-10-20","d":["Mobiliario UJO Plan de Fortalecimiento"],"t":{"ujo":[[130,0,"10:5000","29-04"]]}};

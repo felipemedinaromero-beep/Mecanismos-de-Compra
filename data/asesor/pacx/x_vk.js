@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["vk"]={"g":"2026-10-20","d":["MALLA VICRYL VKMM 6X6 910"],"t":{"vkmm":[[11,0,"10:731,11:731","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["vk"]={"g":"2026-11-02","d":["MALLA VICRYL VKMM 6X6 910"],"t":{"vkmm":[[11,0,"11:731","22-04"]]}};

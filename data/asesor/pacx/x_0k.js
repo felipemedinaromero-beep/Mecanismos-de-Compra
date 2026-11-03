@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["0k"]={"g":"2026-10-20","d":["010101010170   GLUCERNA 1.0KCAL ML NUTRICION LIQUIDA"],"t":{"0kcal":[[33,0,"10:544,11:544,12:544","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["0k"]={"g":"2026-11-02","d":["010101010170   GLUCERNA 1.0KCAL ML NUTRICION LIQUIDA"],"t":{"0kcal":[[32,0,"11:544,12:544","22-04"]]}};

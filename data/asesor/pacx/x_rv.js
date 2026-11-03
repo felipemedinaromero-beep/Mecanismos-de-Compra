@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["rv"]={"g":"2026-10-20","d":["ALLPLEX RV MASTER ASSAY (100T) REF: RV10307X"],"t":{"rv10307x":[[25,0,"10:4381,11:4381","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["rv"]={"g":"2026-11-02","d":["6674471 CABLE RVK 0.6/1KV 1X25MM NEGRO","ALLPLEX RV MASTER ASSAY (100T) REF: RV10307X"],"t":{"rvk":[[5,0,"12:75","22-04"]],"rv10307x":[[25,1,"11:4381","22-04"]]}};

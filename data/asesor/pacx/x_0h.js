@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["0h"]={"g":"2026-10-20","d":["A01J0070 -   COPOLIMERO AC. GLIC. MONOFILAMENTO 3/0HR26S"],"t":{"0hr26":[[75,0,"10:210,11:210,12:210","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["0h"]={"g":"2026-11-02","d":["A01J0070 -   COPOLIMERO AC. GLIC. MONOFILAMENTO 3/0HR26S"],"t":{"0hr26":[[74,0,"11:210,12:210","22-04"]]}};

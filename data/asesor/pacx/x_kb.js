@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["kb"]={"g":"2026-10-20","d":["KIT LIMPIADOR DE PANTALLA Y TECLADO KBYTE"],"t":{"kbyte":[[663,0,"10:20,11:20,12:20","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["kb"]={"g":"2026-11-02","d":["KIT LIMPIADOR DE PANTALLA Y TECLADO KBYTE"],"t":{"kbyte":[[652,0,"11:20,12:20","22-04"]]}};

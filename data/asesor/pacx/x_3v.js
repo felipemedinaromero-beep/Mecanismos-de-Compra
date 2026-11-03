@@ -1,1 +1,1 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["3v"]={"g":"2026-10-20","d":["SONDA FOLEY LATEX 22FR, B30-50, 3VIAS","A01I0060 -   SONDA FOLEY N?18 3VIAS","SONDA FOLEY Nº 18 3VIAS"],"t":{"3via":[[41,0,"10:21","22-04"],[75,1,"10:69,11:69,12:69","22-04"],[42,2,"10:53,11:53,12:53","22-04"],[78,2,"10:53,11:53,12:53","22-04"]]}};
+window.AS_PACX=window.AS_PACX||{};window.AS_PACX["3v"]={"g":"2026-11-02","d":["SONDA FOLEY Nº 18 3VIAS","A01I0060 -   SONDA FOLEY N?18 3VIAS"],"t":{"3via":[[43,0,"11:53,12:53","22-04"],[74,1,"11:69,12:69","22-04"],[78,0,"11:53,12:53","22-04"]]}};

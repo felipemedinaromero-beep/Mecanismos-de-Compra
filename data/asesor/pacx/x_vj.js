@@ -1,1 +1,0 @@
-window.AS_PACX=window.AS_PACX||{};window.AS_PACX["vj"]={"g":"2026-10-20","d":["VJCH 36 - 2da Mantención km del vehículo Fiscal   Tesorería Regional Concepción"],"t":{"vjch":[[378,0,"10:350","22-06"]]}};
