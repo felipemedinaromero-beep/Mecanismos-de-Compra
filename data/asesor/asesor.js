@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r36' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r37' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -373,9 +373,49 @@ function isServicio(){ return S.st.t === 'servicio'; }
 
 
 /* ------------------------------ ¿está en Convenio Marco? ------------------------------ */
-const STOP = new Set(['de','del','la','el','los','las','y','e','o','u','para','por','con','sin','en','a','al','un','una','otros','otras','tipo','servicio','servicios','productos','producto']);
-const stem = t => t.length > 4 ? t.replace(/(es|s)$/, '') : t;
-function toks(txt){ return norm(txt).split(/\s+/).filter(t => t.length >= 3 && !STOP.has(t)).map(stem); }
+const STOP = new Set(['de','del','la','el','los','las','y','e','o','u','para','por','con','sin','en','a','al','un','una','otros','otras','tipo','servicio','servicios','productos','producto','grano','granos']);
+/* Raíz de la palabra: quita plural (-s, -es, -ces) y la -e final, para que guante, guantes, desodorante y desodorantes coincidan. */
+const stem = t => { if(t.length >= 4) t = t.replace(/ces$/, 'z').replace(/(es|s)$/, '').replace(/s$/, ''); return t.length >= 4 ? t.replace(/e$/, '') : t; };
+/* Sinónimos entre el clasificador ONU y las maestras del Catálogo (se aplican al índice y a la consulta). */
+const SIN = {};
+[['notebook','laptop'],['portatil','laptop'],['computadora','computador'],['ordenador','computador'],['tonner','toner'],['tableta','tablet'],['smartphone','celular'],
+ ['fotocopiadora','copiadora'],['licuefactado','licuado'],['acanalado','corrugado'],['lavaplatos','lavaloza'],['lavavajilla','lavaloza'],['gorra','gorro'],
+ ['autobus','bus'],['bencina','gasolina'],['grapadora','corchetera'],['bolsita','bolsa'],['ripio','grava']].forEach(([a, b]) => { SIN[stem(a)] = stem(b); });
+/* Palabras que, si aparecen en un producto, también lo describen: un desktop, un all in one o un laptop son computadores. */
+const ADD = {}; ['desktop', 'aio', 'laptop'].forEach(t => { ADD[stem(t)] = stem('computador'); });
+function toks(txt){ const out = []; norm(txt).replace(/\barido(?=[a-z])/g, 'arido ').split(/\s+/).filter(t => (t.length >= 3 || t === 'te') && !STOP.has(t)).map(stem).map(t => SIN[t] || t).forEach(t => { out.push(t); if(ADD[t]) out.push(ADD[t]); }); return out; }
+/* Búsquedas alternativas cuando el nombre ONU usa otra palabra que la maestra. */
+const FRASES = [
+  [/computad\w*\s+(de\s+)?escritorio|computad\w*\s+personal|todo en uno|all in one/i, ['desktop', 'aio']],
+  [/tablet/i, ['tablet']],
+  [/autom[oó]vil/i, ['sedan', 'suv', 'hatchback', 'citycar']],
+  [/bencin|gasolin|estaci[oó]n de servicio|combustible/i, ['estacion servicio gasolina']],
+  [/legumbre/i, ['legumbre', 'lenteja', 'poroto']],
+  [/grapadora\w*[^,;]*piel|cierre de piel/i, ['engrapadora']],
+  [/compresa/i, ['aposito gasa']],
+  [/cami[oó]n/i, ['camion', 'camioneta']],
+  [/residuos?\s+sanitari|recipientes?\s+para\s+residuos/i, ['contenedor basura']],
+  [/lavander[ií]a/i, ['detergente']],
+  [/t[eé]mpera/i, ['tempera']],
+  [/procedimientos? o servicios administrativos/i, ['comision']],
+  [/platos? combinados?/i, ['kit alimento']],
+  [/abrillantadores?|acabados? de suelos?/i, ['removedor cera']],
+  [/removedores/i, ['removedor']],
+  [/lavar platos|lavavajilla/i, ['lavaloza']],
+  [/bloques? para mensajes/i, ['nota adhesiva']],
+  [/higiene femenina/i, ['toalla sanitaria']],
+  [/bol[ií]grafos? de gel/i, ['lapiz gel']],
+  [/espuma de goma/i, ['goma eva']],
+  [/resinas? de relleno/i, ['composite']],
+  [/selladores? de orificios|fisuras dentales/i, ['sellante fotocurado']],
+  [/antis[eé]pticos? basados? en alcohol/i, ['alcohol']],
+  [/vendaje de gel/i, ['hidrogel']],
+  [/calafateos?/i, ['sellador']],
+  [/divisores/i, ['separador']]
+];
+/* Nombres ONU como «Notebook, laptop o computador portátil excepto tablet pc» traen alternativas: se prueban por separado. */
+function alternativas(q){ return String(q).replace(/\s+excepto\s+.*$/i, '').split(/\s*(?:,|;|\/|\so\s|\su\s)\s*/i).map(x => x.trim()).filter(x => x.length >= 3); }
+function frasesAlt(q){ const out = []; FRASES.forEach(([rx, alts]) => { if(rx.test(String(q))) out.push(...alts); }); return out; }
 function consultaTexto(){
   const out = [];
   if(S.prodIdx != null) out.push(sentence(S.C.n[S.prodIdx]));
@@ -386,9 +426,17 @@ function cmVigListado(id){ const v = cmVig(id); return v; }
 function buscarCatalogo(q, reg, parcial){
   const CT = window.AS_CMCAT; if(!CT || !q) return [];
   if(!S.ctIdx){ S.ctIdx = CT.it.map(it => new Set(toks(it[1] + ' ' + it[2] + ' ' + it[3] + ' ' + it[4]))); S.ctHead = CT.it.map(it => new Set(toks(it[1]).slice(0, 3))); }
-  const qt = [...new Set(toks(q))]; if(!qt.length) return [];
-  const need = parcial ? 1 : (qt.length >= 3 ? qt.length - 1 : qt.length), g = {};
-  CT.it.forEach((it, i) => { const set = S.ctIdx[i]; let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0 && (parcial ? S.ctHead[i].has(qt[0]) : qt.some(t => S.ctHead[i].has(t)))){ const k = it[0]; (g[k] = g[k] || []).push({it, n, i}); } });
+  const buscar = qs => {
+    const qt = [...new Set(toks(qs))]; if(!qt.length) return {};
+    const need = parcial ? 1 : (qt.length >= 3 ? qt.length - 1 : qt.length), g = {};
+    CT.it.forEach((it, i) => { const set = S.ctIdx[i]; let n = 0; qt.forEach(t => { if(set.has(t)) n++; }); if(n >= need && n > 0 && (parcial ? S.ctHead[i].has(qt[0]) : qt.some(t => S.ctHead[i].has(t)))){ const k = it[0]; (g[k] = g[k] || []).push({it, n, i}); } });
+    return g;
+  };
+  let g = buscar(q);
+  const vistos = new Set(); Object.keys(g).forEach(k => g[k].forEach(x => vistos.add(x.i)));
+  let alts = frasesAlt(q);
+  if(!Object.keys(g).length){ const a = alternativas(q); if(a.length > 1) alts = alts.concat(a); }
+  alts.forEach(a => { const ga = buscar(a); Object.keys(ga).forEach(k => ga[k].forEach(x => { if(vistos.has(x.i)) return; vistos.add(x.i); (g[k] = g[k] || []).push(x); })); });
   return Object.keys(g).map(k => { const lst = g[k].sort((a, b) => b.n - a.n); const id = CT.cms[k][0]; const best = lst[0].it; const enReg = lst.filter(x => x.it[9] === 0 || ((x.it[9] >> reg) & 1)).length; const pr = CT.pc[k] && (CT.pc[k][reg] || CT.pc[k][99]);
     const ps = lst.map(x => x.it[7]).filter(x => x).sort((a, b) => a - b);
     return {id, k: Number(k), ix: lst.map(x => x.i), n: lst.length, enReg, nProvReg: pr ? pr.length : 0, ej: lst.slice(0, 3).map(x => x.it[1]), tipo: best[2], pmin: ps[0] || 0, pmed: ps.length ? ps[Math.floor(ps.length / 2)] : 0, pmax: ps[ps.length - 1] || 0}; }).sort((a, b) => b.n - a.n);
@@ -401,7 +449,7 @@ function veredictoCm(){
   const add = (id, nivel, motivo, extra) => { const v = cmVig(id) || {}; let e = res.cms.find(x => x.id === id); if(!e){ e = {id, nivel, motivos: [], v, extra: {}}; res.cms.push(e); } if(rank(nivel) > rank(e.nivel)) e.nivel = nivel; e.motivos.push(motivo); Object.assign(e.extra, extra || {}); };
   // a) maestras (Catálogo)
   const exa = buscarCatalogo(q, reg);
-  if(!exa.length && toks(q).length === 2) buscarCatalogo(q, reg, true).forEach(r => add(r.id, 'tema', `En la maestra hay ${r.n} producto(s) del mismo tipo base (por ejemplo: ${r.ej.map(x => sentence(x)).join('; ')}), aunque no coinciden con toda la descripción que escribiste.`, {cat: r}));
+  if(!exa.length && toks(q).length >= 2) buscarCatalogo(q, reg, true).forEach(r => add(r.id, 'tema', `En la maestra hay ${r.n} producto(s) del mismo tipo base (por ejemplo: ${r.ej.map(x => sentence(x)).join('; ')}), aunque no coinciden con toda la descripción que escribiste.`, {cat: r}));
   exa.forEach(r => add(r.id, 'catalogo', `En la maestra hay ${r.n} producto(s) que coinciden, por ejemplo: ${r.ej.map(x => sentence(x)).join('; ')}.`, {cat: r}));
   // b) OC
   ci.lista.forEach(x => { if(x.v && x.v.vigente || !V) add(x.id, 'oc', `Se ha comprado este producto por este convenio${x.hist ? ' (solo antes de nov-2025)' : ' en los últimos 12 meses'}.`, {mm: x.mm}); });
@@ -464,8 +512,12 @@ function cmForma(v){
   if(/cotiza/i.test(t)) return {k: 'mix', badge: 'Catálogo y cotizador', t};
   return {k: 'cat', badge: 'Compra directa', t};
 }
-function cmSinMaestra(v){
-  const f = cmForma(v);
+function cmSinMaestra(v, id){
+  const f = cmForma(v), CT = window.AS_CMCAT, ki = CT && id ? CT.cms.findIndex(x => x[0] === id) : -1;
+  if(ki >= 0 && f.k !== 'cot'){
+    const n = CT.it.filter(it => it[0] === ki).length;
+    return `La maestra de este convenio sí está cargada en el Asesor (${n.toLocaleString('es-CL')} producto(s) o grupos de producto al ${CT.gen || ''}), pero ninguno coincide con lo que escribiste. Puede que el convenio no incluya este producto o que en el catálogo se llame de otra forma: pruébalo con otra palabra o búscalo en el catálogo del convenio antes de elegir otro procedimiento.`;
+  }
   if(f.k === 'cot') return 'Se compra por cotizador: publicas tu requerimiento en la Tienda y los proveedores del convenio envían su oferta. No hay productos con ID ni precio fijo de catálogo.';
   if(f.k === 'mix') return 'Parte de los productos se compra por catálogo y parte se cotiza en línea por requerimiento. La maestra de productos de este convenio no está cargada en el Asesor, así que no puedo mostrar los ID ni los precios.';
   return 'Se compra directo por el catálogo del convenio, pero su maestra de productos no está cargada en el Asesor, así que no puedo mostrar los ID ni los precios. Búscalos en el catálogo con la ficha del convenio.';
@@ -529,7 +581,14 @@ function cmProductos(c, reg, n){
   const all = cat.ix.filter(i => ok(i) && !ids.has(String(CT.it[i][10])));
   return {rows: all.slice(0, n).map(i => CT.it[i]), total: all.length};
 }
-const cmPrecio = it => it[6] || it[8] ? (it[6] === it[8] ? clp(it[6]) : clp(it[6]) + ' a ' + clp(it[8])) : 'sin precio';
+/* Moneda o unidad en que cada convenio publica el valor de sus maestras (la maestra no trae la columna). Verificado con las fichas y las OC de enero 2025 a octubre 2026:
+   USD = Computadores y Ofimática; UF = Seguros y Desarrollo de software; DESC = Combustibles (descuento en pesos por litro); PCT = Voucher (porcentaje). El resto va en pesos. */
+const CM_MON = {'2239-5-LR25': 'USD', '2239-11-LR24': 'USD', '2239-12-LR23': 'UF', '2239-19-LR23': 'UF', '2239-13-LR25': 'DESC', '2239-1-LR26': 'PCT'};
+const cmTipoMon = k => { const c = ((window.AS_CMCAT || {}).cms || [])[k]; return (c && CM_MON[c[0]]) || ''; };
+const cmEsUsd = k => cmTipoMon(k) !== '';
+const cmMon = (k, n) => { const t = cmTipoMon(k); return t === 'USD' ? 'US$' + fmt(n) : t === 'UF' ? 'UF ' + fmtD(n, 2) : t === 'DESC' ? '$' + fmt(n) + ' por litro' : t === 'PCT' ? fmtD(n, 2) + ' %' : clp(n); };
+const cmNotaMon = k => { const t = cmTipoMon(k); return t === 'USD' ? 'En este convenio la Tienda publica los precios en dólares (US$); el Asesor los muestra sin convertir. ' : t === 'UF' ? 'En este convenio los valores van en UF; el Asesor los muestra sin convertir. ' : t === 'DESC' ? 'En este convenio el valor es el descuento en pesos por litro que ofrece la estación de servicio, no un precio de producto. ' : t === 'PCT' ? 'En este convenio el valor es un porcentaje (comisión o descuento del beneficio), no un precio. Confirma el detalle en la Tienda. ' : ''; };
+const cmPrecio = it => it[6] || it[8] ? (it[6] === it[8] ? cmMon(it[0], it[6]) : cmMon(it[0], it[6]) + ' a ' + cmMon(it[0], it[8])) : 'sin precio';
 function cmBloqueHtml(vd){
   const V = window.AS_CMV, c = vd.cms[0]; if(!V || !c) return '';
   const v = c.v || {}, reg = orgRegion(), pz = cmPlazo(c.id, reg), pv = cmProveedores(c, reg);
@@ -538,7 +597,7 @@ function cmBloqueHtml(vd){
   h += pz ? `<p><b>Plazo de entrega que fijan las bases${pz.regional ? ' para ' + esc(regName(reg)) : ''}:</b> ${esc(pz.txt)}</p>` : `<p><b>Plazo de entrega:</b> la ficha no fija un plazo único para todo el convenio; está en las bases y en la oferta de cada proveedor dentro de la Tienda.</p>`;
   if(c.extra.cat){
     const pd = cmProductos(c, reg, 25);
-    if(pd.rows.length) h += `<p><b>Productos del Catálogo que coinciden, con su ID y rango de precios</b> (${pd.total} en ${esc(regEn(reg))}${pd.total > pd.rows.length ? '; los ' + pd.rows.length + ' más cercanos a lo que escribiste' : ''}):</p><div class="as-tw"><table class="as-t"><tr><th>ID producto</th><th>Producto</th><th class="n">Precio en tienda (mínimo a máximo)</th><th class="n">Mediana</th></tr>${pd.rows.map(it => `<tr><td>${esc(it[10] || '—')}</td><td>${esc(sentence(it[1]))}</td><td class="n">${cmPrecio(it)}</td><td class="n">${it[7] ? clp(it[7]) : '—'}</td></tr>`).join('')}</table></div><p class="as-hint">Precios de las maestras del Catálogo al ${esc((window.AS_CMCAT || {}).gen || '')}: el rango va entre el precio más bajo y el más alto que ofrecen los proveedores. El precio vigente y el stock se confirman en la tienda.</p>`;
+    if(pd.rows.length) h += `<p><b>Productos del Catálogo que coinciden, con su ID y rango de precios</b> (${pd.total} en ${esc(regEn(reg))}${pd.total > pd.rows.length ? '; los ' + pd.rows.length + ' más cercanos a lo que escribiste' : ''}):</p><div class="as-tw"><table class="as-t"><tr><th>ID producto</th><th>Producto</th><th class="n">Precio en tienda (mínimo a máximo)</th><th class="n">Mediana</th></tr>${pd.rows.map(it => `<tr><td>${esc(it[10] || '—')}</td><td>${esc(sentence(it[1]))}</td><td class="n">${cmPrecio(it)}</td><td class="n">${it[7] ? cmMon(it[0], it[7]) : '—'}</td></tr>`).join('')}</table></div><p class="as-hint">${cmNotaMon(c.extra.cat.k)}Precios de las maestras del Catálogo al ${esc((window.AS_CMCAT || {}).gen || '')}: el rango va entre el precio más bajo y el más alto que ofrecen los proveedores. El precio vigente y el stock se confirman en la tienda.</p>`;
     h += cmCotListaTabla(c, !pd.rows.length);
     h += `<p><b>Proveedores del convenio en ${esc(regEn(reg))}</b>${pv && pv.nivel === 'producto' ? ' que ofrecen productos como el tuyo' : ''}:</p>`;
     if(!pv || (!pv.lst.length && pv.nivel === 'producto' && !window.AS_CMPROV)) h += '<p class="as-hint">Cargando proveedores…</p>';
@@ -551,7 +610,7 @@ function cmBloqueHtml(vd){
     }
     h += `<p class="as-hint">Fuente: maestras del Catálogo al ${esc((window.AS_CMCAT || {}).gen || '')}. El plazo es el máximo que exigen las bases del convenio, igual para todos los proveedores; el plazo que ofrece cada uno para un producto aparece en su ficha dentro del catálogo y puede ser menor. Verifica stock y precio ahí antes de emitir la orden de compra.</p>`;
   } else {
-    h += cmCot(c) ? cmCotTabla(c, reg) : `<p><b>ID de producto y proveedores:</b> ${esc(cmSinMaestra(v))}</p>`;
+    h += cmCot(c) ? cmCotTabla(c, reg) : `<p><b>ID de producto y proveedores:</b> ${esc(cmSinMaestra(v, c.id))}</p>`;
     const P_ = S.segData, rp_ = (P_ && S.prodIdx != null) ? P_.rp[reg + '|' + S.prodIdx] : null;
     if(rp_ && rp_.length > 1){
       h += `<p><b>Referencia por órdenes de compra:</b> proveedores de ${esc(regEn(reg))} con más ventas de este producto a organismos públicos en los últimos 12 meses (por cualquier mecanismo, no solo este convenio):</p><div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th>RUT</th><th class="n">OC</th><th class="n">Vendido 12 meses</th></tr>` + rp_.slice(1, 7).map(x => { const pv = P_.pl[x[0]]; return `<tr><td>${esc(pv[1])}</td><td>${esc(pv[0])}</td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td></tr>`; }).join('') + `</table></div><p class="as-hint">Esta lista sale de las órdenes de compra, no del Catálogo: sirve para saber quiénes abastecen el producto en tu región. Confirma en el catálogo del convenio cuáles tienen ficha vigente y su precio.</p>`;
@@ -568,7 +627,7 @@ function vereditoHtml(vd, o){
   let h = `<div class="as-vd as-vd-${si ? 'ok' : 'no'}"><div class="as-vd-h"><span class="as-vd-b">CONVENIO MARCO: ${si ? 'SÍ' : 'NO'}</span><span class="as-vd-b">${cert}</span><h3>${si ? 'Está en Convenio Marco: ' + esc(vp.nombre || principal.id) : 'No está en ningún Convenio Marco vigente'}</h3></div>`;
   if(si){
     h += '<ul class="as-vd-l">' + vd.cms.slice(0, 3).map(c => { const v = c.v || {};
-      return `<li><b>${esc(v.nombre || c.id)}</b> <span class="as-hint">(${esc(c.id)}${v.hasta ? ' · vigente hasta ' + esc(v.hasta) : ''})</span>${v.cot ? `<br>Forma de compra: ${esc(v.cot)}.` : ''}${c.extra.cat ? `<br>${c.extra.cat.n} producto(s) del Catálogo coinciden; ${c.extra.cat.enReg} se ofrecen en tu región (${c.extra.cat.nProvReg} proveedor(es) del convenio con presencia ahí).${c.extra.cat.pmax ? ` Precio en tienda: mediana $${fmt(c.extra.cat.pmed)}, rango $${fmt(c.extra.cat.pmin)} a $${fmt(c.extra.cat.pmax)}.` : ' Esos productos no tienen precio fijo en la maestra: se cotizan.'}` : ''}<br><span class="as-hint">${esc(c.motivos[0])}</span></li>`; }).join('') + '</ul>';
+      return `<li><b>${esc(v.nombre || c.id)}</b> <span class="as-hint">(${esc(c.id)}${v.hasta ? ' · vigente hasta ' + esc(v.hasta) : ''})</span>${v.cot ? `<br>Forma de compra: ${esc(v.cot)}.` : ''}${c.extra.cat ? `<br>${c.extra.cat.n} producto(s) del Catálogo coinciden; ${c.extra.cat.enReg} se ofrecen en tu región (${c.extra.cat.nProvReg} proveedor(es) del convenio con presencia ahí).${c.extra.cat.pmax ? ` Precio en tienda: mediana ${cmMon(c.extra.cat.k, c.extra.cat.pmed)}, rango ${cmMon(c.extra.cat.k, c.extra.cat.pmin)} a ${cmMon(c.extra.cat.k, c.extra.cat.pmax)}.` : ' Esos productos no tienen precio fijo en la maestra: se cotizan.'}` : ''}<br><span class="as-hint">${esc(c.motivos[0])}</span></li>`; }).join('') + '</ul>';
     h += cmBloqueHtml(vd);
     h += u > 100
       ? `<p><b>Conclusión:</b> con ${dec(u, 1)} UTM la primera opción es comprar por Convenio Marco${u > 1000 ? ' mediante Gran Compra' : ''}. Puedes salir de él solo si el producto no está disponible o si obtienes condiciones más ventajosas objetivas y demostrables, que debes informar a la Dirección de Compras (DS 661, arts. 89 y 92). La segunda opción, fuera de convenio, está en el cuadro de abajo.${alta ? '' : ' La coincidencia es por la materia del convenio: si el producto exacto no estuviera en el Catálogo, pasa a la segunda opción.'}</p>`
@@ -1219,7 +1278,7 @@ function heroCmHtml(o){
   } else {
     const P_ = S.segData, rp_ = (P_ && S.prodIdx != null) ? P_.rp[reg + '|' + S.prodIdx] : null;
     const cotH = cmCotHero(c, reg);
-    h += cotH ? '<p class="as-rc-s">' + (cmCot(c).prod ? 'Para cotizar, elige el producto de cotización que corresponde a tu requerimiento.' : 'Para cotizar, usa el producto de cotización de tu región.') + '</p>' + cotH : `<p class="as-rc-s">${esc(cmSinMaestra(v))}</p>`;
+    h += cotH ? '<p class="as-rc-s">' + (cmCot(c).prod ? 'Para cotizar, elige el producto de cotización que corresponde a tu requerimiento.' : 'Para cotizar, usa el producto de cotización de tu región.') + '</p>' + cotH : `<p class="as-rc-s">${esc(cmSinMaestra(v, c.id))}</p>`;
     if(rp_ && rp_.length > 1) h += `<div class="as-rc-pv"><span class="as-rc-pl">Referencia: proveedores de ${esc(regEn(reg))} con más ventas de este producto al Estado en los últimos 12 meses</span><ul>${rp_.slice(1, 7).map(x => { const pv = P_.pl[x[0]]; return `<li><b>${esc(pv[1])}</b> <small>${esc(pv[0])}</small></li>`; }).join('')}</ul><p class="as-rc-s">Son proveedores por cualquier mecanismo, no solo de este convenio: en el catálogo del convenio confirmas cuáles lo ofrecen.</p></div>`;
     else if(S.prodIdx != null && !P_) h += '<p class="as-rc-s">Cargando proveedores de referencia…</p>';
   }
