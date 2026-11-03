@@ -453,6 +453,21 @@
   .mx-bar { display:inline-block; height:8px; border-radius:99px; background:var(--cc-blue); vertical-align:middle; min-width:2px; }
   .mx-legend { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:11.5px; margin-top:8px; color:var(--text-secondary); }
   .mx-legend i { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+  .mx-cmrow { cursor:pointer; }
+  .mx-cmrow:hover td { background:rgba(11,120,204,.07); }
+  .mx-cmrow.on td { background:rgba(11,120,204,.14); }
+  .cmoc-h { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:10px; }
+  .cmoc-sub { font-size:12px; color:var(--text-secondary); margin-top:2px; }
+  .cmoc-tabs { display:flex; gap:6px; margin:14px 0 10px; }
+  .cmoc-tab { font:inherit; font-size:12px; font-weight:600; padding:6px 12px; border-radius:999px; border:1px solid var(--border); background:#fff; color:var(--cc-dark); cursor:pointer; }
+  .cmoc-tab.on { background:var(--cc-dark); color:#fff; border-color:var(--cc-dark); }
+  .cmoc-tools { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+  .cmoc-tools input[type=search] { flex:1 1 280px; min-width:200px; font:inherit; font-size:12px; padding:7px 10px; border:1px solid var(--border); border-radius:10px; }
+  .cmoc-tools select { font:inherit; font-size:12px; padding:7px 8px; border:1px solid var(--border); border-radius:10px; background:#fff; }
+  .cmoc-chk { font-size:12px; color:var(--text-secondary); display:flex; gap:6px; align-items:center; }
+  .cmoc-pag { display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:12px; color:var(--text-secondary); margin:8px 0; flex-wrap:wrap; }
+  .cmoc-prd { max-width:420px; font-size:11px; color:var(--text-secondary); }
+  .dl-btn[disabled] { opacity:.4; cursor:default; }
   .mx-warn { font-size:12px; color:var(--cc-wine); background:var(--surface-page); border-left:4px solid var(--cc-amber); border-radius:10px; padding:9px 13px; margin:10px 0 0; line-height:1.5; }
   .mx-h3 { font-size:13.5px; font-weight:700; color:var(--cc-navy); margin:18px 0 6px; }
   .mx-stack svg { width:100%; height:auto; display:block; }
@@ -1959,13 +1974,13 @@ function mxCmHtml(ex, range){
   const pocos = cv.filter(r=>r[4] <= 5).length;
   const t1 = cv.slice().map(r=>r[5]).sort((a,b)=>a-b), med = t1[Math.floor(t1.length/2)];
   const top3 = mxSum(cv.slice(0,3).map(r=>r[3]));
-  const filas = cv.map(r=>'<tr><td>'+esc(r[1] || r[0])+'<div style="font-size:10px;color:var(--text-secondary)">'+esc(r[0])+'</div></td><td class="num">'+fmt(r[2])+'</td><td class="num">'+mxM(r[3])+'</td><td class="num">'+mxPct(r[3],tot)+'</td><td class="num">'+fmt(r[4])+'</td><td class="num">'+(100*r[5]).toFixed(0)+'%</td><td class="num">'+(100*r[6]).toFixed(0)+'%</td></tr>').join('');
+  const filas = cv.map(r=>'<tr class="mx-cmrow'+(CMOC.sel===r[0]?' on':'')+'" data-cm="'+esc(r[0])+'" tabindex="0" role="button" title="Ver las OC de este convenio" onclick="cmocOpen(\''+esc(r[0])+'\')" onkeydown="if(event.key===\'Enter\')cmocOpen(\''+esc(r[0])+'\')"><td>'+esc(r[1] || r[0])+'<div style="font-size:10px;color:var(--text-secondary)">'+esc(r[0])+'</div></td><td class="num">'+fmt(r[2])+'</td><td class="num">'+mxM(r[3])+'</td><td class="num">'+mxPct(r[3],tot)+'</td><td class="num">'+fmt(r[4])+'</td><td class="num">'+(100*r[5]).toFixed(0)+'%</td><td class="num">'+(100*r[6]).toFixed(0)+'%</td></tr>').join('');
   setDl('mxConv', ['Código convenio','Convenio','N° OC','Monto CLP','Proveedores','% del primer proveedor','% de los 3 primeros'], cv.map(r=>[r[0], r[1], r[2], r[3], r[4], r[5], r[6]]));
   const dif = clp>0 ? (100*(tot-clp)/clp).toFixed(1) : '0';
   return `
   <section class="block">
     <h2>Gasto por convenio marco</h2>
-    <p class="block-note">Órdenes de compra y monto de cada convenio en los 22 meses del panel (no cambia con el filtro de fechas), sumados desde las fichas de proveedores. «Primer proveedor» y «3 primeros» son la parte del monto del convenio que concentran sus mayores proveedores. Montos en millones de pesos (M).</p>
+    <p class="block-note">Órdenes de compra y monto de cada convenio en los 22 meses del panel (no cambia con el filtro de fechas), sumados desde las fichas de proveedores. «Primer proveedor» y «3 primeros» son la parte del monto del convenio que concentran sus mayores proveedores. Montos en millones de pesos (M). <b>Haz clic en un convenio para ver el detalle de cada OC y los productos comprados.</b></p>
     <div class="mx-kpis">
       <div class="mx-kpi"><div class="l">Convenios con ventas</div><div class="v">${fmt(cv.length)}</div></div>
       <div class="mx-kpi"><div class="l">Los 3 mayores</div><div class="v">${mxPct(top3,tot,0)}</div><div class="s">del monto de Convenio Marco</div></div>
@@ -1977,6 +1992,8 @@ function mxCmHtml(ex, range){
     <p class="mx-warn">El total de esta tabla (${mxM(tot)}) es ${dif}% mayor que el monto nominal en pesos de Convenio Marco del resto de la página (${mxM(clp)}), porque se arma con otra fuente (fichas de proveedores) que asigna cada OC a un convenio. Úsalo para comparar convenios entre sí y no como cifra oficial del total.</p>
   </section>
 
+  <div id="cmocHost"></div>
+
   <section class="block">
     <h2>Peso de Convenio Marco en el total</h2>
     <p class="block-note">Parte de las OC y del monto transado que corresponde a Convenio Marco en cada mes del rango elegido.</p>
@@ -1985,10 +2002,105 @@ function mxCmHtml(ex, range){
   </section>`;
 }
 
+// ---------- Detalle de OC por convenio marco (upd39) ----------
+// Al elegir un convenio en «Gasto por convenio marco» se carga data/mec/cm/<codigo en minúsculas>.js, generado por
+// extraer_oc_cm.py desde los CSV mensuales de OC (las OC con sufijo CM). Formato: window.CM_OC[codigo] = {gen, periodo, n, monto,
+// org:[[codigo,nombre]], prov:[[rut,nombre]], est:[nombres], oc:[[codigo, 'AAAA-MM-DD', iOrg, iProv, montoClp, iEst, nItems, 'producto; producto']],
+// prod:[[nombre, nOC, montoClp, enMaestra(1 sí, 0 no, -1 sin dato)]]}.
+const CMOC = {sel: null, tab: 'oc', q: '', pq: '', mes: '', est: '', soloFalta: false, page: 0, ps: 50, err: null, cache: {}};
+const CMOC_MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+function cmocNorm(s){ return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+function cmocMes(f){ return f ? CMOC_MES[Number(f.slice(5, 7)) - 1] + '-' + f.slice(0, 4) : ''; }
+function cmocFecha(f){ return f ? f.slice(8, 10) + '-' + f.slice(5, 7) + '-' + f.slice(0, 4) : ''; }
+function cmocNombre(code){ const cv = (window.MEC_EXTRA && MEC_EXTRA.cm && MEC_EXTRA.cm.conv || []).find(r => r[0] === code); return cv ? (cv[1] || code) : code; }
+function cmocOpen(code){
+  CMOC.sel = code; CMOC.tab = 'oc'; CMOC.q = ''; CMOC.pq = ''; CMOC.mes = ''; CMOC.est = ''; CMOC.soloFalta = false; CMOC.page = 0; CMOC.err = null;
+  document.querySelectorAll('.mx-cmrow').forEach(tr => tr.classList.toggle('on', tr.getAttribute('data-cm') === code));
+  if(window.CM_OC && CM_OC[code]){ cmocRender(); cmocScroll(); return; }
+  cmocRender(); cmocScroll();
+  const sc = document.createElement('script');
+  sc.src = 'data/mec/cm/' + code.toLowerCase() + '.js?v=' + encodeURIComponent(DATA.generado);
+  sc.onload = () => { if(CMOC.sel === code) cmocRender(); };
+  sc.onerror = () => { if(CMOC.sel === code){ CMOC.err = 'No hay detalle de OC publicado para este convenio todavía (falta data/mec/cm/' + code.toLowerCase() + '.js).'; cmocRender(); } };
+  document.head.appendChild(sc);
+}
+function cmocScroll(){ const h = document.getElementById('cmocHost'); if(h && h.scrollIntoView) h.scrollIntoView({behavior: 'smooth', block: 'start'}); }
+function cmocClose(){ CMOC.sel = null; document.querySelectorAll('.mx-cmrow').forEach(tr => tr.classList.remove('on')); cmocRender(); }
+function cmocSet(k, v){ CMOC[k] = v; CMOC.page = 0; cmocRender(true); }
+function cmocPage(d){ CMOC.page = Math.max(0, CMOC.page + d); cmocRender(true); }
+function cmocTab(t){ CMOC.tab = t; CMOC.page = 0; cmocRender(); }
+function cmocFiltrar(d){
+  const q = cmocNorm(CMOC.q).trim(), qs = q ? q.split(/\s+/) : [];
+  if(!d.__ix){ d.__ix = d.oc.map(o => cmocNorm(o[0] + ' ' + d.org[o[2]][1] + ' ' + d.org[o[2]][0] + ' ' + d.prov[o[3]][1] + ' ' + d.prov[o[3]][0] + ' ' + (o[7] || ''))); }
+  const out = [];
+  for(let i = 0; i < d.oc.length; i++){
+    const o = d.oc[i];
+    if(CMOC.mes && o[1].slice(0, 7) !== CMOC.mes) continue;
+    if(CMOC.est !== '' && String(o[5]) !== CMOC.est) continue;
+    if(qs.length){ const s = d.__ix[i]; let ok = true; for(const t of qs){ if(s.indexOf(t) < 0){ ok = false; break; } } if(!ok) continue; }
+    out.push(o);
+  }
+  return out;
+}
+function cmocProdFiltrar(d){
+  const q = cmocNorm(CMOC.pq).trim(), qs = q ? q.split(/\s+/) : [];
+  return (d.prod || []).filter(p => {
+    if(CMOC.soloFalta && p[3] !== 0) return false;
+    if(!qs.length) return true;
+    const s = cmocNorm(p[0]); return qs.every(t => s.indexOf(t) >= 0);
+  });
+}
+function cmocRender(soft){
+  const host = document.getElementById('cmocHost'); if(!host) return;
+  const code = CMOC.sel;
+  if(!code){ host.innerHTML = ''; return; }
+  const nom = cmocNombre(code);
+  const head = '<div class="cmoc-h"><div><h2 style="margin:0">Órdenes de compra del convenio</h2><div class="cmoc-sub">' + esc(nom) + ' · <b>' + esc(code) + '</b></div></div><button type="button" class="dl-btn" onclick="cmocClose()">Cerrar</button></div>';
+  const d = window.CM_OC && CM_OC[code];
+  if(!d){
+    host.innerHTML = '<section class="block" id="cmocSec">' + head + '<p class="block-note">' + (CMOC.err ? esc(CMOC.err) : 'Cargando las OC del convenio…') + '</p></section>';
+    return;
+  }
+  const keepFocus = soft && document.activeElement && document.activeElement.id ? document.activeElement.id : null;
+  const caret = keepFocus && document.activeElement.selectionStart != null ? document.activeElement.selectionStart : null;
+  const meses = [...new Set(d.oc.map(o => o[1].slice(0, 7)))].sort();
+  const nOrg = new Set(d.oc.map(o => o[2])).size, nProv = new Set(d.oc.map(o => o[3])).size, nProd = (d.prod || []).length;
+  const faltan = (d.prod || []).filter(p => p[3] === 0);
+  const kpis = '<div class="mx-kpis"><div class="mx-kpi"><div class="l">OC del convenio</div><div class="v">' + fmt(d.oc.length) + '</div><div class="s">' + esc(d.periodo || '') + '</div></div>'
+    + '<div class="mx-kpi"><div class="l">Monto (CLP)</div><div class="v">' + mxM(d.oc.reduce((s, o) => s + (o[4] || 0), 0)) + '</div></div>'
+    + '<div class="mx-kpi"><div class="l">Organismos / proveedores</div><div class="v">' + fmt(nOrg) + ' / ' + fmt(nProv) + '</div></div>'
+    + '<div class="mx-kpi"><div class="l">Productos distintos comprados</div><div class="v">' + fmt(nProd) + '</div>' + (faltan.length || (d.prod || []).some(p => p[3] === 1) ? '<div class="s">' + fmt(faltan.length) + ' sin coincidencia en la maestra</div>' : '') + '</div></div>';
+  const tabs = '<div class="cmoc-tabs"><button type="button" class="cmoc-tab' + (CMOC.tab === 'oc' ? ' on' : '') + '" onclick="cmocTab(\'oc\')">Órdenes de compra</button><button type="button" class="cmoc-tab' + (CMOC.tab === 'prod' ? ' on' : '') + '" onclick="cmocTab(\'prod\')">Productos comprados</button></div>';
+  let body = '';
+  if(CMOC.tab === 'oc'){
+    const f = cmocFiltrar(d), tot = f.length, ps = CMOC.ps, pg = Math.min(CMOC.page, Math.max(0, Math.ceil(tot / ps) - 1)); CMOC.page = pg;
+    const rows = f.slice(pg * ps, pg * ps + ps);
+    const optM = '<option value="">Todos los meses</option>' + meses.map(m => '<option value="' + m + '"' + (CMOC.mes === m ? ' selected' : '') + '>' + cmocMes(m + '-01') + '</option>').join('');
+    const optE = '<option value="">Todos los estados</option>' + (d.est || []).map((e, i) => '<option value="' + i + '"' + (CMOC.est === String(i) ? ' selected' : '') + '>' + esc(e) + '</option>').join('');
+    const tools = '<div class="cmoc-tools"><input id="cmocQ" type="search" placeholder="Buscar por N° de OC, organismo, proveedor o producto" value="' + esc(CMOC.q) + '" oninput="cmocSet(\'q\', this.value)" aria-label="Buscar en las OC"><select id="cmocMes" onchange="cmocSet(\'mes\', this.value)" aria-label="Mes">' + optM + '</select><select id="cmocEst" onchange="cmocSet(\'est\', this.value)" aria-label="Estado">' + optE + '</select></div>';
+    const filas = rows.map(o => '<tr><td style="white-space:nowrap"><a href="' + mpLink(o[0]) + '" target="_blank" rel="noopener">' + esc(o[0]) + '</a></td><td style="white-space:nowrap">' + cmocFecha(o[1]) + '</td><td>' + esc(d.org[o[2]][1]) + '</td><td>' + esc(d.prov[o[3]][1]) + '</td><td class="num">' + fmt(o[4]) + '</td><td>' + esc((d.est || [])[o[5]] || '') + '</td><td class="num">' + fmt(o[6]) + '</td><td class="cmoc-prd">' + esc(o[7] || '') + '</td></tr>').join('');
+    const pag = '<div class="cmoc-pag"><span>' + fmt(tot) + ' OC' + (tot !== d.oc.length ? ' (de ' + fmt(d.oc.length) + ')' : '') + (tot ? ' · mostrando ' + fmt(pg * ps + 1) + ' a ' + fmt(Math.min(tot, pg * ps + ps)) : '') + '</span><span><button type="button" class="dl-btn" onclick="cmocPage(-1)"' + (pg ? '' : ' disabled') + '>Anterior</button> <button type="button" class="dl-btn" onclick="cmocPage(1)"' + ((pg + 1) * ps < tot ? '' : ' disabled') + '>Siguiente</button></span></div>';
+    setDl('cmocOc', ['N° OC', 'Link a Mercado Público', 'Convenio', 'Fecha', 'Código organismo', 'Organismo', 'RUT proveedor', 'Proveedor', 'Monto CLP', 'Estado', 'N° ítems', 'Productos'],
+      f.map(o => [o[0], mpLink(o[0]), code, o[1], d.org[o[2]][0], d.org[o[2]][1], d.prov[o[3]][0], d.prov[o[3]][1], o[4], (d.est || [])[o[5]] || '', o[6], o[7] || '']));
+    body = tools + '<div class="table-wrap mx-tbl"><table class="dt"><thead><tr><th>N° OC</th><th>Fecha</th><th>Organismo</th><th>Proveedor</th><th class="num">Monto (CLP)</th><th>Estado</th><th class="num">Ítems</th><th>Productos de la OC</th></tr></thead><tbody>' + (filas || '<tr><td colspan="8">Ninguna OC coincide con el filtro.</td></tr>') + '</tbody></table></div>' + pag + dlBtn('cmocOc', 'oc_' + code.toLowerCase() + '.csv', 'Descargar las ' + fmt(tot) + ' OC filtradas (Excel)');
+  } else {
+    const f = cmocProdFiltrar(d), tot = f.length, ps = CMOC.ps, pg = Math.min(CMOC.page, Math.max(0, Math.ceil(tot / ps) - 1)); CMOC.page = pg;
+    const rows = f.slice(pg * ps, pg * ps + ps), conMae = (d.prod || []).some(p => p[3] !== -1);
+    const tools = '<div class="cmoc-tools"><input id="cmocPq" type="search" placeholder="Buscar un producto" value="' + esc(CMOC.pq) + '" oninput="cmocSet(\'pq\', this.value)" aria-label="Buscar un producto">' + (conMae ? '<label class="cmoc-chk"><input type="checkbox" ' + (CMOC.soloFalta ? 'checked ' : '') + 'onchange="cmocSet(\'soloFalta\', this.checked)"> Solo los que no están en la maestra</label>' : '') + '</div>';
+    const filas = rows.map(p => '<tr><td>' + esc(p[0]) + '</td><td class="num">' + fmt(p[1]) + '</td><td class="num">' + fmt(p[2]) + '</td>' + (conMae ? '<td>' + (p[3] === 1 ? 'Sí' : p[3] === 0 ? '<b style="color:var(--cc-wine)">No</b>' : '—') + '</td>' : '') + '</tr>').join('');
+    const pag = '<div class="cmoc-pag"><span>' + fmt(tot) + ' producto(s)' + (tot ? ' · mostrando ' + fmt(pg * ps + 1) + ' a ' + fmt(Math.min(tot, pg * ps + ps)) : '') + '</span><span><button type="button" class="dl-btn" onclick="cmocPage(-1)"' + (pg ? '' : ' disabled') + '>Anterior</button> <button type="button" class="dl-btn" onclick="cmocPage(1)"' + ((pg + 1) * ps < tot ? '' : ' disabled') + '>Siguiente</button></span></div>';
+    setDl('cmocProd', ['Convenio', 'Producto (como figura en la OC)', 'N° OC', 'Monto CLP', 'En la maestra'].slice(0, conMae ? 5 : 4), f.map(p => [code, p[0], p[1], p[2]].concat(conMae ? [p[3] === 1 ? 'Sí' : p[3] === 0 ? 'No' : ''] : [])));
+    body = '<p class="block-note">Nombres de producto tal como aparecen en los ítems de las OC del convenio, ordenados por N° de OC. Sirven para revisar qué se compra y no está en el catálogo del Asesor.</p>' + tools + '<div class="table-wrap mx-tbl"><table class="dt"><thead><tr><th>Producto</th><th class="num">N° OC</th><th class="num">Monto (CLP)</th>' + (conMae ? '<th>En la maestra</th>' : '') + '</tr></thead><tbody>' + (filas || '<tr><td colspan="4">Ningún producto coincide.</td></tr>') + '</tbody></table></div>' + pag + dlBtn('cmocProd', 'productos_' + code.toLowerCase() + '.csv', 'Descargar los ' + fmt(tot) + ' productos (Excel)');
+  }
+  host.innerHTML = '<section class="block" id="cmocSec">' + head + kpis + tabs + body + '<p class="mx-warn">Detalle armado con los CSV mensuales de datos abiertos (fotografía al ' + esc(d.gen || '') + '); el estado vigente y los ítems se confirman en la ficha de cada OC. Montos en pesos; los convenios en dólares o UF muestran el monto ya convertido.</p></section>';
+  if(keepFocus){ const el = document.getElementById(keepFocus); if(el){ el.focus(); if(caret != null && el.setSelectionRange){ try { el.setSelectionRange(caret, caret); } catch(e){} } } }
+}
+
 function mecxPaint(m, range){
   const host = document.getElementById('mecxHost'); if(!host || !window.MEC_EXTRA) return;
   const ex = window.MEC_EXTRA;
   host.innerHTML = m === 'Compra Ágil' ? mxCaHtml(ex, range) : mxCmHtml(ex, range);
+  if(m !== 'Compra Ágil') cmocRender();
   const color = cssvar(META[m].color), sh = mxShareSeries(m, range);
   makeLineChart({svgId:'mxSh', legendId:'mxShLeg', ttId:'mxTtSh', categories:sh.cats, series:[{key:'oc', label:'% de las OC', color, values:sh.oc},{key:'mo', label:'% del monto transado', color:'#3D5466', values:sh.mo}], fmtAxis:v=>(Math.round(v*10)/10).toString().replace('.',',')+'%', fmtTip:v=>v.toFixed(1)+'%', unitLabel:'', showPoints:false});
   if(m === 'Compra Ágil'){
