@@ -17,7 +17,7 @@ const sentence = s => { s = String(s || '').trim().toLowerCase(); return s ? s.c
 const $ = id => S.host && S.host.querySelector('#' + id);
 const mm = n => n == null ? '—' : (n >= 1e6 ? '$' + dec(n / 1e6, 1) + ' billones' : (n < 10 ? (Math.abs(n - 1) < 0.05 ? '$1 millón' : '$' + dec(n, 1) + ' millones') : '$' + fmt(n) + ' millones'));
 const clp = n => '$' + fmt(n);
-const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r32' : '';
+const ver = () => (typeof DATA !== 'undefined' && DATA.generado) ? '?v=' + DATA.generado + '-r34' : '';
 function loadScript(src){ return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = () => { s.remove(); res(); }; s.onerror = () => { s.remove(); rej(new Error('No se pudo cargar ' + src + '. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.')); }; document.head.appendChild(s); }); }
 const R = () => window.AsesorReglas;
 
@@ -93,9 +93,9 @@ function syncUrl(){ try{ history.replaceState(null, '', '#asesor=' + encState(S.
 /* ------------------------------ carga de datos ------------------------------ */
 function ensure(){
   if(S.ready) return S.ready;
-  S.ready = Promise.all([loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver()), loadScript(AB + 'reglas.js' + ver()), loadScript(AB + 'cmcot.js' + ver()).catch(() => null), loadScript(AB + 'cmahorro.js' + ver()).catch(() => null), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
+  S.ready = Promise.all([loadScript(AB + 'pac/idx.js' + ver()).catch(() => null), loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver()), loadScript(AB + 'reglas.js' + ver()), loadScript(AB + 'cmcot.js' + ver()).catch(() => null), loadScript(AB + 'cmahorro.js' + ver()).catch(() => null), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
     loadScript(AB + 'pres.js' + ver()).then(() => { S.pres = window.AS_PRES || null; S.presTried = true; if(S.orgIdx != null) update(); }).catch(() => { S.presTried = true; });
-    S.C = window.AS_CAT; S.O = window.AS_ORG;
+    S.C = window.AS_CAT; S.O = window.AS_ORG; S.pacIdx = window.AS_PACIDX ? new Set(window.AS_PACIDX) : null;
     S.orgNorm = S.O.o.map(o => norm(o[1]) + ' ' + o[0]);
     S.prodNorm = S.C.n.map((n, i) => norm(n).replace(/[“”‘’«»"]/g, '') + ' ' + S.C.c[i]);
     S.orgByCode = {}; S.O.o.forEach((o, i) => S.orgByCode[o[0]] = i);
@@ -158,7 +158,7 @@ const CSS = `
 .as-list[hidden]{display:none !important;}
 .as-list{display:grid;gap:5px;margin-top:8px;max-height:280px;overflow:auto;}
 .as-opt{text-align:left;font:inherit;font-size:12.5px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--cc-dark);cursor:pointer;width:100%;}
-.as-opt:hover,.as-opt:focus-visible{background:var(--cc-mist);border-color:var(--cc-navy);} .as-opt b{display:block;font-size:12.5px;overflow-wrap:anywhere;} .as-opt small{display:block;color:var(--text-secondary);font-size:11px;margin-top:2px;}
+.as-opt:hover,.as-opt:focus-visible{background:var(--cc-mist);border-color:var(--cc-navy);} .as-opt b{display:block;font-size:12.5px;overflow-wrap:anywhere;} .as-chip-sp{background:#FFF1CC;color:#5B3F00;border:1px solid #E8C26A;border-radius:999px;padding:0 7px;font-weight:700;white-space:nowrap;} .as-opt small{display:block;color:var(--text-secondary);font-size:11px;margin-top:2px;}
 .as-sel-box{background:var(--cc-mist);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.5;margin-top:8px;display:flex;gap:8px;justify-content:space-between;align-items:flex-start;}
 .as-sel-box b{display:block;overflow-wrap:anywhere;} .as-x{font:inherit;font-size:11.5px;border:0;background:none;color:var(--cc-navy);text-decoration:underline;cursor:pointer;white-space:nowrap;}
 .as-hint{font-size:11.5px;color:var(--text-secondary);margin:6px 0 0;line-height:1.5;}
@@ -657,6 +657,12 @@ function wire(){
   ln.addEventListener('input', e => {
     const t = e.target, row = t.closest('.as-ln'); if(!row || !/as-ln-(q|pu|m)\b/.test(t.className)) return;
     const l = S.st.l[Number(row.dataset.i)], prev = lineTotal(l), d = t.value.replace(/\D/g, ''), v = d ? Number(d) : 0;
+    { // separador de miles en vivo, conservando la posición del cursor
+      const car = t.selectionStart == null ? t.value.length : t.selectionStart, nd = (t.value.slice(0, car).match(/\d/g) || []).length;
+      t.value = d ? fmt(v) : '';
+      let pos = 0, vistos = 0; while(pos < t.value.length && vistos < nd){ if(/\d/.test(t.value[pos])) vistos++; pos++; }
+      try{ t.setSelectionRange(pos, pos); }catch(e){}
+    }
     if(t.classList.contains('as-ln-q')) l.n = v; else if(t.classList.contains('as-ln-pu')) l.pu = v; else { l.m = v; l.n = 0; l.pu = 0; }
     const tin = row.querySelector('.as-ln-m');
     if(l.n && l.pu){ l.m = 0; tin.readOnly = true; tin.value = fmt(lineTotal(l)); }
@@ -743,7 +749,7 @@ function searchOrg(){
   for(let i = 0; i < S.orgNorm.length; i++){ const s = S.orgNorm[i]; if(toks.every(t => s.includes(t))) res.push(i); }
   res.sort((a, b) => S.O.o[b][6] - S.O.o[a][6]);
   box.hidden = false;
-  box.innerHTML = res.slice(0, 12).map(i => { const o = S.O.o[i]; return `<button class="as-opt" data-i="${i}"><b>${esc(o[1])}</b><small>${esc(o[2] === 'null' ? 'Sin sector' : o[2])} · ${fmt(o[6])} OC en 12 meses · ${esc(regName(o[3]))}</small></button>`; }).join('') || '<p class="as-hint">Sin resultados. Prueba con otra parte del nombre.</p>';
+  box.innerHTML = res.slice(0, 12).map(i => { const o = S.O.o[i]; return `<button class="as-opt" data-i="${i}"><b>${esc(o[1])}</b><small>${esc(o[2] === 'null' ? 'Sin sector' : o[2])} · ${fmt(o[6])} OC en 12 meses · ${esc(regName(o[3]))}${pacChip(i)}</small></button>`; }).join('') || '<p class="as-hint">Sin resultados. Prueba con otra parte del nombre.</p>';
   box.querySelectorAll('.as-opt').forEach(b => b.addEventListener('click', () => chooseOrg(Number(b.dataset.i))));
 }
 /* Sinónimos del lenguaje cotidiano hacia productos del catálogo ONU (el catálogo usa nombres técnicos: "mail" o "casilla" no aparecen). */
@@ -1051,12 +1057,26 @@ function orgFinTxt(corto){
     else a = 'Sin presupuesto propio en la Ley de Presupuestos 2026 (por ejemplo municipios, corporaciones, universidades y empresas públicas): se financia con recursos propios o transferencias.';
   } else if(S.presTried) a = 'El presupuesto de la Ley 2026 aún no está cargado en el Asesor. Revísalo en la vista <a href="#presupuesto" rel="noopener">Presupuesto 2026</a> del sitio.';
   let b = '';
-  if(S.pacOrg !== S.orgIdx) b = 'Revisando el PAC 2026…';
-  else if(!pt) b = 'No tiene PAC 2026 publicado en el archivo del 02-11-2026.';
+  if(S.pacOrg !== S.orgIdx) b = estadoPac(S.orgIdx) === false ? '' : 'Revisando el PAC 2026…';
+  else if(!pt) b = '';   // el aviso destacado lo da sinPacAviso()
   else b = `PAC 2026: <b>${pesos(pt.t)}</b> en ${fmt(pt.n)} ítem(s)${pt.pj ? ' y ' + fmt(pt.pj) + ' proyecto(s)' : ''}.`;
   return [a, b, comp.trim()].filter(Boolean).join(' ');
 }
-function paintOrgFin(){ const el = $('as-orgfin'); if(!el) return; const t = orgFinTxt(true); el.innerHTML = t ? `<p class="as-hint as-fin">${t}</p>` : ''; }
+/* true/false si el organismo i tiene PAC 2026; null si aún no se sabe */
+function estadoPac(i){
+  if(i == null) return null;
+  if(S.pacOrg === i) return !!pacTotal();
+  return S.pacIdx ? S.pacIdx.has(i) : null;
+}
+function pacChip(i){
+  const e = estadoPac(i);
+  return e === false ? ' · <span class="as-chip-sp">Sin PAC 2026</span>' : (e === true ? ' · PAC 2026 publicado' : '');
+}
+function sinPacAviso(){
+  if(S.orgIdx == null || estadoPac(S.orgIdx) !== false) return '';
+  return `<div class="as-al as-al-medio" style="margin:8px 0 0"><b>Sin PAC 2026 publicado</b>${esc(S.org[1])} no tiene PAC 2026 publicado en el archivo del ${pacFecha()} (se consideran los proyectos en estado Publicado y Actualizado). Sin PAC, cada compra debe justificarse en el acto administrativo que la autoriza (Ley 19.886 art. 12; DS 661 art. 27). Confirma en Mercado Público si el organismo está obligado a publicarlo.</div>`;
+}
+function paintOrgFin(){ const el = $('as-orgfin'); if(!el) return; const t = orgFinTxt(true); el.innerHTML = (t ? `<p class="as-hint as-fin">${t}</p>` : '') + sinPacAviso(); }
 /* Resumen del proceso con varias líneas */
 function procesoHtml(o){
   const L = S.st.l.filter(l => l.p || l.q || lineTotal(l)); if(L.length < 2) return '';
@@ -1239,7 +1259,7 @@ function resultHtml(o){
   let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>${(o.escalera && o.escalera.ecOpcion) ? `<div class="as-ecn"><span class="as-ecn-k">Paso previo · DS 661, art. 28</span><b class="as-ecn-t">Primero, consulta economía circular</b><p>El Asesor lo trata como un bien mueble que otro organismo podría tener y no puede comprobar si lo hay. Consúltalo en la plataforma antes de comprar. Si no existe o no está disponible, deja constancia de «producto no disponible en economía circular» y sigue con este procedimiento. Si por su diseño, uso o función específica no puede reutilizarse ni compartirse, el art. 28 permite eximirte: marca «Este bien no puede ser reutilizado (Economía Circular)» en el paso 3 y queda registrado.</p><a class="as-ecn-go" href="${ECO_URL}" rel="noopener">Ver el catálogo de economía circular</a></div>` : ''}
     <p class="as-chipcap">Esta recomendación se basa en lo que le pediste al Asesor:</p>
     <div class="as-chips"><span class="as-chip as-lb"><small>Producto o servicio</small>${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip as-lb"><small>Cantidad${st_.l.length > 1 ? ' (línea activa)' : ''}</small>${fmt(activeLine().n)} ${esc(umPlural(lineUm(activeLine()), activeLine().n))}</span>` : ''}<span class="as-chip as-lb"><small>Monto${st_.l.length > 1 ? ' total del proceso' : ' total'}, IVA incluido</small>${S.st.m ? clp(S.st.m) + ' · ' : ''}${dec(o.montoUtm, 1)} UTM</span>${plazoChip(o)}<span class="as-chip as-lb"><small>Tramo de monto</small>${esc(o.tramoNom)}</span><span class="as-chip as-lb"><small>Región de la compra</small>${esc(regName(orgRegion()))}</span></div>${plazoNota(o)}${apf ? `<div class="as-pacal as-pacal-${apf.nivel}"><b>Posible fragmentación en este producto</b>${apf.tp ? `<p><b class="as-pacal-k">Ya ocurrido.</b> ${esc(apf.tp)}</p>` : ''}${apf.tf ? `<p><b class="as-pacal-k">A futuro, según tu PAC.</b> ${esc(apf.tf)}</p>` : ''}<span class="as-pacal-b">${apf.tp ? '<button type="button" class="as-btn as-gotab" data-rt="fragp">Ver lo ya realizado</button>' : ''}${apf.tf ? '<button type="button" class="as-btn as-gotab" data-rt="fragf">Ver lo posible con tu PAC</button>' : ''}</span></div>` : ''}${heroCmHtml(o)}</div>`;
-  const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p></div>`;
+  const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p>${sinPacAviso()}</div>`;
   const vdHtml = procesoHtml(o) + vereditoHtml(S.vd || veredictoCm(), o);
   /* Todo lo que sigue va en pestañas bajo la tarjeta de Convenio Marco. */
   const secs = [], h3t = x => (x.match(/<h3>([\s\S]*?)<\/h3>/) || [, ''])[1].replace(/<[^>]+>/g, '');
@@ -1470,6 +1490,25 @@ function pacHtml(){
 }
 
 /* ------------------------------ diagnóstico del organismo ------------------------------ */
+/* Estado del PAC 2026 del organismo en la pestaña Diagnóstico */
+function ensurePacDiag(){
+  if(S.orgIdx == null || S.pacOrg === S.orgIdx || S.pacLoading === S.orgIdx) return;
+  const idx = S.orgIdx; S.pacLoading = idx;
+  loadPac(idx).then(p => { if(S.orgIdx === idx){ S.pac = p; S.pacOrg = idx; S.pacLn = {}; S.pacTot = null; } S.pacLoading = null; if(S.tab === 'diag') renderDiag(); else update(); });
+}
+function pacFecha(){ const g = S.pac && S.pac.g ? String(S.pac.g).split('-') : null; return g && g.length === 3 ? g.reverse().join('-') : '02-11-2026'; }
+function pacDiagKpi(){
+  if(S.pacOrg !== S.orgIdx && estadoPac(S.orgIdx) !== false) return '<div class="as-k"><div class="l">PAC 2026</div><div class="v">…</div><div class="s">revisando</div></div>';
+  const pt = S.pacOrg === S.orgIdx ? pacTotal() : null;
+  return pt ? `<div class="as-k"><div class="l">PAC 2026</div><div class="v">${pesos(pt.t)}</div><div class="s">${fmt(pt.n)} ítem(s)${pt.pj ? ' · ' + fmt(pt.pj) + ' proyecto(s)' : ''}</div></div>`
+            : '<div class="as-k" style="background:#FFF6E5"><div class="l">PAC 2026</div><div class="v">Sin PAC</div><div class="s">no publicado</div></div>';
+}
+function pacDiagHtml(totN, totMM){
+  if(S.pacOrg !== S.orgIdx && estadoPac(S.orgIdx) !== false) return '';
+  const pt = S.pacOrg === S.orgIdx ? pacTotal() : null, nm = S.org[1], enc = encodeURIComponent(nm);
+  if(!pt) return `<div class="as-al as-al-medio" style="margin:0 0 10px"><b>Sin PAC 2026 publicado</b>${esc(nm)} no tiene PAC 2026 publicado en el archivo del ${pacFecha()} (se consideran los proyectos en estado Publicado y Actualizado)${totN ? `, aunque en el período emitió ${fmt(totN)} órdenes de compra por ${mm(totMM)}` : ''}. Sin PAC, cada compra debe justificarse en el acto administrativo que la autoriza (Ley 19.886 art. 12; DS 661 art. 27). Revisa el <a href="#pac26=${enc}" rel="noopener">Buscador PAC 2026</a> y confirma en Mercado Público si el organismo está obligado a publicarlo.</div>`;
+  return `<p class="as-hint" style="margin:0 0 10px">PAC 2026 publicado (versión del ${pacFecha()}): ${pesos(pt.t)} en ${fmt(pt.n)} ítem(s)${pt.pj ? ' y ' + fmt(pt.pj) + ' proyecto(s)' : ''}. Detalle en el <a href="#pac26=${enc}" rel="noopener">Buscador PAC 2026</a>.</p>`;
+}
 function renderDiag(){
   const el = $('as-diag'); if(!el) return;
   if(S.orgIdx == null){
@@ -1479,13 +1518,14 @@ function renderDiag(){
       const q = norm(i2.value).trim(); if(q.length < 2){ b2.hidden = true; return; } const toks = q.split(/\s+/); const res = [];
       for(let i = 0; i < S.orgNorm.length; i++){ if(toks.every(t => S.orgNorm[i].includes(t))) res.push(i); }
       res.sort((a, b) => S.O.o[b][6] - S.O.o[a][6]); b2.hidden = false;
-      b2.innerHTML = res.slice(0, 12).map(i => `<button class="as-opt" data-i="${i}"><b>${esc(S.O.o[i][1])}</b><small>${esc(S.O.o[i][2] === 'null' ? 'Sin sector' : S.O.o[i][2])} · ${fmt(S.O.o[i][6])} OC en 12 meses</small></button>`).join('');
+      b2.innerHTML = res.slice(0, 12).map(i => `<button class="as-opt" data-i="${i}"><b>${esc(S.O.o[i][1])}</b><small>${esc(S.O.o[i][2] === 'null' ? 'Sin sector' : S.O.o[i][2])} · ${fmt(S.O.o[i][6])} OC en 12 meses${pacChip(i)}</small></button>`).join('');
       b2.querySelectorAll('.as-opt').forEach(b => b.addEventListener('click', () => { const i = Number(b.dataset.i); S.orgIdx = i; S.org = S.O.o[i]; S.st.o = S.org[0]; S.st.u = null; S.st.r = null; S.od = null; syncUrl(); el.innerHTML = '<div class="as-load">Cargando…</div>'; loadOrg(i).then(d => { S.od = d; renderDiag(); }); }));
     });
     return;
   }
   if(!S.od){ el.innerHTML = '<div class="as-load">Cargando el diagnóstico…</div>'; loadOrg(S.orgIdx).then(d => { S.od = d; renderDiag(); }).catch(e => { el.innerHTML = '<div class="as-err">' + esc(e.message) + '</div>'; }); return; }
   const o = S.org, d = S.od, MEC = S.O.mecs;
+  ensurePacDiag();
   const totMM = Object.values(d.mix).reduce((a, x) => a + x[1], 0), totN = Object.values(d.mix).reduce((a, x) => a + x[0], 0);
   const b = S.O.bench[o[2]];
   const barras = MEC.filter(m => d.mix[m]).map(m => { const sh = totMM ? d.mix[m][1] / totMM : 0, bi = MEC.indexOf(m), bs = b ? b[bi] : null;
@@ -1498,7 +1538,7 @@ function renderDiag(){
    <div class="as-kpis"><div class="as-k"><div class="l">Órdenes de compra</div><div class="v">${fmt(totN)}</div></div><div class="as-k"><div class="l">Monto transado</div><div class="v">${mm(totMM)}</div></div>
    <div class="as-k"><div class="l">Trato Directo</div><div class="v">${dec(totMM && d.mix.TD ? 100 * d.mix.TD[1] / totMM : 0, 1)} %</div><div class="s">del monto${b ? ' · sector ' + dec(100 * b[2], 1) + ' %' : ''}</div></div>
    <div class="as-k"><div class="l">Convenio Marco</div><div class="v">${dec(totMM && d.mix.CM ? 100 * d.mix.CM[1] / totMM : 0, 1)} %</div><div class="s">del monto${b ? ' · sector ' + dec(100 * b[0], 1) + ' %' : ''}</div></div>
-   <div class="as-k"><div class="l">Fuera de Convenio Marco</div><div class="v">${mm(d.fcmt)}</div><div class="s">en productos con cobertura</div></div></div>
+   <div class="as-k"><div class="l">Fuera de Convenio Marco</div><div class="v">${mm(d.fcmt)}</div><div class="s">en productos con cobertura</div></div>${pacDiagKpi()}</div>${pacDiagHtml(totN, totMM)}
    <div class="as-sec"><h3>Mezcla de mecanismos frente a su sector</h3>${barras}<p class="as-hint">La línea oscura es la mediana de ${b ? b[8] : 0} organismos del mismo sector con 100 o más OC. Alejarse del sector no es una falta por sí mismo: sirve para saber dónde mirar.</p></div>
    <div class="as-sec"><h3>Trato Directo por causal</h3>${tdn ? `<div class="as-tw"><table class="as-t"><tr><th>Causal registrada</th><th class="n">OC</th><th class="n">Monto</th><th class="n">≥ 1.000 UTM</th></tr>${tdn}</table></div><p class="as-hint">Sobre 1.000 UTM, las causales de proveedor único, urgencia y confianza exigen informe técnico (DS 661, art. 80) y las de proveedor único y confianza además publicar la intención de contratar con 5 días hábiles (art. 78). La causal de confianza solo procede sobre 1.000 UTM (art. 75).</p>` : '<p>Sin tratos directos en el período.</p>'}
    ${tdp ? `<p style="margin-top:12px"><b>Proveedores con mayor monto por Trato Directo</b></p><div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th class="n">OC</th><th class="n">Monto</th></tr>${tdp}</table></div>` : ''}${citas([{n: 'Ley 19.886', t: 'art. 8 bis'}, {n: 'DS 661/2024', t: 'arts. 71 a 84'}])}</div>
