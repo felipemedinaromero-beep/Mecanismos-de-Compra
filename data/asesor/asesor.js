@@ -383,7 +383,7 @@ const SIN = {};
  ['autobus','bus'],['bencina','gasolina'],['grapadora','corchetera'],['bolsita','bolsa'],['ripio','grava']].forEach(([a, b]) => { SIN[stem(a)] = stem(b); });
 /* Palabras que, si aparecen en un producto, también lo describen: un desktop, un all in one o un laptop son computadores. */
 const ADD = {}; ['desktop', 'aio', 'laptop'].forEach(t => { ADD[stem(t)] = stem('computador'); });
-function toks(txt){ const out = []; norm(txt).replace(/\barido(?=[a-z])/g, 'arido ').split(/\s+/).filter(t => (t.length >= 3 || t === 'te') && !STOP.has(t)).map(stem).map(t => SIN[t] || t).forEach(t => { out.push(t); if(ADD[t]) out.push(ADD[t]); }); return out; }
+function toks(txt){ const out = []; norm(txt).replace(/\barido(?=[a-z])/g, 'arido ').replace(/\blena(?=seca)/g, 'lena ').replace(/\bimpregnada(?=polin)/g, 'impregnada ').replace(/\bseca(?=bruto|cepillada)/g, 'seca ').replace(/\bverde(?=\d)/g, 'verde ').replace(/\b(viga|pilar)(?=estructural)/g, '$1 ').split(/\s+/).filter(t => (t.length >= 3 || t === 'te') && !STOP.has(t)).map(stem).map(t => SIN[t] || t).forEach(t => { out.push(t); if(ADD[t]) out.push(ADD[t]); }); return out; }
 /* Búsquedas alternativas cuando el nombre ONU usa otra palabra que la maestra. */
 const FRASES = [
   [/computad\w*\s+(de\s+)?escritorio|computad\w*\s+personal|todo en uno|all in one/i, ['desktop', 'aio']],
