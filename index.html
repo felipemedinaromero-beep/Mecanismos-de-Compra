@@ -3956,7 +3956,7 @@ function procInit(){
   const h = document.getElementById('procSearchHost'); if(!h) return;
   const go = () => window.ProcBuscador && window.ProcBuscador.init(h);
   if(window.ProcBuscador) return go();
-  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r7';
+  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r8';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el buscador de procesos. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -7039,7 +7039,7 @@ function route(){
   const detalleMatch = raw.match(/^#detalle=(.+)$/);
   const m = detalleMatch ? decodeURIComponent(detalleMatch[1]) : null;
   const compradorMatch = raw.match(/^#comprador(?:=(.+))?$/);
-  const rubroMatch = raw.match(/^#rubro(?:=([^&]+))?(?:&prov=(.+))?$/);
+  const rubroMatch = raw.match(/^#rubro(?:=([^&]+))?(?:&prov=([^&]+))?(?:&b=([A-Za-z0-9_-]+))?$/);
   const provMatch = raw.match(/^#proveedores(?:=(.+))?$/);
   const asesorMatch = raw.match(/^#asesor(?:=(.+))?$/);
 
@@ -7071,7 +7071,7 @@ function route(){
     { const cm = compradorMatch[1] ? decodeURIComponent(compradorMatch[1]).split('&unidad=') : [null,null]; renderCompradorPage(cm[0]||null, cm[1]||null); }
   } else if(rubroMatch){
     document.getElementById('rubroView').style.display = 'block';
-    window.PROC_PRESET = rubroMatch[2] ? {prov: decodeURIComponent(rubroMatch[2])} : null;
+    window.PROC_PRESET = rubroMatch[3] ? {b: rubroMatch[3]} : (rubroMatch[2] ? {prov: decodeURIComponent(rubroMatch[2])} : null);
     renderRubroPage(rubroMatch[1]!=null ? decodeURIComponent(rubroMatch[1]) : null);
   } else if(asesorMatch){
     document.getElementById('asesorView').style.display = 'block';

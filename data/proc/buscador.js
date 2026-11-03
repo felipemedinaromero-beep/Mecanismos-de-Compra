@@ -302,7 +302,7 @@ function renderResults(){
   const nota = ST.notice ? `<p class="cp-cap-note">${esc(ST.notice)}</p>` : '';
   out.innerHTML = `<div class="proc-sum"><div class="proc-sum-n"><b>${fmt(ST.total)}</b> proceso${ST.total === 1 ? '' : 's'}${ST.sumAll ? ' · <b>$' + fmt(ST.sumAll) + '</b> en OC (CLP)' : ''}</div><div class="proc-chips">${chips}</div></div>
     ${cap}${nota}
-    <div class="proc-dl">${typeof dlBtn === 'function' ? dlBtn('procBuscador', 'procesos_de_compra_busqueda.csv', 'Descargar análisis y listado (Excel)') : ''}<span class="pf-s">El Excel trae el resumen, las tablas de este análisis y el listado; el CSV trae solo el listado. Búsqueda hecha en ${secs} s.</span></div>
+    <div class="proc-dl">${typeof dlBtn === 'function' ? dlBtn('procBuscador', 'procesos_de_compra_busqueda.csv', 'Descargar análisis y listado (Excel)') : ''}<button type="button" class="proc-copy" data-copy="1" title="Copia un enlace que repite esta búsqueda">Copiar enlace de esta búsqueda</button><span class="pf-s">El Excel trae el resumen, las tablas de este análisis y el listado; el CSV trae solo el listado. Búsqueda hecha en ${secs} s.</span></div>
     ${anHtml()}
     <details class="an-list" id="procList"${ST.listOpen ? ' open' : ''}><summary>Ver el listado de procesos (${fmt(Math.min(ST.total, CAP))})</summary>
       <div class="proc-dl"><label class="pf-s" for="procSort">Ordenar por</label><select id="procSort"><option value="sc"${ST.sort.k === 'sc' ? ' selected' : ''}>Relevancia</option><option value="f"${ST.sort.k === 'f' ? ' selected' : ''}>Más recientes</option><option value="mo"${ST.sort.k === 'mo' ? ' selected' : ''}>Mayor monto</option></select><span class="pf-s">Haz clic en una fila para ver todos los antecedentes</span></div>
@@ -767,6 +767,12 @@ const CSS = `
 .proc-filters .filter-field input[type=number]{min-width:130px;}
 .proc-clr{font:inherit;font-weight:700;font-size:14px;padding:12px 22px;border-radius:99px;border:1px solid var(--cc-navy);background:#fff;color:var(--cc-navy);cursor:pointer;}
 .proc-clr:hover{background:var(--cc-mist);}
+.proc-copy{font:inherit;font-weight:700;font-size:14px;padding:12px 22px;border-radius:99px;border:1px solid var(--cc-navy);background:#fff;color:var(--cc-navy);cursor:pointer;}
+.proc-copy:hover{background:var(--cc-mist);}
+.proc-share{font-size:13px;color:var(--text-secondary);margin:-4px 0 10px;min-height:0;}
+.proc-share:empty{display:none;}
+.proc-share b{color:var(--cc-dark);}
+.proc-share-in{background:var(--cc-mist);border-left:4px solid var(--cc-navy);border-radius:8px;padding:8px 12px;margin:6px 0 10px;font-size:13px;color:var(--cc-dark);}
 .proc-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary);margin:14px 0 8px;}
 .proc-hint{font-size:12px;color:var(--cc-navy);margin:2px 0 6px;min-height:0;} .proc-hint:empty{display:none;}
 .proc-opt{font-size:12px;color:var(--text-secondary);display:flex;gap:6px;align-items:center;margin:2px 0 8px;}
@@ -842,7 +848,8 @@ function init(host){
   host.innerHTML = `<section class="block proc-box" id="procBox">
     <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>Buscador de procesos de compra</h2>
     <p class="block-note" id="procNote">Busca licitaciones, tratos directos, compras ágiles y otros procesos por título, descripción, rubro, producto o ID. Cada resultado se abre con sus antecedentes: organismo, unidad, proveedores, fechas, montos y el enlace a Mercado Público.</p>
-    <div class="proc-row"><input type="search" id="procQ" placeholder="Ej.: mantención aire acondicionado" autocomplete="off" aria-label="Qué quieres buscar"><button type="button" class="proc-go" id="procGo">Buscar</button><button type="button" class="proc-clr" id="procClr" title="Borra el texto, los filtros y los resultados, y vuelve a la configuración inicial">Limpiar búsqueda</button></div>
+    <div class="proc-row"><input type="search" id="procQ" placeholder="Ej.: mantención aire acondicionado" autocomplete="off" aria-label="Qué quieres buscar"><button type="button" class="proc-go" id="procGo">Buscar</button><button type="button" class="proc-clr" id="procClr" title="Borra el texto, los filtros y los resultados, y vuelve a la configuración inicial">Limpiar búsqueda</button><button type="button" class="proc-copy" id="procCopy" title="Copia un enlace que guarda el texto, los mecanismos, el período y los filtros; quien lo abra ve la misma búsqueda">Copiar enlace</button></div>
+    <div class="proc-share" id="procShare" aria-live="polite"></div>
     <div class="proc-ex" id="procEx"><span>Prueba con:</span>${['mantención aire acondicionado','servicio de aseo','arriendo de camionetas','"software de gestión"','capacitación -online'].map(x => `<button type="button" data-q="${esc(x)}">${esc(x)}</button>`).join('')}<span>· Usa comillas para una frase exacta y el signo menos para excluir una palabra.</span></div>
     <div class="proc-mecs" id="procMecs">${MECS.map(m => `<label class="proc-mec" style="--c:${m.c}"><input type="checkbox" value="${m.k}" ${m.k === 'l' || m.k === 'td' ? 'checked' : ''}><span><b>${esc(m.n)}</b><small id="pm_${m.k}">${esc(m.sub)}</small></span></label>`).join('')}</div>
     <div class="proc-filters">
@@ -875,6 +882,51 @@ function init(host){
     <div id="procOut"></div></section>`;
   const $ = id => host.querySelector('#' + id);
   let man = null;
+  // ── Enlace para compartir: guarda la búsqueda (texto, mecanismos, período y filtros) y la repite sola al abrirse ──
+  const b64e = s => { let b = ''; new TextEncoder().encode(s).forEach(c => { b += String.fromCharCode(c); }); return btoa(b).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+  const b64d = s => { s = s.replace(/-/g, '+').replace(/_/g, '/'); while(s.length % 4) s += '='; const b = atob(s), u = new Uint8Array(b.length); for(let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new TextDecoder().decode(u); };
+  const TXT_IDS = {q: 'procQ', o: 'procOrg', p: 'procProv', n: 'procMin', x: 'procMax', u: 'procRub', i: 'procId', a: 'procNmin', z: 'procNmax'};
+  const SEL_IDS = {r: 'procReg', e: 'procEst', t: 'procTipo', k: 'procSec'};
+  const fechaCl = iso => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? m[3] + '-' + m[2] + '-' + m[1] : ''; };
+  function formState(){
+    const s = {};
+    Object.keys(TXT_IDS).forEach(k => { const v = $(TXT_IDS[k]).value.trim(); if(v !== '') s[k] = v; });
+    Object.keys(SEL_IDS).forEach(k => { const v = $(SEL_IDS[k]).value; if(v !== '') s[k] = v; });
+    const cv = $('procCau').value, D = window.PROC_DIC;
+    if(cv !== '' && D && D.cau[+cv]) s.c = D.cau[+cv];   // se guarda el texto de la causal, no su posición, por si el diccionario cambia
+    s.m = [...host.querySelectorAll('#procMecs input:checked')].map(i => i.value).join(',');
+    s.d = $('procFrom').value; s.h = $('procTo').value;
+    if(!$('procSyn').checked) s.y = 0;
+    return s;
+  }
+  async function applyState(s){
+    if(s.c != null || s.k != null || String(s.e || '').startsWith('l:')){ try { await ensureDic(); fillDicSelects(); } catch(e){} }
+    Object.keys(TXT_IDS).forEach(k => { $(TXT_IDS[k]).value = s[k] != null ? String(s[k]) : ''; });
+    const setSel = (id, v) => { const el = $(id); el.value = v; if(el.value !== v) el.selectedIndex = 0; };
+    Object.keys(SEL_IDS).forEach(k => setSel(SEL_IDS[k], s[k] != null ? String(s[k]) : ''));
+    const D = window.PROC_DIC, ci = s.c != null && D ? D.cau.indexOf(s.c) : -1;
+    setSel('procCau', ci >= 0 ? String(ci) : '');
+    const mecs = String(s.m || 'l,td').split(',');
+    host.querySelectorAll('#procMecs input').forEach(i => { i.checked = mecs.includes(i.value); });
+    const hasOpt = (id, v) => [...$(id).options].some(o => o.value === v);
+    if(s.d && hasOpt('procFrom', s.d)) $('procFrom').value = s.d;
+    if(s.h && hasOpt('procTo', s.h)) $('procTo').value = s.h;
+    $('procSyn').checked = s.y !== 0;
+    updateHint();
+  }
+  function shareUrl(s){ return location.href.split('#')[0] + '#rubro&b=' + b64e(JSON.stringify(s)); }
+  function copyShare(btn){
+    const s = Object.assign({}, ST.share || formState()); s.F = new Date().toISOString().slice(0, 10);
+    const url = shareUrl(s), msg = $('procShare'), orig = btn ? btn.textContent : '';
+    const ok = () => {
+      msg.innerHTML = '<b>Enlace copiado.</b> Quien lo abra verá esta misma búsqueda, con los datos que tenga el panel ese día' + (s.T != null ? ' (hoy: ' + fmt(s.T) + ' procesos)' : '') + '.';
+      if(btn){ btn.textContent = 'Enlace copiado'; setTimeout(() => { btn.textContent = orig; }, 2500); }
+    };
+    const manual = () => { msg.innerHTML = 'Copia este enlace: <input type="text" readonly style="width:min(100%,640px)" value="' + esc(url) + '">'; const i = msg.querySelector('input'); i.focus(); i.select(); };
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok, manual);
+    else { const t = document.createElement('textarea'); t.value = url; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); ok(); } catch(e){ manual(); } t.remove(); }
+  }
+  $('procCopy').addEventListener('click', e => copyShare(e.currentTarget));
   ensureMan().then(M => {
     man = M;
     const yms = [...new Set(Object.values(M.m).flatMap(o => Object.keys(o)))].sort();
@@ -884,7 +936,15 @@ function init(host){
     MECS.forEach(m => { const o = M.m[m.k]; if(!o) return; const n = Object.values(o).reduce((a, x) => a + x[0], 0), b = Object.values(o).reduce((a, x) => a + x[1], 0);
       const el = $('pm_' + m.k); if(el) el.textContent = m.sub + ' · ' + fmt(n) + ' · ~' + mb(b * 0.3); });
     $('procNote').innerHTML += ` Cubre ${ymLabel(yms[0])} a ${ymLabel(yms[yms.length - 1])}${M.nota ? '. ' + esc(M.nota) : ''}.`;
-    const pre = window.PROC_PRESET;   // llegada desde la ficha de un proveedor: busca todos sus procesos en todos los mecanismos
+    const pre = window.PROC_PRESET;
+    if(pre && pre.b){   // llegada desde un enlace compartido: restaura la búsqueda y la repite
+      window.PROC_PRESET = null; let st = null;
+      try { st = JSON.parse(b64d(pre.b)); } catch(e){}
+      if(st && typeof st === 'object') applyState(st).then(() => run({shared: st}));
+      else $('procStatus').innerHTML = '<span class="proc-err">El enlace de la búsqueda no es válido o quedó cortado. Pide que te lo vuelvan a copiar.</span>';
+      return;
+    }
+    // llegada desde la ficha de un proveedor: busca todos sus procesos en todos los mecanismos
     if(pre && pre.prov){ window.PROC_PRESET = null; $('procProv').value = pre.prov; host.querySelectorAll('#procMecs input').forEach(i => { i.checked = true; }); updateHint(); run(); }
   }).catch(e => { $('procStatus').innerHTML = `<span class="proc-err">${esc(e.message)}</span>`; });
   const CAU_MECS = ['td', 'cc', 'ot'];
@@ -921,7 +981,7 @@ function init(host){
   host.querySelectorAll('#procMecs input').forEach(i => i.addEventListener('change', updateHint));
   $('procClr').addEventListener('click', () => {
     ST.token++; ST.busy = false; ST.res = []; ST.cnt = {}; ST.sum = {}; ST.total = 0; ST.sumAll = 0; ST.capped = false; ST.page = 0; ST.open = new Set(); ST._sorted = null; ST.params = null; ST.A = null; ST.listOpen = false; ST.pv = {}; ST.pn = null; ST._pnFor = null; ST.jobs = null;
-    ST.sort = {k: 'sc', dir: -1};
+    ST.sort = {k: 'sc', dir: -1}; ST.share = null; $('procShare').innerHTML = '';
     ['procQ', 'procOrg', 'procProv', 'procMin', 'procMax', 'procRub', 'procId', 'procNmin', 'procNmax'].forEach(id => { $(id).value = ''; });
     ['procReg', 'procEst', 'procTipo', 'procCau', 'procSec'].forEach(id => { $(id).selectedIndex = 0; });
     host.querySelectorAll('#procMecs input').forEach(i => { i.checked = (i.value === 'l' || i.value === 'td'); });
@@ -932,7 +992,7 @@ function init(host){
   $('procQ').addEventListener('keydown', e => { if(e.key === 'Enter') run(); });
   ['procOrg', 'procProv', 'procMin', 'procMax', 'procRub', 'procId', 'procNmin', 'procNmax'].forEach(id => $(id).addEventListener('keydown', e => { if(e.key === 'Enter') run(); }));
   $('procOut').addEventListener('change', e => {
-    if(e.target.id === 'procSort'){ ST.sort = {k: e.target.value, dir: -1}; ST.page = 0; renderResults(); return; }
+    if(e.target.id === 'procSort'){ ST.sort = {k: e.target.value, dir: -1}; if(ST.share) ST.share.S = e.target.value; ST.page = 0; renderResults(); return; }
     const t = e.target, p = t.dataset && t.dataset.pn && ST.pn && ST.pn[t.dataset.pn]; if(!p) return;
     if(t.classList.contains('an-sel')){ const v = pv(p); v.by = t.value; v.inv = false; tipHide(); rerenderPanel(p.key, 'an-sel'); }
     else if(t.classList.contains('an-lim')){ pv(p).lim = +t.value; tipHide(); rerenderPanel(p.key, 'an-lim'); }
@@ -953,7 +1013,8 @@ function init(host){
   $('procOut').addEventListener('keydown', e => { if((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-reg],[data-org],[data-prov]')){ e.preventDefault(); aplicaClick(e.target); } });
   $('procOut').addEventListener('click', e => {
     if(e.target.id === 'procSort') return;
-    const dlb = e.target.closest('.an-dl'); if(dlb){ e.stopPropagation(); downloadGroup(dlb); return; }
+    const cpb = e.target.closest('[data-copy]'); if(cpb){ e.stopPropagation(); copyShare(cpb); return; }
+    const dlb =e.target.closest('.an-dl'); if(dlb){ e.stopPropagation(); downloadGroup(dlb); return; }
     const invb = e.target.closest('.an-inv'); if(invb){ const p = ST.pn && ST.pn[invb.dataset.pn]; if(p){ const v = pv(p); v.inv = !v.inv; tipHide(); rerenderPanel(p.key, 'an-inv'); } return; }
     const an_ = e.target.closest('[data-reg],[data-org],[data-prov]'); if(an_ && aplicaClick(an_)) return;
     const th = e.target.closest('th[data-sort]');
@@ -962,7 +1023,8 @@ function init(host){
     if(e.target.closest('a, .proc-f')) return;
     const tr = e.target.closest('tr.proc-r'); if(tr){ const i = +tr.dataset.i; if(ST.open.has(i)) ST.open.delete(i); else ST.open.add(i); renderResults(); }
   });
-  async function run(){
+  async function run(opts){
+    if(!(opts && opts.shared)) $('procShare').innerHTML = '';
     if(ST.busy){ ST.token++; }
     const my = ++ST.token; ST.busy = true;
     const status = $('procStatus'), go = $('procGo'); go.disabled = true;
@@ -995,6 +1057,7 @@ function init(host){
       jobs.sort((a, b) => a.ym < b.ym ? 1 : a.ym > b.ym ? -1 : (a.mec < b.mec ? -1 : 1));
       if(!jobs.length){ status.innerHTML = '<span class="proc-err">No hay archivos para ese período y mecanismos.</span>'; return; }
       ST.res = []; ST.cnt = {}; ST.sum = {}; ST.total = 0; ST.sumAll = 0; ST.capped = false; ST.page = 0; ST.open = new Set(); ST._sorted = null; ST.A = newAgg(); ST.listOpen = false; ST.pv = {}; ST._pnFor = null; ST.jobs = jobs; ST.filtTxt = filtSummary(); ST.params = P; ST.t0 = Date.now(); ST.sort = {k: q.groups.length || q.phrases.length ? 'sc' : 'f', dir: -1};
+      ST.share = formState(); if(opts && opts.shared && ['sc', 'f', 'mo'].includes(opts.shared.S)){ ST.sort = {k: opts.shared.S, dir: -1}; ST.share.S = opts.shared.S; }
       $('procOut').innerHTML = '';
       status.innerHTML = 'Cargando el índice de búsqueda…';
       await ensureDic();
@@ -1012,7 +1075,9 @@ function init(host){
       }
       if(my !== ST.token) return;
       status.innerHTML = '';
-      ST.A.cases = pickCases(ST.A); ST.A.done = true;
+      ST.A.cases = pickCases(ST.A); ST.A.done = true; ST.share.T = ST.total;
+      if(opts && opts.shared){ const o = opts.shared;
+        $('procShare').innerHTML = '<div class="proc-share-in">Búsqueda abierta desde un enlace' + (o.F ? ' copiado el ' + fechaCl(o.F) : '') + '. ' + (o.T == null ? '' : o.T === ST.total ? 'Da los mismos ' + fmt(ST.total) + ' procesos que al compartirla.' : 'Al compartirla había ' + fmt(o.T) + ' procesos; con los datos de hoy hay ' + fmt(ST.total) + '.') + ' Puedes cambiar los filtros y buscar de nuevo.</div>'; }
       DL_STORE.procBuscador = {headers: EXP_HDR, get rows(){ return exportRows(); }, sheets: anSheets};
       renderResults();
     } catch(e) {
