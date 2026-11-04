@@ -61,6 +61,10 @@ function parseNum(str){
   else if(!(/^\d+\.\d{1,2}$/.test(t) || /^\d+\.\d{4,}$/.test(t))) t = t.replace(/\./g, '');
   const v = Number(t); return isFinite(v) ? v : 0;
 }
+/* Valor de 1 UF, dólar o euro en pesos. Acepta «39.000», «39.000,50», «39000,5» y también «39,000» (coma como separador de miles, que es imposible como decimal en una UF). */
+function parseFx(str){ const t = String(str == null ? '' : str).trim().replace(/^\$\s*/, '').replace(/\s+/g, ''); if(/^\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) return Number(t.replace(/,/g, '')) || 0; return parseNum(t); }
+const FX_RANGO = {UF: [10000, 100000], USD: [300, 3000], EUR: [300, 4000]};
+function fxAviso(l){ const r = FX_RANGO[l.mo], fx = l.fx; if(!r || !fx || (fx >= r[0] && fx <= r[1])) return ''; return ' Revisa el valor: $' + fmtD(fx, 2) + ' por ' + MON_NOM[l.mo] + ' no parece un valor habitual (¿falta o sobra algún cero o separador?). Usa punto para los miles y coma para los decimales, por ejemplo 39.123,45.'; }
 const fmtD = (n, d) => n == null || !isFinite(n) ? '' : Number(n).toLocaleString('es-CL', {maximumFractionDigits: d == null ? 4 : d});
 function fxOf(l){ return !l.mo ? 1 : (l.fx || (l.mo === 'UTM' && S.C ? (utmNow() || 0) : 0)); }
 /* Pasa a pesos lo cotizado en otra moneda (precio unitario o total) con el valor indicado. */
@@ -75,7 +79,7 @@ function convTxt(l){
   const fx = fxOf(l), nm = MON_NOM[l.mo];
   if(!fx) return 'Indica el valor de 1 ' + nm + ' en pesos para convertir.';
   const tot = lineTotal(l);
-  return tot ? 'Equivale a ' + (l.pu ? clp(l.pu) + ' por unidad y ' : '') + clp(tot) + ' en total, con IVA, a $' + fmtD(fx, 2) + ' por ' + nm + '.' : 'Ingresa el precio o el total en ' + nm + ' y lo convierto a pesos.';
+  return (tot ? 'Equivale a ' + (l.pu ? clp(l.pu) + ' por unidad y ' : '') + clp(tot) + ' en total, con IVA, a $' + fmtD(fx, 2) + ' por ' + nm + '.' : 'Ingresa el precio o el total en ' + nm + ' y lo convierto a pesos.') + fxAviso(l);
 }
 /* Unidades de medida: las que declaran los compradores en el catálogo. Primero las más usadas según el tipo. */
 const UM_TOP_B = ['unidad','caja','paquete','kilogramo','litro','metro lineal','metro cuadrado','metro cúbico','par','kit','juego','pack','resma','rollo','bolsa','bidón','galón','botella','frasco','saco','docena','tonelada'];
@@ -198,7 +202,7 @@ const CSS = `
 .as-ln-n b{display:block;font-size:13px;overflow-wrap:anywhere;} .as-ln-n small{display:block;font-size:11.5px;color:var(--text-secondary);font-weight:400;}
 .as-ln-k{flex:none;width:20px;height:20px;border-radius:99px;background:var(--cc-navy);color:#fff;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
 .as-ln-f{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;} .as-ln-f label{font-size:11px;color:var(--text-secondary);font-weight:600;display:flex;flex-direction:column;gap:3px;} .as-ln-f .as-in,.as-ln-f .as-sel{margin-top:0;}
-.as-ln-cv{margin-top:8px;padding:8px 10px;border-radius:10px;background:#FFF6E5;border:1px solid #E8C26A;font-size:13px;} .as-ln-cv small{display:block;margin-top:4px;font-size:11px;color:var(--text-secondary);font-weight:400;line-height:1.4;} .as-ln-f .as-span2{grid-column:1/-1;} .as-ln-f .as-in[readonly]{background:var(--cc-mist);} .as-ln-ht{margin:6px 0 0;}
+.as-in.as-need{border-color:#C2410C;box-shadow:0 0 0 2px #FDE3D3;} .as-ln-cv{margin-top:8px;padding:8px 10px;border-radius:10px;background:#FFF6E5;border:1px solid #E8C26A;font-size:13px;} .as-ln-cv small{display:block;margin-top:4px;font-size:11px;color:var(--text-secondary);font-weight:400;line-height:1.4;} .as-ln-f .as-span2{grid-column:1/-1;} .as-ln-f .as-in[readonly]{background:var(--cc-mist);} .as-ln-ht{margin:6px 0 0;}
 .as-tot{display:flex;flex-direction:column;gap:2px;font-size:12.5px;} .as-tot b{font-size:20px;color:var(--cc-dark);font-variant-numeric:tabular-nums;} .as-tot small{color:var(--text-secondary);} .as-tot .as-warn{color:#9a5b00;font-weight:600;}
 .as-fin{margin:8px 0 0;} .as-dist{margin:10px 0 4px;} .as-pj-h td{background:var(--cc-mist);}
 .as-chk{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;line-height:1.45;padding:7px 0;border-bottom:1px solid var(--surface-page);cursor:pointer;} .as-chk input{margin-top:3px;accent-color:var(--cc-navy);flex:0 0 auto;}
@@ -745,10 +749,10 @@ function wire(){
     const l = S.st.l[Number(row.dataset.i)];
     if(l.mo){ /* cotización en otra moneda: se aceptan decimales y se convierte a pesos */
       if(t.classList.contains('as-ln-q')){ const d0 = t.value.replace(/\D/g, ''); l.n = d0 ? Number(d0) : 0; }
-      else { const v = parseNum(t.value); if(t.classList.contains('as-ln-fx')) l.fx = v; else if(t.classList.contains('as-ln-pu')) l.pf = v; else l.mf = v; }
+      else { const v = parseNum(t.value); if(t.classList.contains('as-ln-fx')){ l.fx = parseFx(t.value); } else if(t.classList.contains('as-ln-pu')) l.pf = v; else l.mf = v; }
       applyFx(l); const tin = row.querySelector('.as-ln-m'), calc2 = !!(l.n && l.pf);
       if(!t.classList.contains('as-ln-m')){ tin.readOnly = calc2; if(calc2) tin.value = fmtD(Math.round(l.n * l.pf * 100) / 100); else if(!t.classList.contains('as-ln-fx')) tin.value = l.mf ? fmtD(l.mf) : ''; }
-      const cv = row.querySelector('.as-ln-conv'); if(cv) cv.textContent = convTxt(l);
+      const cv = row.querySelector('.as-ln-conv'); if(cv) cv.textContent = convTxt(l); const fxIn = row.querySelector('.as-ln-fx'); if(fxIn) fxIn.classList.toggle('as-need', !l.fx && l.mo !== 'UTM' && !!(l.pf || l.mf));
       recalc(); paintTot(); update(); return;
     }
     const prev = lineTotal(l), d = t.value.replace(/\D/g, ''), v = d ? Number(d) : 0;
@@ -764,7 +768,7 @@ function wire(){
     else if(!t.classList.contains('as-ln-m')){ l.m = prev; tin.readOnly = false; tin.value = prev ? fmt(prev) : ''; }
     recalc(); paintTot(); update();
   });
-  ln.addEventListener('focusout', e => { const t = e.target; if(!/as-ln-(q|pu)\b/.test(t.className)) return; const l = S.st.l[Number(t.closest('.as-ln').dataset.i)]; if(l.mo && t.classList.contains('as-ln-pu')){ t.value = l.pf ? fmtD(l.pf) : ''; return; } const v = t.classList.contains('as-ln-q') ? l.n : l.pu; t.value = v ? fmt(v) : ''; });
+  ln.addEventListener('focusout', e => { const t = e.target; if(!/as-ln-(q|pu|fx)\b/.test(t.className)) return; const l = S.st.l[Number(t.closest('.as-ln').dataset.i)]; if(l.mo && t.classList.contains('as-ln-fx')){ t.value = l.fx ? fmtD(l.fx) : ''; return; } if(l.mo && t.classList.contains('as-ln-pu')){ t.value = l.pf ? fmtD(l.pf) : ''; return; } const v = t.classList.contains('as-ln-q') ? l.n : l.pu; t.value = v ? fmt(v) : ''; });
   const sel = $('as-mes'); sel.innerHTML = S.utmKeys.slice().reverse().map(k => `<option value="${k}">${monthLab(k)} · UTM $${fmt(S.C.utm[k])}</option>`).join('');
   sel.value = curUtmKey(); sel.addEventListener('change', () => { S.st.mes = sel.value; if(S.st.l.some(l => l.mo === 'UTM')) paintLines(); update(); });
   $('as-simple').addEventListener('change', e => { S.st.simple = e.target.checked; update(); });
@@ -825,7 +829,7 @@ function paintLines(){
       <label>Unidad de medida<select class="as-sel as-ln-um" data-i="0">${umOptions(l)}</select></label>
       <label>Cantidad (${esc(um)})<input class="as-in as-ln-q" inputmode="numeric" autocomplete="off" placeholder="Ej.: 20" value="${l.n ? fmt(l.n) : ''}"></label>
       <label>Moneda de la cotización<select class="as-sel as-ln-mo" data-i="0">${MONEDAS.map(x => `<option value="${x[0]}"${(l.mo || '') === x[0] ? ' selected' : ''}>${x[1]}</option>`).join('')}</select></label>
-      ${fo ? `<label>Valor de 1 ${esc(l.mo)} en pesos<input class="as-in as-ln-fx" inputmode="decimal" autocomplete="off" placeholder="${l.mo === 'UTM' ? '' : 'Ej.: ' + (l.mo === 'UF' ? '39.000' : '950')}" value="${l.fx ? fmtD(l.fx) : (l.mo === 'UTM' ? fmtD(fxOf(l)) : '')}"></label>` : ''}
+      ${fo ? `<label>Valor de 1 ${esc(l.mo)} en pesos<input class="as-in as-ln-fx${!l.fx && l.mo !== 'UTM' && (l.pf || l.mf) ? ' as-need' : ''}" inputmode="decimal" autocomplete="off" placeholder="${l.mo === 'UTM' ? '' : 'Ej.: ' + (l.mo === 'UF' ? '39.000' : '950')}" value="${l.fx ? fmtD(l.fx) : (l.mo === 'UTM' ? fmtD(fxOf(l)) : '')}"></label>` : ''}
       <label>Precio por ${esc(um)} con IVA${fo ? ' (en ' + esc(l.mo) + ')' : ''}<input class="as-in as-ln-pu" inputmode="${fo ? 'decimal' : 'numeric'}" autocomplete="off" placeholder="${fo ? esc(l.mo) : '$'}" value="${fo ? (l.pf ? fmtD(l.pf) : '') : (l.pu ? fmt(l.pu) : '')}"></label>
       <label class="${fo ? '' : 'as-span2'}">Total con IVA${fo ? ' (en ' + esc(l.mo) + ')' : ''}<span class="as-ln-mrow"><input class="as-in as-ln-m" inputmode="${fo ? 'decimal' : 'numeric'}" autocomplete="off" placeholder="${fo ? esc(l.mo) : '$'}"${calc ? ' readonly' : ''} value="${fo ? (l.n && l.pf ? fmtD(Math.round(l.n * l.pf * 100) / 100) : (l.mf ? fmtD(l.mf) : '')) : (tot ? fmt(tot) : '')}">${fo ? '' : '<b class="as-ln-utm" data-i="0" aria-live="polite"></b>'}</span></label>
     </div>${fo ? `<div class="as-ln-cv"><b class="as-ln-conv" aria-live="polite">${esc(convTxt(l))}</b> <b class="as-ln-utm" data-i="0" aria-live="polite"></b><small>Conversión referencial: el DS 661 no fija un tipo de cambio para determinar el procedimiento (art. 4 N° 22: el presupuesto estimado incluye IVA; art. 32: los tramos se miden en UTM). Anota en el expediente el valor y la fuente que usaste (por ejemplo, el Banco Central o el SII del día de la estimación) y confírmalo con la unidad jurídica de tu organismo.</small></div>` : ''}<p class="as-hint as-ln-ht">${nota}</p></div>`;
@@ -834,7 +838,8 @@ function paintLines(){
 }
 function paintTot(){
   const el = $('as-tot'); if(!el) return; const L = S.st.l, t = procTotal(), sin = L.map((l, i) => (l.p || l.q) && !lineTotal(l) ? i + 1 : 0).filter(Boolean);
-  el.innerHTML = t ? `<span>Total del proceso, IVA incluido</span><b>${clp(t)} <span class="as-tot-u">= ${dec(t / utmNow(), 1)} UTM</span></b>${L.length > 1 ? `<small>${L.length} líneas sumadas</small>` : ''}` : '<span>Ingresa cantidad y precio unitario, o directamente el total, en el paso 2.</span>';
+  const sinFx = L.find(l => l.mo && !fxOf(l) && (l.pf || l.mf));
+  el.innerHTML = (!t && sinFx) ? `<span>Falta el valor de 1 ${esc(MON_NOM[sinFx.mo])} en pesos</span><small class="as-warn">Ya ingresaste el precio en ${esc(MON_NOM[sinFx.mo])}. Escribe cuántos pesos vale 1 ${esc(MON_NOM[sinFx.mo])} en el campo «Valor de 1 ${esc(sinFx.mo)} en pesos» (paso 2) y calculo el total.</small>` : t ? `<span>Total del proceso, IVA incluido</span><b>${clp(t)} <span class="as-tot-u">= ${dec(t / utmNow(), 1)} UTM</span></b>${L.length > 1 ? `<small>${L.length} líneas sumadas</small>` : ''}` : '<span>Ingresa cantidad y precio unitario, o directamente el total, en el paso 2.</span>';
   if(sin.length && t) el.insertAdjacentHTML('beforeend', `<small class="as-warn">Falta el monto de la línea ${sin.join(', ')}.</small>`);
   const c3 = $('as-c2'); if(c3) c3.classList.toggle('as-done', !!t && S.st.l.some(l => l.p || l.q));
   const ut = utmNow(); document.querySelectorAll('.as-ln-utm').forEach(x => { const lt = lineTotal(S.st.l[Number(x.dataset.i)] || {}); x.textContent = lt && ut ? '= ' + dec(lt / ut, 1) + ' UTM' : ''; });
