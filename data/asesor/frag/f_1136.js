@@ -1,0 +1,1 @@
+(window.AS_FR=window.AS_FR||{})[1136]={"pr":[[8960,"Sistemas de megafonía"]],"pv":[["77.994.783-1","SP CHILE INGENIERÍA Y LOGÍSTICA LIMITADA"],["76.587.791-1","Roberto Andres"]],"c":[[0,1,2025,194.5,2,1,13.1,[["1306450-9-AG25",396,"",0,0,6591001,97.7],["1306450-12-AG25",403,"",0,1,6512000,96.8]]]]};

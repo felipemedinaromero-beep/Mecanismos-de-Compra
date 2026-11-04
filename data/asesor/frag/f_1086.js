@@ -1,0 +1,1 @@
+(window.AS_FR=window.AS_FR||{})[1086]={"pr":[[14746,"Servicios de organización y producción de eventos deportivos"]],"pv":[["77.434.349-0","ORGANIZACIÓN Y GESTIÓN DEPORTIVA CRONOSUR LIMITADA"]],"c":[[0,1,2026,145.2,2,1,10.1,[["1298632-6-AG26",753,"",0,0,4700500,67.4],["1298632-9-AG26",781,"",0,0,5414500,77.8]]]]};

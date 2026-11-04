@@ -1,0 +1,1 @@
+(window.AS_FR=window.AS_FR||{})[1104]={"pr":[[8285,"Notebook, laptop o computador portátil excepto Tablet PC"]],"pv":[["77.239.599-K","COMERCIAL ULTIGIZ CHILE SPA"],["77.455.918-3","LOGISTICA INTEGRAL EXPRESS SPA"]],"c":[[0,1,2026,115.1,2,1,8.0,[["1230615-3-AG26",767,"",1,0,1199520,17.2],["1230615-14-AG26",813,"",0,1,6842500,97.9]]]]};

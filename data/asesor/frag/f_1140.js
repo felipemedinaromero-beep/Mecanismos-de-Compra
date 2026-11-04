@@ -1,0 +1,1 @@
+(window.AS_FR=window.AS_FR||{})[1140]={"pr":[[14746,"Servicios de organización y producción de eventos deportivos"]],"pv":[["76.599.544-2","AMES PRODUCCIONES"],["77.792.409-5","Rufus Chile"]],"c":[[0,1,2025,126.8,2,1,8.8,[["1475842-11-AG25",708,"",0,0,6500004,93.5],["1475842-12-AG25",722,"",0,1,2320500,33.4]]]]};

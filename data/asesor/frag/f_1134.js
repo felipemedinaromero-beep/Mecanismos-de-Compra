@@ -1,0 +1,1 @@
+(window.AS_FR=window.AS_FR||{})[1134]={"pr":[[14766,"Servicios de movilización de recursos"]],"pv":[["76.560.334-k","KO PRODUCCIONES ROSA CASTILLO E.I.R.L."]],"c":[[0,1,2026,151.6,2,1,10.6,[["1483331-3-AG26",822,"",1,0,6101606,87.3],["1483331-4-AG26",836,"",1,0,4493440,64.3]]]]};

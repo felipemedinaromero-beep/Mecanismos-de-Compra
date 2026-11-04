@@ -1,0 +1,1 @@
+(window.AS_FR=window.AS_FR||{})[1111]={"pr":[[12898,"Juguetes didácticos"]],"pv":[["86.442.000-1","Aukinko"],["76.191.562-2","ALICANTO INGENIERIA CONSTRUCCION Y SERVICIOS LTDA"]],"c":[[0,1,2025,103.0,2,1,7.2,[["1372962-2-AG25",708,"",0,0,6499567,93.5],["1372962-10-AG25",722,"",0,1,661609,9.5]]]]};

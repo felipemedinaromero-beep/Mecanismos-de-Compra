@@ -3925,7 +3925,7 @@ function renderAsesorPage(payload){
   const h = document.getElementById('asesorHost');
   const go = () => window.AsesorCompras && window.AsesorCompras.init(h, payload || '');
   if(window.AsesorCompras) return go();
-  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r41';
+  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r42';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el asesor. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -7036,7 +7036,7 @@ function route(){
   const raw = location.hash || '';
   const eraHome = document.getElementById('mainView').style.display === 'block';
   if(eraHome) HOME_Y = window.scrollY;
-  const detalleMatch = raw.match(/^#detalle=(.+)$/);
+  const detalleMatch = raw.match(/^#detalle=([^&]+)(?:&cm=[^&]*)?$/);
   const m = detalleMatch ? decodeURIComponent(detalleMatch[1]) : null;
   const compradorMatch = raw.match(/^#comprador(?:=(.+))?$/);
   const rubroMatch = raw.match(/^#rubro(?:=([^&]+))?(?:&prov=([^&]+))?(?:&b=([A-Za-z0-9_-]+))?$/);
@@ -7171,5 +7171,6 @@ route();
 /* upd20: siempre se navega en una sola pestaña */
 document.addEventListener('click', function(e){ var a = e.target && e.target.closest ? e.target.closest('a[target]') : null; if(a && a.getAttribute('target') === '_blank') a.removeAttribute('target'); }, true);
 </script>
+<script src="data/asistente/asistente.js?v=a4" defer></script>
 </body>
 </html>

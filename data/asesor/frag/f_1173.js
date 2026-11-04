@@ -1,0 +1,1 @@
+(window.AS_FR=window.AS_FR||{})[1173]={"pr":[[13660,"Viajes en aviones comerciales, pasajes aéreos"]],"pv":[["79.898.540-k","Turismo Latrach Ltda."],["77.770.356-0","THE TRIPOLOGIST VIAJES SPA"]],"c":[[0,1,2026,116.9,2,1,8.3,[["1439282-2-AG26",785,"",0,0,4690000,67.4],["1439282-5-AG26",1009,"",0,1,3575000,49.5]]]]};

@@ -66,6 +66,10 @@ function parseFx(str){ const t = String(str == null ? '' : str).trim().replace(/
 const FX_RANGO = {UF: [10000, 100000], USD: [300, 3000], EUR: [300, 4000]};
 function fxAviso(l){ const r = FX_RANGO[l.mo], fx = l.fx; if(!r || !fx || (fx >= r[0] && fx <= r[1])) return ''; return ' Revisa el valor: $' + fmtD(fx, 2) + ' por ' + MON_NOM[l.mo] + ' no parece un valor habitual (¿falta o sobra algún cero o separador?). Usa punto para los miles y coma para los decimales, por ejemplo 39.123,45.'; }
 const fmtD = (n, d) => n == null || !isFinite(n) ? '' : Number(n).toLocaleString('es-CL', {maximumFractionDigits: d == null ? 4 : d});
+const FXK = {UF: 'uf', USD: 'usd', EUR: 'eur'};
+/* Valor del Banco Central (data/asesor/fx.js, generado con bde_fx.py): el último publicado en la fecha o antes. */
+function fxBC(mo, fecha){ const F = window.AS_FX, k = FXK[mo]; if(!F || !k || !F[k]) return null; const d = fecha || new Date().toISOString().slice(0, 10); let best = ''; for(const f in F[k]) if(f <= d && f > best) best = f; return best ? {v: F[k][best], f: best} : null; }
+const fxFecha = f => f.slice(8, 10) + '-' + f.slice(5, 7) + '-' + f.slice(0, 4);
 function fxOf(l){ return !l.mo ? 1 : (l.fx || (l.mo === 'UTM' && S.C ? (utmNow() || 0) : 0)); }
 /* Pasa a pesos lo cotizado en otra moneda (precio unitario o total) con el valor indicado. */
 function applyFx(l){
@@ -79,7 +83,7 @@ function convTxt(l){
   const fx = fxOf(l), nm = MON_NOM[l.mo];
   if(!fx) return 'Indica el valor de 1 ' + nm + ' en pesos para convertir.';
   const tot = lineTotal(l);
-  return (tot ? 'Equivale a ' + (l.pu ? clp(l.pu) + ' por unidad y ' : '') + clp(tot) + ' en total, con IVA, a $' + fmtD(fx, 2) + ' por ' + nm + '.' : 'Ingresa el precio o el total en ' + nm + ' y lo convierto a pesos.') + fxAviso(l);
+  return (tot ? 'Equivale a ' + (l.pu ? clp(l.pu) + ' por unidad y ' : '') + clp(tot) + ' en total, con IVA, a $' + fmtD(fx, 2) + ' por ' + nm + '.' : 'Ingresa el precio o el total en ' + nm + ' y lo convierto a pesos.') + (l.fxBc && l.fxBc.v === l.fx ? ' Valor del Banco Central del ' + fxFecha(l.fxBc.f) + ' (puedes cambiarlo).' : '') + fxAviso(l);
 }
 /* Unidades de medida: las que declaran los compradores en el catálogo. Primero las más usadas según el tipo. */
 const UM_TOP_B = ['unidad','caja','paquete','kilogramo','litro','metro lineal','metro cuadrado','metro cúbico','par','kit','juego','pack','resma','rollo','bolsa','bidón','galón','botella','frasco','saco','docena','tonelada'];
@@ -123,7 +127,7 @@ function syncUrl(){ try{ history.replaceState(null, '', '#asesor=' + encState(S.
 /* ------------------------------ carga de datos ------------------------------ */
 function ensure(){
   if(S.ready) return S.ready;
-  S.ready = Promise.all([loadScript(AB + 'pac/idx.js' + ver()).catch(() => null), loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver()), loadScript(AB + 'reglas.js' + ver()), loadScript(AB + 'cmcot.js' + ver()).catch(() => null), loadScript(AB + 'cmahorro.js' + ver()).catch(() => null), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
+  S.ready = Promise.all([loadScript(AB + 'pac/idx.js' + ver()).catch(() => null), loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver()), loadScript(AB + 'reglas.js' + ver()), loadScript(AB + 'fx.js' + ver()).catch(() => null), loadScript(AB + 'cmcot.js' + ver()).catch(() => null), loadScript(AB + 'cmahorro.js' + ver()).catch(() => null), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
     loadScript(AB + 'pres.js' + ver()).then(() => { S.pres = window.AS_PRES || null; S.presTried = true; if(S.orgIdx != null) update(); }).catch(() => { S.presTried = true; });
     S.C = window.AS_CAT; S.O = window.AS_ORG; S.pacIdx = window.AS_PACIDX ? new Set(window.AS_PACIDX) : null;
     S.orgNorm = S.O.o.map(o => norm(o[1]) + ' ' + o[0]);
@@ -742,14 +746,14 @@ function wire(){
   });
   ln.addEventListener('change', e => { const t = e.target;
     if(t.classList.contains('as-ln-um')){ S.st.l[Number(t.dataset.i)].um = t.value; paintLines(); update(); return; }
-    if(t.classList.contains('as-ln-mo')){ const l = S.st.l[Number(t.dataset.i)]; l.mo = t.value; l.fx = 0; l.pf = 0; l.mf = 0; if(l.mo){ l.pu = 0; l.m = 0; } paintLines(); recalc(); paintTot(); update(); return; }
+    if(t.classList.contains('as-ln-mo')){ const l = S.st.l[Number(t.dataset.i)]; l.mo = t.value; l.fx = 0; l.fxBc = null; l.pf = 0; l.mf = 0; { const bc = fxBC(l.mo); if(bc){ l.fx = bc.v; l.fxBc = bc; } } if(l.mo){ l.pu = 0; l.m = 0; } paintLines(); recalc(); paintTot(); update(); return; }
     if(!t.classList.contains('as-ln-t')) return; const l = S.st.l[Number(t.dataset.i)]; l.t = t.value === (l.p ? autoTipoL(l) : 'bien') && l.p ? '' : t.value; if(Number(t.dataset.i) === S.li) activate(S.li); paintLines(); update(); });
   ln.addEventListener('input', e => {
     const t = e.target, row = t.closest('.as-ln'); if(!row || !/as-ln-(q|pu|m|fx)\b/.test(t.className)) return;
     const l = S.st.l[Number(row.dataset.i)];
     if(l.mo){ /* cotización en otra moneda: se aceptan decimales y se convierte a pesos */
       if(t.classList.contains('as-ln-q')){ const d0 = t.value.replace(/\D/g, ''); l.n = d0 ? Number(d0) : 0; }
-      else { const v = parseNum(t.value); if(t.classList.contains('as-ln-fx')){ l.fx = parseFx(t.value); } else if(t.classList.contains('as-ln-pu')) l.pf = v; else l.mf = v; }
+      else { const v = parseNum(t.value); if(t.classList.contains('as-ln-fx')){ l.fx = parseFx(t.value); if(l.fxBc && l.fxBc.v !== l.fx) l.fxBc = null; } else if(t.classList.contains('as-ln-pu')) l.pf = v; else l.mf = v; }
       applyFx(l); const tin = row.querySelector('.as-ln-m'), calc2 = !!(l.n && l.pf);
       if(!t.classList.contains('as-ln-m')){ tin.readOnly = calc2; if(calc2) tin.value = fmtD(Math.round(l.n * l.pf * 100) / 100); else if(!t.classList.contains('as-ln-fx')) tin.value = l.mf ? fmtD(l.mf) : ''; }
       const cv = row.querySelector('.as-ln-conv'); if(cv) cv.textContent = convTxt(l); const fxIn = row.querySelector('.as-ln-fx'); if(fxIn) fxIn.classList.toggle('as-need', !l.fx && l.mo !== 'UTM' && !!(l.pf || l.mf));
@@ -1292,11 +1296,6 @@ function heroCmHtml(o){
   return h + '</div>';
 }
 /* Fragmentación: lo ya ocurrido (compras del organismo por mecanismos simples) y lo posible según el PAC. */
-function fragPasada(){
-  if(S.od == null || S.prodIdx == null) return null;
-  const fr = S.od.frag.filter(f => f[0] === S.prodIdx), h = histProd(), noCm = h ? h.noCmUtm : 0;
-  return {fr, noCm, hay: fr.length > 0 || noCm > 100};
-}
 function fragFutura(o){
   if(S.orgIdx == null || S.prodIdx == null) return null;
   if(S.pacOrg !== S.orgIdx) return {est: 'carga'};
@@ -1314,34 +1313,196 @@ function fragFutura(o){
     'Consolida la demanda en una sola compra con entregas parciales, o fundamenta por qué son necesidades distintas.';
   return {est: 'ok', rs, cons, distinto, ms, t};
 }
-function textoPasado(p){
-  const uni = n => dec(n, 0) + ' UTM';
-  let t = p.fr.length ? `En ${p.fr.length} trimestre(s) tu organismo compró este producto tres o más veces por Compra Ágil, Trato Directo o Cotización, y las compras de cada trimestre suman más de 100 UTM.` + (p.noCm > 100 ? ` En los últimos 12 meses van ${uni(p.noCm)} por esos mecanismos.` : '')
-    : `En los últimos 12 meses tu organismo compró este producto por ${uni(p.noCm)} mediante Compra Ágil, Trato Directo o Cotización, sobre el límite de 100 UTM de la Compra Ágil.`;
-  return t + ' Es una señal para revisar, no una conclusión de infracción (DS 661, art. 16).';
+/* ===== Fragmentación anual: año calendario, por producto y por mecanismo (cada mecanismo es independiente) =====
+   Datos: data/asesor/frag/meta.js y f_<organismo>.js, generados por herramientas_buscador/build_frag_asesor.py desde data/proc/.
+   Caso = [producto, regla, año, suma UTM, N° de procesos, posición del proceso donde se cruza el tope, monto total (millones $), procesos]
+   Proceso = [N° de OC o licitación, día (desde 01-01-2024), tipo o causal, estado, proveedor, monto $, UTM del mes]. */
+const FR_PAD = n => String(n).padStart(2, '0');
+const frDia = f => { const d = new Date(Date.UTC(2024, 0, 1 + Number(f))); return FR_PAD(d.getUTCDate()) + '-' + FR_PAD(d.getUTCMonth() + 1) + '-' + d.getUTCFullYear(); };
+const frUrl = (rk, c) => rk.charAt(0) === 'L' ? 'http://www.mercadopublico.cl/fichaLicitacion.html?idLicitacion=' + encodeURIComponent(c) : 'https://www.mercadopublico.cl/PurchaseOrder/Modules/PO/DetailsPurchaseOrder.aspx?codigoOC=' + encodeURIComponent(c);
+const EXIG = {
+  L1: {nom: 'Licitación L1 (menos de 100 UTM)', it: [
+    ['Publica el llamado al menos 5 días corridos antes del cierre de ofertas.', 'DS 661, art. 46', 0],
+    ['No se exige comisión evaluadora de tres funcionarios ni garantía de cumplimiento obligatoria: rigen desde 1.000 UTM.', 'DS 661, arts. 54 y 121', 0]]},
+  LE: {nom: 'Licitación LE (100 a menos de 1.000 UTM)', it: [
+    ['Publicación de 10 días corridos entre el llamado y el cierre de ofertas (5 si el bien o servicio es de simple y objetiva especificación).', 'DS 661, art. 46', 1],
+    ['Antes de licitar, consulta el Catálogo de Convenio Marco (sobre 100 UTM).', 'DS 661, art. 89', 1],
+    ['Las bases definen si se firma contrato o basta la orden de compra aceptada.', 'DS 661, arts. 41 N° 9 y 117', 1],
+    ['Garantía de cumplimiento solo si se fundamenta por riesgo.', 'DS 661, art. 121', 0]]},
+  LP: {nom: 'Licitación LP (1.000 a menos de 5.000 UTM)', it: [
+    ['Publicación de 20 días corridos entre el llamado y el cierre (10 si es de simple y objetiva especificación).', 'DS 661, art. 46', 1],
+    ['Comisión evaluadora de al menos tres funcionarios, con su integración publicada antes de la apertura de ofertas.', 'DS 661, art. 54', 1],
+    ['Garantía de fiel y oportuno cumplimiento obligatoria, de 5 % del precio final neto.', 'DS 661, art. 121', 1],
+    ['Antes de licitar, consulta el Catálogo de Convenio Marco.', 'DS 661, art. 89', 0]]},
+  LR: {nom: 'Licitación LR (5.000 UTM o más)', it: [
+    ['Publicación de 30 días corridos entre el llamado y el cierre, sin la rebaja de la simple y objetiva especificación.', 'DS 661, art. 46', 1],
+    ['Análisis técnico y económico previo a las bases (características, precios y costos del ciclo de vida). Si consultas a terceros ajenos al Estado, la consulta es pública, abierta y estandarizada por el Sistema de Información.', 'DS 661, art. 31', 1],
+    ['Garantía de seriedad de la oferta: solo excepcionalmente, por razones de interés público, y de hasta 3 % del monto.', 'Ley 19.886, art. 11; DS 661, art. 52', 1],
+    ['El contrato solo puede firmarse una vez transcurridos 10 días hábiles desde la notificación de la adjudicación.', 'Ley 19.886, art. 10; DS 661, art. 119', 1],
+    ['Se mantienen las exigencias de LP: comisión evaluadora de tres funcionarios y garantía de cumplimiento de 5 %.', 'DS 661, arts. 54 y 121', 0],
+    ['Sobre 10.000 UTM, bases y contrato van a toma de razón de la Contraloría (ver Alertas).', 'Res. CGR 36/2024, art. 12', 1]],
+   nota: 'Con exactamente 5.000 UTM aplica el plazo de LR (arts. 36 y 46), pero el análisis previo, la garantía de seriedad y la espera de 10 días hábiles se leen «sobre 5.000 UTM» (arts. 31, 52 y 119 y Ley art. 10). El Asesor no resuelve esa diferencia.'}
+};
+const tramoKey = u => u < 100 ? 'L1' : (u < 1000 ? 'LE' : (u < 5000 ? 'LP' : 'LR'));
+function exigHtml(k, modo, anterior){
+  const e = EXIG[k]; if(!e) return '';
+  const tit = modo === 'frag' ? 'Lo que exigía una licitación ' + k : 'Lo que exige esta licitación (' + k + ')';
+  const nuevo = '<span style="display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;background:#0B3A5C;color:#fff;font-size:10.5px;font-weight:700;vertical-align:1px">' + (modo === 'frag' ? 'no se exigía en el tramo anterior' : 'nueva respecto del tramo menor') + '</span>';
+  return `<details class="as-al as-al-info as-ex" style="margin:8px 0"><summary style="cursor:pointer;font-weight:700">${esc(tit)}: ${esc(e.nom)}</summary><ul style="margin:6px 0 0 18px;padding:0">${e.it.map(x => `<li style="margin:3px 0">${esc(x[0])} <span class="as-hint">(${esc(x[1])})</span>${x[2] && k !== 'L1' && anterior !== false ? nuevo : ''}</li>`).join('')}</ul>${e.nota ? `<p class="as-hint" style="margin:6px 0 0">${esc(e.nota)}</p>` : ''}<p class="as-hint" style="margin:6px 0 0">Resumen del DS 661/2024 y la Ley 19.886. Confirma el texto vigente antes de citarlo en un acto administrativo.</p></details>`;
 }
-function alertaFrag(o){
-  const p = fragPasada(), f = fragFutura(o), hayP = !!(p && p.hay), hayF = !!(f && f.est === 'ok');
-  if(!hayP && !hayF) return null;
-  const nivel = (hayP && p.fr.length) || (hayF && f.distinto) ? 'alto' : 'medio';
-  return {nivel, p: hayP ? p : null, f: hayF ? f : null, tp: hayP ? textoPasado(p) : '', tf: hayF ? f.t : '',
-    t: [hayP ? 'Ya ocurrido: ' + textoPasado(p) : '', hayF ? 'A futuro, según tu PAC: ' + f.t : ''].filter(Boolean).join(' '),
-    accion: 'Revisa las pestañas «Fragmentación realizada» y «Fragmentación posible (PAC)». El Asesor asoció los ítems del PAC por el nombre del producto: confirma cuáles son la misma necesidad.',
-    arts: [{n: 'DS 661/2024', t: 'arts. 16, 165, 166'}, {n: 'Ley 19.886', t: 'art. 12'}], pac: true};
+function loadFrag(i){
+  if(i == null || S.frOrg === i || S.frLoading === i) return;
+  S.frLoading = i;
+  const meta = window.AS_FRM ? Promise.resolve() : loadScript(AB + 'frag/meta.js' + ver()).catch(() => null);
+  meta.then(() => {
+    const tiene = window.AS_FRM && window.AS_FRM.idx && window.AS_FRM.idx.indexOf(i) >= 0;
+    window.AS_FR = window.AS_FR || {};
+    return (tiene && !window.AS_FR[i]) ? loadScript(AB + 'frag/f_' + i + '.js' + ver()).catch(() => null) : null;
+  }).then(() => {
+    if(S.orgIdx !== i){ if(S.frLoading === i) S.frLoading = null; return; }
+    S.fr = (window.AS_FR && window.AS_FR[i]) || {pr: [], pv: [], c: []}; S.frMeta = window.AS_FRM || {reglas: [], cau: [], est: [], estl: []}; S.frOrg = i; S.frLoading = null;
+    if(S.tab === 'asesor') update(); else renderDiag();
+  });
+}
+function frListo(){ if(S.orgIdx == null) return false; if(S.frOrg !== S.orgIdx){ loadFrag(S.orgIdx); return false; } return true; }
+function frCasos(pi){
+  if(!frListo()) return null;
+  if(!S.frMeta || !S.frMeta.reglas.length) return [];
+  const nm = pi != null ? norm(S.C.n[pi]) : null;
+  return S.fr.c.filter(c => { if(pi == null) return true; const p = S.fr.pr[c[0]]; return p[0] === pi || norm(p[1]) === nm; });
+}
+const frProdNom = c => { const p = S.fr.pr[c[0]]; return sentence(p[0] >= 0 ? S.C.n[p[0]] : p[1]); };
+const frTope = r => (r[2] ? 'más de ' : '') + fmt(r[1]) + ' UTM' + (r[2] ? '' : ' o más');
+const frUmbralTR = rk => rk.charAt(0) === 'L' ? [10000, 'licitación pública, art. 12.2'] : (rk.charAt(0) === 'T' ? [8000, 'trato directo, art. 12.1'] : null);
+function frPacTxt(){
+  const P = S.pacOrg === S.orgIdx ? S.pac : null;
+  if(S.pacOrg !== S.orgIdx) return null;
+  if(!P) return 'Tu organismo no tiene PAC 2026 publicado en el archivo del Asesor, así que no hay indicio de que la compra se conociera de antemano.';
+  const st = pacState(activeLine());
+  return st && st.matches.length ? 'El PAC 2026 de tu organismo tiene ' + st.matches.length + ' ítem(s) asociados por nombre a este producto: hay indicio de que la compra se conocía de antemano.' : 'No se encontró en el PAC 2026 un ítem asociado por nombre a este producto.';
+}
+function frFilas(c){
+  const M = S.frMeta, rk = M.reglas[c[1]][0]; let cum = 0;
+  return c[7].map((x, j) => { cum += x[6];
+    const tipo = rk.charAt(0) === 'L' ? (x[2] === 'LQ' ? 'LQ (tipo ya eliminado)' : rk) : (rk.charAt(0) === 'T' ? (M.cau[x[2]] || '') : '');
+    const est = rk.charAt(0) === 'L' ? (M.estl[x[3]] || '') : (M.est[x[3]] || '');
+    const pv = x[4] >= 0 && S.fr.pv[x[4]] ? S.fr.pv[x[4]] : ['', ''];
+    return {n: j + 1, cod: x[0], url: frUrl(rk, x[0]), fecha: frDia(x[1]), tipo, est, rut: pv[0], prov: pv[1], clp: x[5], utm: x[6], cum, cruce: j === c[5]};
+  });
+}
+function frCasoHtml(c){
+  const M = S.frMeta, r = M.reglas[c[1]], rk = r[0], filas = frFilas(c), trunc = c[4] > filas.length;
+  const tr = frUmbralTR(rk);
+  let h = `<div class="as-sec" style="margin:10px 0;padding:10px 12px;border:1px solid var(--border);border-radius:12px"><p style="margin:0"><b>${esc(r[4])} · ${c[2]}${c[2] === 2026 ? ' (hasta octubre)' : ''}</b></p>
+    <p style="margin:4px 0">${esc(frProdNom(c))}: <b>${dec(c[3], 0)} UTM</b> en ${fmt(c[4])} proceso(s), ${pesos(c[6] * 1e6)}. Señal desde ${esc(frTope(r))} al año.</p>
+    <p style="margin:4px 0"><b>Qué correspondía:</b> ${esc(r[3])}.</p>`;
+  if(rk === 'CM') h += '<p class="as-hint" style="margin:4px 0">Gran Compra: comunicar la intención de compra a todos los proveedores de la categoría y comparar con los criterios de las bases del convenio (DS 661, art. 90).</p>';
+  else h += exigHtml(rk === 'L1' ? 'LE' : (rk === 'LE' ? 'LP' : (rk === 'LP' ? 'LR' : tramoKey(c[3]))), 'frag', rk.charAt(0) === 'L');
+  if(tr && c[3] > tr[0]) h += `<p class="as-hint" style="margin:4px 0">Contexto: con la UTM de cada mes, esta suma supera ${fmt(tr[0])} UTM; un solo acto de ese monto habría quedado afecto a toma de razón de la Contraloría (Res. CGR 36/2024, ${tr[1]}, modificada por la Res. 3/2026). Es contexto, no una infracción.</p>`;
+  h += `<details><summary style="cursor:pointer;font-weight:600">Ver los ${fmt(c[4])} procesos${trunc ? ' (se muestran los ' + filas.length + ' primeros; el Excel trae los mismos)' : ''}</summary><div class="as-tw"><table class="as-t"><tr><th>#</th><th>N°</th><th>Fecha</th><th>Tipo o causal</th><th>Proveedor</th><th class="n">Monto ($)</th><th class="n">UTM</th><th class="n">Acumulado UTM</th></tr>` +
+    filas.map(f => `<tr${f.cruce ? ' style="background:#FFF6E5;font-weight:700"' : ''}><td>${f.n}</td><td><a href="${esc(f.url)}" rel="noopener" target="_blank">${esc(f.cod)}</a></td><td>${esc(f.fecha)}</td><td>${esc(f.tipo)}</td><td>${esc(f.prov)}</td><td class="n">${fmt(f.clp)}</td><td class="n">${dec(f.utm, 1)}</td><td class="n">${dec(f.cum, 0)}</td></tr>`).join('') +
+    '</table></div><p class="as-hint">La fila destacada es donde el acumulado del año cruza el tope. Los montos están en pesos y la UTM es la del mes de cada proceso.</p></details></div>';
+  return h;
+}
+function frMetodoSheet(){
+  const M = S.frMeta || {};
+  return {name: 'Método', headers: ['Tema', 'Detalle'], rows: [
+    ['Regla', 'Año calendario, por producto y por mecanismo; cada mecanismo se suma por separado. Es una señal para revisar, no una conclusión de infracción (DS 661, art. 16).'],
+    ['Topes', (M.reglas || []).map(r => r[4] + ': ' + frTope(r)).join(' | ')],
+    ['Producto', 'Nombre del producto en los datos abiertos (código ONU cuando coincide con el catálogo del Asesor). En Convenio Marco el producto es el nombre del ítem de la OC.'],
+    ['Montos', 'Pesos de cada proceso (OC o licitación). Se excluyen los procesos en otra moneda, las OC de Gran Compra y las licitaciones sin monto. Una OC o licitación con varios productos reparte su monto en partes iguales. UTM del mes de cada proceso.'],
+    ['Licitaciones', 'Tipo L1, LE y LP; el tipo LQ (ya eliminado) se trata como LP. Se usa el monto de las OC y, si no hay, el monto estimado.'],
+    ['Trato directo', 'Solo causales con tope de monto en la causal registrada: menos de 30 UTM y menos de 10 UTM (alto impacto social), costo desproporcionado (menos de 100 UTM) y las de hasta 1.000 UTM. Verifica el artículo de cada causal.'],
+    ['Cotización', 'No incluida: los datos abiertos no distinguen los casos del art. 100 del DS 661.'],
+    ['Límites', 'Por organismo se guardan los casos de mayor monto (' + (M.max_casos || '') + ') y hasta ' + (M.max_proc || '') + ' procesos por caso. Datos al ' + (M.ym_ult || '') + ', generados el ' + (M.gen || '') + '. El Buscador de procesos trae más campos de cada OC.'],
+    ['Fuente', 'Datos abiertos de Mercado Público (índices del Buscador de procesos).'],
+    ['Norma', 'DS 661/2024, arts. 16, 36, 46, 71, 76, 90, 100; Ley 19.886, art. 12.']]};
+}
+function frSheets(cases, titulo, conPac){
+  const M = S.frMeta, det = [], cas = [];
+  cases.forEach(c => { const r = M.reglas[c[1]], filas = frFilas(c), ci = filas.findIndex(f => f.cruce), nm = frProdNom(c), onu = S.fr.pr[c[0]][0];
+    cas.push([nm, onu >= 0 ? S.C.c[onu] : '', r[4], c[2], Math.round(c[3] * 10) / 10, r[1], r[2] ? 'más de' : 'o más', c[4], filas.length, ci >= 0 ? filas[ci].cod : '', ci >= 0 ? filas[ci].fecha : '', c[6], r[3], (frUmbralTR(r[0]) && c[3] > frUmbralTR(r[0])[0]) ? 'Sí' : 'No']);
+    filas.forEach(f => det.push([nm, r[4], c[2], f.n, f.cod, f.url, f.fecha, f.tipo, f.est, f.rut, f.prov, f.clp, Math.round(f.utm * 10) / 10, Math.round(f.cum * 10) / 10, f.cruce ? 'Sí' : '']));
+  });
+  const out = [
+    {name: 'Casos', headers: ['Producto', 'Código ONU', 'Mecanismo y regla', 'Año', 'Suma anual (UTM)', 'Tope (UTM)', 'Condición del tope', 'N° de procesos', 'Procesos en el Excel', 'Proceso en que se cruza el tope', 'Fecha del cruce', 'Monto total (millones $)', 'Qué correspondía', 'Suma supera umbral de toma de razón'], rows: cas},
+    {name: 'Detalle de procesos', headers: ['Producto', 'Mecanismo y regla', 'Año', 'Orden en el año', 'N° de OC o licitación', 'Enlace a Mercado Público', 'Fecha', 'Tipo o causal', 'Estado', 'RUT del proveedor', 'Proveedor', 'Monto ($)', 'UTM del mes', 'Acumulado anual (UTM)', 'Cruza el tope']}
+  ];
+  out[1].rows = det;
+  if(conPac){ const P = S.pacOrg === S.orgIdx ? S.pac : null, items = pacItems(), st = P && pacState(activeLine()); if(P && items && st) out.push(shPacItems(P, items, st)); }
+  out.push(infoSheet(titulo, [['Casos', cas.length], ['Criterio', 'Suma anual por producto y mecanismo sobre el tope (DS 661, art. 16). Señal para revisar, no infracción.']]), frMetodoSheet());
+  return out;
+}
+function fragPasada(){
+  if(S.od == null || S.prodIdx == null) return null;
+  const cases = frCasos(S.prodIdx);
+  if(cases == null) return {est: 'carga', cases: [], hay: false};
+  return {est: 'ok', cases, hay: cases.length > 0};
+}
+function textoPasado(p){
+  const M = S.frMeta, top = p.cases.slice(0, 3).map(c => `${M.reglas[c[1]][4]} en ${c[2]} (${dec(c[3], 0)} UTM en ${fmt(c[4])} proceso(s); tope ${frTope(M.reglas[c[1]])})`).join('; ');
+  return `Tu organismo compró este producto por encima del tope de un mecanismo en el mismo año calendario: ${top}${p.cases.length > 3 ? ' y ' + (p.cases.length - 3) + ' caso(s) más' : ''}. Es una señal para revisar, no una conclusión de infracción (DS 661, art. 16).`;
 }
 function fragPasadaHtml(o){
   if(S.orgIdx == null || S.prodIdx == null) return '';
   const head = '<div class="as-sec" id="as-fragp"><h3>Fragmentación ya realizada en este producto</h3>';
   if(S.od == null) return head + '<div class="as-load">Revisando las compras de tu organismo…</div></div>';
-  const p = fragPasada(), h = histProd();
-  let x = head + '<p>El Asesor revisa las órdenes de compra de tu organismo de este producto (22 meses) hechas por Compra Ágil, Trato Directo y Cotización. La señal de alerta es tener tres o más compras en un trimestre que juntas superan 100 UTM, o acumular más de 100 UTM en 12 meses por esos mecanismos.</p>';
-  if(!p.hay) return x + `<p><b>Sin hallazgos.</b> No hay trimestres con esa señal en este producto${h && h.row ? ` y en 12 meses suma ${dec(p.noCm, 0)} UTM por esos mecanismos` : ' (tu organismo no registra compras de este producto en el historial)'}.</p>` + citas([{n: 'DS 661/2024', t: 'art. 16'}]) + '</div>';
-  x += `<div class="as-al as-al-${p.fr.length ? 'alto' : 'medio'}"><b>${p.fr.length ? 'Atención' : 'Revisa'}</b>${esc(textoPasado(p))}</div>`;
-  x += `<div class="as-kpis"><div class="as-k"><div class="l">Por mecanismos simples (12 meses)</div><div class="v">${dec(p.noCm, 0)} UTM</div><div class="s">Compra Ágil, Trato Directo, Cotización</div></div><div class="as-k"><div class="l">Trimestres con la señal</div><div class="v">${p.fr.length}</div><div class="s">de los últimos 22 meses</div></div></div>`;
-  x += '<div class="as-noprint">' + asDl('fragp', 'fragmentacion_realizada', 'Descargar fragmentación realizada (Excel)', () => [shFrag(S.prodIdx), shHist(S.prodIdx), infoSheet('Fragmentación ya realizada en el producto', [['Por mecanismos simples en 12 meses (UTM)', Math.round(p.noCm * 10) / 10], ['Trimestres con la señal', p.fr.length], ['Criterio', 'Tres o más compras en un trimestre por Compra Ágil, Trato Directo o Cotización que juntas superan 100 UTM (DS 661, art. 16)']])]) + '</div>';
-  if(p.fr.length) x += '<div class="as-tw"><table class="as-t"><tr><th>Trimestre</th><th class="n">Compras</th><th class="n">Suma (UTM)</th><th>Mecanismos</th></tr>' + p.fr.map(f => `<tr><td>${qLab(f[1])}</td><td class="n">${f[2]}</td><td class="n">${fmt(f[3])}</td><td>${esc(f[4].match(/../g).map(m => MEC_NOM[m] || m).join(', '))}</td></tr>`).join('') + '</table></div>';
-  x += '<p><b>Qué hacer.</b> Revisa si esas compras respondían a una misma necesidad y a qué procedimiento habría correspondido el total: la fragmentación es contraria a la norma cuando elude la licitación pública, acorta el plazo de publicación o varía de otro modo el procedimiento (DS 661, art. 16). Desde ahora, planifica la demanda del producto en el PAC y compra en una sola contratación con entregas parciales (Ley art. 12; DS 661, art. 166). Deja constancia de la fundamentación si las necesidades eran distintas.</p>';
-  return x + citas([{n: 'DS 661/2024', t: 'arts. 16, 166'}, {n: 'Ley 19.886', t: 'art. 12'}]) + '</div>';
+  const p = fragPasada();
+  if(p.est === 'carga') return head + '<div class="as-load">Revisando las compras del año…</div></div>';
+  let x = head + '<p>El Asesor suma, por año calendario (ene-2025 a oct-2026), las compras de tu organismo de este producto en cada mecanismo por separado, y avisa cuando una suma anual supera el tope de ese mecanismo: Convenio Marco sobre 1.000 UTM, Compra Ágil sobre 100 UTM, licitaciones L1, LE y LP al llegar al tramo siguiente, y los tratos directos con tope de monto. Cada mecanismo se evalúa solo; la fragmentación se evalúa en el tiempo de un PAC anual.</p>';
+  if(!p.hay) return x + '<p><b>Sin hallazgos.</b> Ninguna suma anual de este producto cruza el tope de su mecanismo.</p>' + citas([{n: 'DS 661/2024', t: 'art. 16'}]) + '</div>';
+  x += `<div class="as-al as-al-alto"><b>Atención</b>${esc(textoPasado(p))}</div>`;
+  const pac = frPacTxt(); if(pac) x += `<p class="as-hint">${esc(pac)}</p>`;
+  x += '<div class="as-noprint">' + asDl('fragp', 'fragmentacion_anual', 'Descargar fragmentación anual con todos los procesos (Excel)', () => frSheets(p.cases, 'Fragmentación anual del producto', true)) + '</div>';
+  x += p.cases.map(frCasoHtml).join('');
+  x += '<p><b>Qué hacer.</b> Revisa si esas compras respondían a una misma necesidad y a qué procedimiento habría correspondido el total. La fragmentación es contraria a la norma cuando elude la licitación pública, acorta el plazo de publicación o varía de otro modo el procedimiento (DS 661, art. 16); depende de la intención, que el Asesor no puede probar. Planifica la demanda del producto en el PAC y compra en una sola contratación con entregas parciales (Ley art. 12; DS 661, art. 166). Deja constancia de la fundamentación si las necesidades eran distintas.</p>';
+  return x + citas([{n: 'DS 661/2024', t: 'arts. 16, 36, 46, 90, 166'}, {n: 'Ley 19.886', t: 'art. 12'}]) + '</div>';
+}
+function shFrag(pi){
+  const cs = frCasos(pi == null ? null : pi) || [], M = S.frMeta;
+  return {name: 'Fragmentación anual', headers: ['Producto', 'Mecanismo y regla', 'Año', 'N° de procesos', 'Suma (UTM)', 'Tope (UTM)'], rows: cs.map(c => [frProdNom(c), M.reglas[c[1]][4], c[2], c[4], Math.round(c[3] * 10) / 10, M.reglas[c[1]][1]])};
+}
+/* ===== Toma de razón (Res. CGR 36/2024, art. 12, modificada por la Res. 3/2026) ===== */
+function utmEnero(){ const k = S.st.mes || S.utmKeys[S.utmKeys.length - 1], y = String(k).split('-')[0]; return S.C.utm[y + '-1'] || S.C.utm[k]; }
+function sumaMeses(d, n){ const x = new Date(d.getTime()); x.setMonth(x.getMonth() + n); return x; }
+const fechaLarga = d => d.toLocaleDateString('es-CL', {day: 'numeric', month: 'long', year: 'numeric'});
+function tomaRazon(o){
+  const p = o.principal; if(!p || !o.utm) return null;
+  const uEne = o.montoUtm * o.utm / utmEnero(), k = p.k, nm = utmEnero();
+  const arts = [{n: 'Resolución CGR 36/2024', t: 'arts. 4, 5 y 12'}, {n: 'Resolución CGR 3/2026', t: 'modificación de la 36/2024, vigente desde el 01-06-2026'}];
+  const base = ' El Asesor usa la UTM de enero del año del acto ($' + fmt(nm) + '): ' + dec(uEne, 0) + ' UTM. La Resolución cuenta las UF a pesos a la fecha del acto y la moneda extranjera por el dólar observado de esa fecha (art. 4).';
+  const pub = k === 'LP' || k === 'SIE' || k === 'INN' || k === 'DCI';
+  const priv = k === 'LV' || k === 'TD' || k === 'CO';
+  if(k === 'CM'){
+    if(uEne < 25000) return null;
+    return {nivel: 'medio', t: 'El Convenio Marco queda exento de toma de razón si la adquisición es inferior a 25.000 UTM y se hace en ejecución de un convenio de la Dirección de Compras (art. 12.2). Tu compra supera ese monto.' + base, accion: 'Consulta a la Contraloría o a tu unidad jurídica si este acto está afecto antes de comprometer fechas.', arts};
+  }
+  if(!pub && !priv) return null;
+  const umbral = pub ? 10000 : 8000;
+  if(uEne <= umbral) return null;
+  if(k === 'TD' && p.causal === 'urgencia') return {nivel: 'info', t: 'Criterio del Asesor: este trato directo por emergencia, urgencia o imprevisto no se envía a toma de razón y por eso no se suman 6 meses. Las Resoluciones CGR 36/2024 y 3/2026 no traen una exención expresa para esas causales; confirma el sustento con tu unidad jurídica o la Contraloría.' + base, arts};
+  const exento = pub && uEne <= 15000 ? ' Si el contrato es de guardias de seguridad, aseo, arriendo de vehículos o equipamiento informático, queda exento hasta 15.000 UTM (art. 12.2 letra b).' : '';
+  const hoy = new Date(), tr6 = sumaMeses(hoy, 6), n = (o.plazoMin && o.plazoMin.un === 'corridos') ? o.plazoMin.n : 0;
+  let t, accion;
+  if(pub){
+    const cMin = new Date(sumaMeses(hoy, 12).getTime() + n * 864e5);
+    t = 'Este monto supera los 10.000 UTM de la toma de razón para licitaciones (art. 12.2). Van a la Contraloría las bases (art. 12.10) y la aprobación del contrato, cada una con su propio trámite. El Asesor estima como mínimo 6 meses por cada acto afecto (estimación operativa, no un plazo de la Resolución): bases 6 meses, publicación (art. 46)' + (n ? ' de ' + n + ' días corridos' : '') + ', evaluación y adjudicación, y otros 6 meses para el contrato; es decir, al menos 12 meses antes de tener el contrato aprobado. Si publicaras hoy las bases con toma de razón, la fecha más temprana sería el ' + fechaLarga(tr6) + ' y el contrato aprobado no antes de, aproximadamente, el ' + fechaLarga(cMin) + ', sin contar la evaluación ni la adjudicación. Si el contrato se ajusta a un formato tipo de bases ya tomadas de razón, el contrato queda exento pero la adjudicación pasa a ser el acto afecto.' + exento + base;
+    accion = 'Incluye estos plazos en tu calendario y en el PAC. Verifica el texto vigente de la Resolución en el sitio de la Contraloría.';
+  } else {
+    const cMin = sumaMeses(hoy, 6);
+    t = 'Este monto supera los 8.000 UTM de la toma de razón para trato directo, contratación excepcional directa, licitación privada y compra por cotización (art. 12.1; las renovaciones por un monto igual o superior también). Va a la Contraloría la aprobación del contrato' + (k === 'LV' ? ' y las bases, cada una con su trámite (12.10)' : '') + '. El Asesor estima como mínimo 6 meses por cada acto afecto (estimación operativa, no un plazo de la Resolución): el contrato aprobado no estaría antes del ' + fechaLarga(cMin) + (k === 'LV' ? ' por el contrato, más 6 meses por las bases' : '') + '.' + base;
+    accion = 'Incluye este plazo en tu calendario. Verifica el texto vigente de la Resolución en el sitio de la Contraloría.';
+  }
+  return {nivel: 'alto', t, accion, arts, tr: true};
+}
+function alertaFrag(o){
+  const p = fragPasada(), f = fragFutura(o), hayP = !!(p && p.hay), hayF = !!(f && f.est === 'ok');
+  if(!hayP && !hayF) return null;
+  const nivel = (hayP && p.cases.length) || (hayF && f.distinto) ? 'alto' : 'medio';
+  return {nivel, p: hayP ? p : null, f: hayF ? f : null, tp: hayP ? textoPasado(p) : '', tf: hayF ? f.t : '',
+    t: [hayP ? 'Ya ocurrido: ' + textoPasado(p) : '', hayF ? 'A futuro, según tu PAC: ' + f.t : ''].filter(Boolean).join(' '),
+    accion: 'Revisa las pestañas «Fragmentación realizada» y «Fragmentación posible (PAC)». El Asesor asoció los ítems del PAC por el nombre del producto: confirma cuáles son la misma necesidad.',
+    arts: [{n: 'DS 661/2024', t: 'arts. 16, 165, 166'}, {n: 'Ley 19.886', t: 'art. 12'}], pac: true};
 }
 function fragFuturaHtml(o){
   if(S.orgIdx == null || S.prodIdx == null) return '';
@@ -1361,7 +1522,7 @@ function fragFuturaHtml(o){
 }
 function resultHtml(o){
   const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
-  o.alertas = (o.alertas || []).filter(x => !x.pac); { const lm = activeLine(); if(lm && lm.mo) o.alertas.unshift({nivel: 'medio', t: 'La cotización está en ' + MON_NOM[lm.mo] + ' y el Asesor la convirtió a pesos con $' + fmtD(fxOf(lm), 2) + ' por ' + MON_NOM[lm.mo] + ' (valor que indicaste' + (lm.mo === 'UTM' ? ' o la UTM del mes elegido' : '') + '). El DS 661 no fija un tipo de cambio para determinar el procedimiento: usa el valor del día de la estimación, deja constancia de la fuente y confirma el criterio con la unidad jurídica de tu organismo.', accion: 'Si el valor cambia, corrígelo en el paso 2: el tramo en UTM y la recomendación se recalculan.', arts: [{n: 'DS 661/2024', t: 'art. 4 N° 22 (presupuesto estimado, con IVA); art. 32 (tramos en UTM)'}]}); } const apf = alertaFrag(o); if(apf) o.alertas.unshift(apf);
+  o.alertas = (o.alertas || []).filter(x => !x.pac); { const lm = activeLine(); if(lm && lm.mo) o.alertas.unshift({nivel: 'medio', t: 'La cotización está en ' + MON_NOM[lm.mo] + ' y el Asesor la convirtió a pesos con $' + fmtD(fxOf(lm), 2) + ' por ' + MON_NOM[lm.mo] + ' (valor que indicaste' + (lm.mo === 'UTM' ? ' o la UTM del mes elegido' : '') + '). El DS 661 no fija un tipo de cambio para determinar el procedimiento: usa el valor del día de la estimación, deja constancia de la fuente y confirma el criterio con la unidad jurídica de tu organismo.', accion: 'Si el valor cambia, corrígelo en el paso 2: el tramo en UTM y la recomendación se recalculan.', arts: [{n: 'DS 661/2024', t: 'art. 4 N° 22 (presupuesto estimado, con IVA); art. 32 (tramos en UTM)'}]}); } const apf = alertaFrag(o); if(apf) o.alertas.unshift(apf); { const tmr = tomaRazon(o); if(tmr) o.alertas.unshift(tmr); }
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
   let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>${(o.escalera && o.escalera.ecOpcion) ? `<div class="as-ecn"><span class="as-ecn-k">Paso previo · DS 661, art. 28</span><b class="as-ecn-t">Primero, consulta economía circular</b><p>El Asesor lo trata como un bien mueble que otro organismo podría tener y no puede comprobar si lo hay. Consúltalo en la plataforma antes de comprar. Si no existe o no está disponible, deja constancia de «producto no disponible en economía circular» y sigue con este procedimiento. Si por su diseño, uso o función específica no puede reutilizarse ni compartirse, el art. 28 permite eximirte: marca «Este bien no puede ser reutilizado (Economía Circular)» en el paso 3 y queda registrado.</p><a class="as-ecn-go" href="${ECO_URL}" rel="noopener">Ver el catálogo de economía circular</a></div>` : ''}
     <p class="as-chipcap">Esta recomendación se basa en lo que le pediste al Asesor:</p>
@@ -1374,13 +1535,14 @@ function resultHtml(o){
   { const x = escaleraHtml(o); add('esc', 'Orden de opciones para esta compra', x); }
   { const x = refHtml(o); add('ref', h3t(x), x); }
   { const x = pacConsHtml(o); add('pacc', 'Tu PAC 2026 y la consolidación', x); }
-  if(S.orgIdx != null && S.prodIdx != null){ add('fragp', 'Fragmentación realizada', fragPasadaHtml(o), (apf && apf.p) ? (apf.p.fr.length || 1) : 0); add('fragf', 'Fragmentación posible (PAC)', fragFuturaHtml(o), (apf && apf.f) ? 1 : 0); }
+  if(S.orgIdx != null && S.prodIdx != null){ add('fragp', 'Fragmentación realizada', fragPasadaHtml(o), (apf && apf.p) ? (apf.p.cases.length || 1) : 0); add('fragf', 'Fragmentación posible (PAC)', fragFuturaHtml(o), (apf && apf.f) ? 1 : 0); }
   if(o.alertas.length) add('alertas', 'Alertas', '<div class="as-sec"><h3>Alertas</h3>' + o.alertas.map(a => `<div class="as-al as-al-${a.nivel}"><b>${a.nivel === 'alto' ? 'Atención' : (a.nivel === 'medio' ? 'Revisa' : 'Para tener presente')}</b>${esc(a.t)}${a.accion ? `<span class="as-acc">${esc(a.accion)}</span>` : ''}${a.arts ? citas(a.arts).replace('as-cite', 'as-cite" style="color:inherit;opacity:.85') : ''}</div>`).join('') + '</div>', o.alertas.length);
   { // detalle del procedimiento
     let x = `<div class="as-sec"><h3>Cómo se hace: ${esc(p.nom)}</h3>`;
     if(p.mec && p.mec.cuando) x += `<p>${esc(p.mec.cuando)}</p>`;
     if(p.plazos.length) x += '<p><b>Plazos</b></p><ul>' + p.plazos.map(y => `<li>${esc(y)}</li>`).join('') + '</ul>';
     if(p.req.length) x += '<p><b>Qué debes cumplir</b></p><ul>' + p.req.map(y => `<li>${esc(y)}</li>`).join('') + '</ul>';
+    if(p.k === 'LP') x += exigHtml(['L1', 'LE', 'LP', 'LR'][o.tramo], 'rec');
     if(p.links && p.links.length) x += '<p><b>Base Tipo</b>' + linksHtml(p.links) + '</p>';
     if(p.vigencia) x += `<p class="as-cite">${esc(p.vigencia)}</p>`;
     add('como', 'Cómo se hace: ' + p.nom, x + citas(p.arts) + '</div>');
@@ -1645,10 +1807,6 @@ function shCausal(){
   return {name: 'Trato Directo por causal', headers: ['Causal registrada', 'N° OC', 'Monto (millones $)', '% del monto de Trato Directo', 'N° OC de 1.000 UTM o más'], rows: d.td.map(x => [S.O.causales[x[0]], x[1], x[2], tot ? pct1(x[2] / tot) : 0, x[3] || 0])};
 }
 function shTdp(){ return {name: 'Trato Directo por proveedor', headers: ['RUT del proveedor', 'Proveedor', 'N° OC', 'Monto (millones $)'], rows: S.od.tdp.map(x => [x[0], x[1], x[2], x[3]])}; }
-function shFrag(pi){
-  const fr = S.od.frag.filter(f => pi == null || f[0] === pi);
-  return {name: 'Fragmentación', headers: ['Código ONU', 'Producto', 'Trimestre', 'N° de compras', 'Suma (UTM)', 'Mecanismos'], rows: fr.map(f => [prodCod(f[0]), prodNom(f[0]), qLab(f[1]), f[2], f[3], mecTxt(f[4])])};
-}
 function shFcm(pi){
   const rows = []; S.od.fcm.forEach(f => { if(pi != null && f[0] !== pi) return; const tot = f[1].reduce((a, e) => a + e[2], 0); f[1].forEach(e => rows.push([prodCod(f[0]), prodNom(f[0]), MEC_NOM[e[0]] || e[0], e[1], e[2], tot])); });
   return {name: 'Fuera de Convenio Marco', headers: ['Código ONU', 'Producto', 'Mecanismo', 'N° OC (12 meses)', 'Monto (millones $)', 'Total del producto fuera de CM (millones $)'], rows};
@@ -1680,7 +1838,7 @@ function shResumenDiag(){
 function dlDiagCompleto(){
   return asDl('diag_all', 'diagnostico', 'Descargar diagnóstico completo (Excel)', () => [shResumenDiag(), shMec(), shTramo(), shCausal(), shTdp(), shFrag(), shFcm(), shHist()]);
 }
-function dlDiagTabla(k, label, sheet){ return asDl('diag_' + k, 'diag_' + k, label, () => [sheet(), infoSheet(label.replace(/^Descargar /, '').replace(/ \(Excel\)$/, ''))]); }
+function dlDiagTabla(k, label, sheet, hojas){ return asDl('diag_' + k, 'diag_' + k, label, hojas ? hojas : () => [sheet(), infoSheet(label.replace(/^Descargar /, '').replace(/ \(Excel\)$/, ''))]); }
 /* ---- hojas de la pestaña del Asesor ---- */
 function shProcs(rows){
   const rub = window.AS_PROCRUB || [], d = S.proc;
@@ -1776,7 +1934,7 @@ function renderDiag(){
     return `<div class="as-bar"><span>${MEC_NOM[m]}</span><div class="as-bt"><div class="as-bf" style="width:${Math.max(1, 100 * sh)}%;background:${MEC_COL[m]}"></div>${bs != null ? `<div class="as-bm" style="left:${100 * bs}%" title="Mediana del sector"></div>` : ''}</div><span class="n">${dec(100 * sh, 1)} %${bs != null ? ' · sector ' + dec(100 * bs, 1) + ' %' : ''}</span></div>`; }).join('');
   const tdn = d.td.map(x => `<tr><td>${esc(S.O.causales[x[0]])}</td><td class="n">${fmt(x[1])}</td><td class="n">${mm(x[2])}</td><td class="n">${x[3] ? fmt(x[3]) : '—'}</td></tr>`).join('');
   const tdp = d.tdp.map(x => `<tr><td>${x[0] ? `<a href="#proveedores=${encodeURIComponent(x[0])}" rel="noopener">${esc(x[1])}</a>` : esc(x[1])}<br><span class="as-hint">${esc(x[0])}</span></td><td class="n">${fmt(x[2])}</td><td class="n">${mm(x[3])}</td></tr>`).join('');
-  const frag = d.frag.slice(0, 12).map(f => `<tr><td>${esc(sentence(S.C.n[f[0]]))}</td><td>${qLab(f[1])}</td><td class="n">${f[2]}</td><td class="n">${fmt(f[3])}</td></tr>`).join('');
+  const fcs = frCasos(null), frag = fcs ? fcs.slice(0, 15).map(c => `<tr><td>${esc(frProdNom(c))}</td><td>${esc(S.frMeta.reglas[c[1]][4])}</td><td>${c[2]}</td><td class="n">${c[4]}</td><td class="n">${fmt(c[3])}</td><td class="n">${fmt(S.frMeta.reglas[c[1]][1])}</td></tr>`).join('') : null;
   const fcm = d.fcm.slice(0, 12).map(f => { const tot = f[1].reduce((a, e) => a + e[2], 0); return `<tr><td>${esc(sentence(S.C.n[f[0]]))}</td><td>${f[1].map(e => (MEC_NOM[e[0]] || e[0]) + ' ' + e[1]).join(', ')}</td><td class="n">${mm(tot)}</td></tr>`; }).join('');
   el.innerHTML = `<div class="as-sec"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3 style="margin:0">Diagnóstico de compras</h3><div style="font-size:18px;font-weight:800;color:var(--cc-dark);margin:4px 0">${esc(o[1])}</div><div class="as-hint">${esc(o[2] === 'null' ? 'Sin sector' : o[2])} · región principal ${esc(regName(o[3]))} · órdenes de compra de nov-2025 a oct-2026</div></div><div class="as-act as-noprint"><button class="as-btn" id="as-dx">Cambiar organismo</button><button class="as-btn as-main" id="as-dcopy">Copiar enlace</button><button class="as-btn" id="as-dprint">Imprimir o PDF</button></div></div><div class="as-noprint" style="margin-top:8px">${dlDiagCompleto()}</div></div>
    <div class="as-kpis"><div class="as-k"><div class="l">Órdenes de compra</div><div class="v">${fmt(totN)}</div></div><div class="as-k"><div class="l">Monto transado</div><div class="v">${mm(totMM)}</div></div>
@@ -1786,7 +1944,7 @@ function renderDiag(){
    <div class="as-sec"><h3>Mezcla de mecanismos frente a su sector</h3><div class="as-noprint">${dlDiagTabla('mecanismos', 'Descargar mezcla de mecanismos (Excel)', shMec)}${dlDiagTabla('tramos', 'Descargar OC por tramo de monto (Excel)', shTramo)}</div>${barras}<p class="as-hint">La línea oscura es la mediana de ${b ? b[8] : 0} organismos del mismo sector con 100 o más OC. Alejarse del sector no es una falta por sí mismo: sirve para saber dónde mirar.</p></div>
    <div class="as-sec"><h3>Trato Directo por causal</h3>${tdn ? `<div class="as-noprint">${dlDiagTabla('causales', 'Descargar Trato Directo por causal (Excel)', shCausal)}</div><div class="as-tw"><table class="as-t"><tr><th>Causal registrada</th><th class="n">OC</th><th class="n">Monto</th><th class="n">≥ 1.000 UTM</th></tr>${tdn}</table></div><p class="as-hint">Sobre 1.000 UTM, las causales de proveedor único, urgencia y confianza exigen informe técnico (DS 661, art. 80) y las de proveedor único y confianza además publicar la intención de contratar con 5 días hábiles (art. 78). La causal de confianza solo procede sobre 1.000 UTM (art. 75).</p>` : '<p>Sin tratos directos en el período.</p>'}
    ${tdp ? `<p style="margin-top:12px"><b>Proveedores con mayor monto por Trato Directo</b></p><div class="as-noprint">${dlDiagTabla('td_prov', 'Descargar proveedores de Trato Directo (Excel)', shTdp)}</div><div class="as-tw"><table class="as-t"><tr><th>Proveedor</th><th class="n">OC</th><th class="n">Monto</th></tr>${tdp}</table></div>` : ''}${citas([{n: 'Ley 19.886', t: 'art. 8 bis'}, {n: 'DS 661/2024', t: 'arts. 71 a 84'}])}</div>
-   <div class="as-sec"><h3>Posible fragmentación</h3>${frag ? `<div class="as-noprint">${dlDiagTabla('frag', 'Descargar fragmentación (Excel)', () => shFrag())}</div><div class="as-tw"><table class="as-t"><tr><th>Producto</th><th>Trimestre</th><th class="n">Compras</th><th class="n">Suma (UTM)</th></tr>${frag}</table></div><p class="as-hint">Productos con tres o más compras en un trimestre por Compra Ágil, Trato Directo o Cotización que, sumadas, superan 100 UTM. Es una alerta para revisar la planificación; no presume infracción.</p>` : '<p>No se detectan trimestres con este patrón.</p>'}${citas([{n: 'DS 661/2024', t: 'art. 16'}])}</div>
+   <div class="as-sec"><h3>Posible fragmentación (año calendario)</h3>${frag === null ? '<div class="as-load">Revisando las compras del año…</div>' : (frag ? `<div class="as-noprint">${dlDiagTabla('frag', 'Descargar fragmentación anual con todos los procesos (Excel)', null, () => frSheets(fcs, 'Fragmentación anual del organismo', false))}</div><div class="as-tw"><table class="as-t"><tr><th>Producto</th><th>Mecanismo y regla</th><th>Año</th><th class="n">Procesos</th><th class="n">Suma (UTM)</th><th class="n">Tope (UTM)</th></tr>${frag}</table></div><p class="as-hint">Casos en que la suma anual de un producto en un mismo mecanismo supera el tope de ese mecanismo (${fmt(fcs.length)} casos; se muestran los 15 de mayor monto y el Excel trae todos con sus procesos y enlaces). Para ver los procesos de un producto, elígelo en el Asesor. Es una alerta para revisar la planificación; no presume infracción.</p>` : '<p>No se detectan sumas anuales sobre los topes.</p>')}${citas([{n: 'DS 661/2024', t: 'art. 16'}])}</div>
    <div class="as-sec"><h3>Compras fuera de Convenio Marco en productos con cobertura</h3>${fcm ? `<div class="as-noprint">${dlDiagTabla('fcm', 'Descargar compras fuera de Convenio Marco (Excel)', () => shFcm())}</div><div class="as-tw"><table class="as-t"><tr><th>Producto</th><th>Mecanismo</th><th class="n">Monto 12 meses</th></tr>${fcm}</table></div><p class="as-hint">Si hubo condiciones más ventajosas objetivas, debes tener los antecedentes e informar a la Dirección de Compras (DS 661, art. 92). La cobertura se deduce de las órdenes de compra de Convenio Marco; verifica contra el Catálogo vigente.</p>` : '<p>Sin compras de este tipo.</p>'}${citas([{n: 'Ley 19.886', t: 'art. 30 letra d)'}, {n: 'DS 661/2024', t: 'arts. 29, 89, 92'}])}</div>
    <p class="as-note">${esc(R().TEXTO_BASE)}</p>`;
   $('as-dx').addEventListener('click', () => { S.orgIdx = null; S.org = null; S.od = null; S.st.o = null; S.st.u = null; S.st.r = null; syncUrl(); renderDiag(); });
