@@ -127,10 +127,10 @@ function syncUrl(){ try{ history.replaceState(null, '', '#asesor=' + encState(S.
 /* ------------------------------ carga de datos ------------------------------ */
 function ensure(){
   if(S.ready) return S.ready;
-  S.ready = Promise.all([loadScript(AB + 'pac/idx.js' + ver()).catch(() => null), loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver()), loadScript(AB + 'reglas.js' + ver()), loadScript(AB + 'fx.js' + ver()).catch(() => null), loadScript(AB + 'cmcot.js' + ver()).catch(() => null), loadScript(AB + 'cmahorro.js' + ver()).catch(() => null), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
+  S.ready = Promise.all([loadScript(AB + 'pac/idx.js' + ver()).catch(() => null), loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver() + 'b'), loadScript(AB + 'reglas.js' + ver()), loadScript(AB + 'fx.js' + ver()).catch(() => null), loadScript(AB + 'cmcot.js' + ver()).catch(() => null), loadScript(AB + 'cmahorro.js' + ver()).catch(() => null), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
     loadScript(AB + 'pres.js' + ver()).then(() => { S.pres = window.AS_PRES || null; S.presTried = true; if(S.orgIdx != null) update(); }).catch(() => { S.presTried = true; });
     S.C = window.AS_CAT; S.O = window.AS_ORG; S.pacIdx = window.AS_PACIDX ? new Set(window.AS_PACIDX) : null;
-    S.orgNorm = S.O.o.map(o => norm(o[1]) + ' ' + o[0]);
+    S.orgNorm = S.O.o.map((o, i) => norm(o[1]) + ' ' + o[0] + ((S.O.rt && S.O.rt[i] || []).map(r => ' ' + r.toLowerCase() + ' ' + r.toLowerCase().replace(/\./g, '') + ' ' + r.toLowerCase().replace(/[^0-9k]/g, '')).join('')));
     S.prodNorm = S.C.n.map((n, i) => norm(n).replace(/[“”‘’«»"]/g, '') + ' ' + S.C.c[i]);
     S.orgByCode = {}; S.O.o.forEach((o, i) => S.orgByCode[o[0]] = i);
     S.prodByCode = {}; S.C.c.forEach((c, i) => S.prodByCode[c] = i);
@@ -1480,7 +1480,7 @@ function tomaRazon(o){
   if(!pub && !priv) return null;
   const umbral = pub ? 10000 : 8000;
   if(uEne <= umbral) return null;
-  if(k === 'TD' && p.causal === 'urgencia') return {nivel: 'info', t: 'Criterio del Asesor: este trato directo por emergencia, urgencia o imprevisto no se envía a toma de razón y por eso no se suman 6 meses. Las Resoluciones CGR 36/2024 y 3/2026 no traen una exención expresa para esas causales; confirma el sustento con tu unidad jurídica o la Contraloría.' + base, arts};
+  if(k === 'TD' && p.causal === 'urgencia') return {nivel: 'alto', t: 'Este trato directo por emergencia, urgencia o imprevisto supera los 8.000 UTM, así que su acto va a toma de razón, sin excepciones. En estos casos el trámite es posterior: no esperas la toma de razón antes de contratar y por eso el Asesor no suma los 6 meses previos que sí suma en los demás casos. Criterio del Departamento; las Resoluciones CGR 36/2024 y 3/2026 no traen una exención expresa para esas causales.' + base, accion: 'Dicta el acto fundado, envíalo a la Contraloría una vez emitido y deja respaldada la causal (Ley 19.886, art. 8, letra c). Confirma el procedimiento exacto con tu unidad jurídica o la Contraloría.', arts, tr: true};
   const exento = pub && uEne <= 15000 ? ' Si el contrato es de guardias de seguridad, aseo, arriendo de vehículos o equipamiento informático, queda exento hasta 15.000 UTM (art. 12.2 letra b).' : '';
   const hoy = new Date(), tr6 = sumaMeses(hoy, 6), n = (o.plazoMin && o.plazoMin.un === 'corridos') ? o.plazoMin.n : 0;
   let t, accion;

@@ -2190,7 +2190,7 @@ function renderDetailPage(m){
       <div class="filter-row" style="margin:0 0 4px;">
         <div class="filter-field" style="min-width:220px;">
           <label for="buscarOrgCausal">Buscar organismo</label>
-          <input type="text" id="buscarOrgCausal" placeholder="Escribe una palabra…" autocomplete="off">
+          <input type="text" id="buscarOrgCausal" placeholder="Nombre, código o RUT del organismo" autocomplete="off">
         </div>
         <div class="filter-field" style="min-width:260px;">
           <label for="selOrgCausalFiltro">Organismo</label>
@@ -2369,7 +2369,7 @@ function renderDetailPage(m){
         </div>
         <div class="filter-field" style="min-width:220px;">
           <label for="buscarProcesosOrg">Buscar organismo</label>
-          <input type="text" id="buscarProcesosOrg" placeholder="Nombre del organismo" autocomplete="off">
+          <input type="text" id="buscarProcesosOrg" placeholder="Nombre, código o RUT del organismo" autocomplete="off">
         </div>
       </div>
       <div class="table-wrap" style="margin-top:10px;">
@@ -2748,13 +2748,14 @@ function renderDetailPage(m){
     const orgTratoList = md.topOrganismos.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre,'es'));
     function normTxt(s){ return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
     function rebuildOrgCausalOptions(){
-      const q = normTxt(document.getElementById('buscarOrgCausal').value.trim());
+      const q = document.getElementById('buscarOrgCausal').value.trim();
       const selEl = document.getElementById('selOrgCausalFiltro');
       const prevValue = selEl.value;
-      const filtered = q ? orgTratoList.filter(o=>normTxt(o.nombre).includes(q)) : orgTratoList;
+      const filtered = q ? orgTratoList.filter(o=>orgQMatch(q, o.nombre, o.codigo)) : orgTratoList;
       selEl.innerHTML = '<option value="">— Selecciona un organismo —</option>' +
         filtered.map(o=>`<option value="${esc(o.codigo||'')}">${esc(o.nombre)}</option>`).join('');
       selEl.value = filtered.some(o=>String(o.codigo||'')===prevValue) ? prevValue : '';
+      orgAuto(document.getElementById('buscarOrgCausal'), selEl);
       renderOrgSelectionViews();
     }
     document.getElementById('buscarOrgCausal').addEventListener('input', rebuildOrgCausalOptions);
@@ -2888,11 +2889,11 @@ function renderDetailPage(m){
     if(!hasOcDet){ [selProcesosOrg, buscarProcesosOrg].forEach(el=>{ if(el && el.closest('.filter-field')) el.closest('.filter-field').style.display='none'; }); }
     function rebuildProcOrgOptions(){
       if(!hasOcDet || !selProcesosOrg) return;
-      const ccNorm = x=>(x||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-      const q = ccNorm(buscarProcesosOrg.value.trim()), prev = selProcesosOrg.value;
-      const list = ccIndex().orgs.filter(o=>!q || ccNorm(o.nombre).includes(q));
+      const q = buscarProcesosOrg.value.trim(), prev = selProcesosOrg.value;
+      const list = ccIndex().orgs.filter(o=>!q || orgQMatch(q, o.nombre, o.cod));
       selProcesosOrg.innerHTML = '<option value="">— Todos ('+fmt(list.length)+') —</option>' + list.map(o=>`<option value="${esc(o.cod)}">${esc(o.label)}</option>`).join('');
       selProcesosOrg.value = list.some(o=>o.cod===prev) ? prev : '';
+      orgAuto(buscarProcesosOrg, selProcesosOrg);
     }
     rebuildProcOrgOptions();
     function procOrgCell(p, orgSel){
@@ -2938,6 +2939,24 @@ const CP_LIST = Object.keys(CP.organismos).map(codigo => {
 })
   .sort((a,b) => a.nombre.localeCompare(b.nombre, 'es'));
 function normRut(s){ return (s||'').toString().toLowerCase().replace(/[^0-9k]/g,''); }
+/* Buscadores de organismo: lo escrito se compara con el nombre, el código y TODOS los RUT del organismo (con puntos, sin puntos y solo dígitos). */
+function orgRutVars(r){ const l = String(r == null ? '' : r).toLowerCase(); return l ? ' ' + l + ' ' + l.replace(/\./g, '') + ' ' + l.replace(/[^0-9k]/g, '') : ''; }
+function orgRutsOf(code){ const a = (typeof CP !== 'undefined' && CP.organismoRuts && CP.organismoRuts[code]) || []; return a.map(orgRutVars).join(''); }
+function orgHay(name, code, extra){ return normTxt(name) + ' ' + String(code == null ? '' : code).toLowerCase() + orgRutsOf(code) + (extra ? ' ' + extra : ''); }
+function orgQMatch(q, name, code, extra){
+  const toks = normTxt(q || '').trim().split(/\s+/).filter(Boolean);
+  if(!toks.length) return true;
+  const h = orgHay(name, code, extra);
+  return toks.every(t => { if(h.includes(t) || h.includes(t.replace(/\./g, ''))) return true; const d = t.replace(/[^0-9k]/g, ''); return /^[0-9.\-]+k?$/.test(t) && d.length >= 3 && h.includes(d); });
+}
+/* Resultado automático de los selectores de organismo: con una sola coincidencia la elige; con varias muestra la lista abierta para elegir con un clic. */
+function orgAuto(inp, sel){
+  if(!inp || !sel) return;
+  const n = sel.options.length - 1, q = (inp.value || '').trim();
+  if(!sel.dataset.orgAuto){ sel.dataset.orgAuto = '1'; sel.addEventListener('change', () => { sel.size = 1; sel.classList.remove('org-list'); }); }
+  if(q && n === 1) sel.selectedIndex = 1;
+  if(q && n > 1){ sel.size = Math.min(n + 1, 8); sel.classList.add('org-list'); } else { sel.size = 1; sel.classList.remove('org-list'); }
+}
 let _cpPrevCodigo = null;
 let CP_EMB = false;   // true cuando el explorador por comprador está embebido en otra vista (p. ej. Organismos nuevos)
 
@@ -3120,17 +3139,17 @@ function cpRebuildCompradorOptions(){
   const regionSel = document.getElementById('selRegion').value;
   const sectorSel = document.getElementById('selSector').value;
   const buscarEl = document.getElementById('inBuscarComprador');
-  const qTxt = buscarEl ? normTxt(buscarEl.value.trim()) : '';
-  const qRut = buscarEl ? normRut(buscarEl.value.trim()) : '';
+  const qTxt = buscarEl ? buscarEl.value.trim() : '';
   const selComprador = document.getElementById('selComprador');
   const prevValue = selComprador.value;
   let filtered = CP_LIST;
   if(regionSel!=='') filtered = filtered.filter(o=>o.region===regionSel);
   if(sectorSel!=='') filtered = filtered.filter(o=>o.sector===sectorSel);
-  if(qTxt) filtered = filtered.filter(o=> normTxt(o.nombre).includes(qTxt) || (qRut.length>=3 && normRut(o.rutSearch).includes(qRut)));
+  if(qTxt) filtered = filtered.filter(o=> orgQMatch(qTxt, o.nombre, o.codigo));
   selComprador.innerHTML = '<option value="">— Selecciona un comprador —</option>' +
     filtered.map(o => `<option value="${esc(o.codigo)}">${esc(o.nombre)} (${esc(o.codigo)}${o.rut ? ' · '+esc(o.rut) : ''})</option>`).join('');
   selComprador.value = filtered.some(o=>o.codigo===prevValue) ? prevValue : '';
+  orgAuto(buscarEl, selComprador);
 }
 
 // Opciones del filtro de rubro del comprador: rubros, familias, clases y productos del organismo.
@@ -3926,7 +3945,7 @@ function renderAsesorPage(payload){
   const h = document.getElementById('asesorHost');
   const go = () => window.AsesorCompras && window.AsesorCompras.init(h, payload || '');
   if(window.AsesorCompras) return go();
-  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r42';
+  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r43';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el asesor. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -3978,7 +3997,7 @@ function procInit(){
   const h = document.getElementById('procSearchHost'); if(!h) return;
   const go = () => window.ProcBuscador && window.ProcBuscador.init(h);
   if(window.ProcBuscador) return go();
-  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r8';
+  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r9';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el buscador de procesos. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -5087,7 +5106,7 @@ function renderEconomiaCircularPage(){
   }
   function match(r, st){
     if(st.sect !== '' && String(r[0]) !== st.sect) return false;
-    if(st.q){ const q = ecoNorm(st.q), qr = normRut(st.q); if(!(ecoNorm(r[2]).includes(q) || (qr && normRut(r[1]).includes(qr)))) return false; }
+    if(st.q && !orgQMatch(st.q, r[2], '', orgRutVars(r[1]))) return false;
     return true;
   }
   const getC = {canc:r=>r[4], pend:r=>r[5], inc:r=>r[6], compl:r=>r[7], otros:otrosOf, res:r=>r[8], monto:r=>r[9]};
@@ -5392,7 +5411,7 @@ function pacRenderTop(){
       <h2><span class="sec-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="21" x2="21" y2="21"/><line x1="5" y1="21" x2="5" y2="10"/><line x1="19" y1="21" x2="19" y2="10"/><polygon points="12 3 3 9 21 9"/></svg></span>Organismos</h2>
       <p class="block-note">Busca un organismo y abre su ficha PAC. Haz clic en los encabezados para ordenar.</p>
       <div class="pac-filters">
-        <input type="search" id="pacQ" placeholder="Buscar organismo o código" value="${esc(PS.q)}" oninput="PS.q=this.value;PS.page=0;pacRenderOrgTable()">
+        <input type="search" id="pacQ" placeholder="Buscar organismo, RUT o código" value="${esc(PS.q)}" oninput="PS.q=this.value;PS.page=0;pacRenderOrgTable()">
         <select id="pacSec" onchange="PS.sector=this.value;PS.page=0;pacRenderOrgTable()"><option value="">Todos los sectores</option>${[...new Set(PAC_AGG.orgs.map(r => r[3]))].sort().map(s => `<option${PS.sector === s ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>
         <select id="pacReg" onchange="PS.region=this.value;PS.page=0;pacRenderOrgTable()"><option value="">Todas las regiones</option>${[...new Set(PAC_AGG.orgs.map(r => r[2]))].sort().map(s => `<option${PS.region === s ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select>
       </div>
@@ -5414,7 +5433,7 @@ function pacSetDep(v){ PS.dep = v; PS.page = 0; pacRenderTop(); }
 // ---------- tabla de organismos ----------
 function pacOrgList(){
   const q = normTxt(PS.q.trim());
-  let L = PAC_AGG.orgs.map((r, i) => ({r, i})).filter(({r}) => (!PS.sector || r[3] === PS.sector) && (!PS.region || r[2] === PS.region) && (!q || normTxt(r[1]).includes(q) || r[0].includes(q)));
+  let L = PAC_AGG.orgs.map((r, i) => ({r, i})).filter(({r}) => (!PS.sector || r[3] === PS.sector) && (!PS.region || r[2] === PS.region) && orgQMatch(PS.q, r[1], r[0]));
   const val = {name: x => x.r[1], v25: x => pacV(x.r, 2025), v26: x => pacV(x.r, 2026), var: x => { const a = pacV(x.r, 2025), b = pacV(x.r, 2026); return a ? b / a - 1 : (b ? 9e9 : -9e9); },
     e25: x => x.r[6] ? x.r[6][2] : -1, ratio: x => { const a = pacV(x.r, 2025); return a && x.r[6] ? x.r[6][2] / a : -1; }, l26: x => x.r[5][0], sec: x => x.r[3]};
   const f = val[PS.sort === 'v26' ? 'v26' : PS.sort] || val.v26;
@@ -5759,7 +5778,7 @@ function p6Filtered(){
     if(P6.estado === 'sinoc' && ((f & 2) || !(f & 1) || !r[E.nOC])) return false;
     if(P6.estado === 'conSinEnl' && (!(f & 2) || r[E.nEnl])) return false;
     if(P6.estado === 'fuera' && (f & 1)) return false;
-    if(q && !(normTxt(r[E.name]).includes(q) || (qr.length >= 4 && r[E.rut].replace(/[^0-9kK]/g, '').toUpperCase().includes(qr)) || r[E.codes].some(c => c === P6.q.trim()))) return false;
+    if(q && !orgQMatch(P6.q, r[E.name], '', orgRutVars(r[E.rut]) + r[E.codes].map(c => ' ' + String(c).toLowerCase() + orgRutsOf(c)).join(''))) return false;
     return true;
   });
   const val = {name: r => r[E.name], tipo: r => r[E.tipo], proy: r => r[E.proy], items: r => r[E.items], plan: r => r[E.plan], nOC: r => r[E.nOC],
@@ -6670,7 +6689,7 @@ function renderCfmpPage(){
       <div class="filter-field"><label for="cfTc">Tipo de compra</label><select id="cfTc">${opt(uniq(o => o.tc), F.tc, 'Todos los tipos')}</select></div>
       <div class="filter-field" style="min-width:260px;"><label for="cfMot">Motivo (observaciones)</label><select id="cfMot">${opt(uniq(o => o.obs), F.mot, 'Todos los motivos')}</select></div>
       <div class="filter-field"><label for="cfAct">Tipo de acto</label><select id="cfAct">${opt(uniq(o => o.acto), F.act, 'Todos los actos')}</select></div>
-      <div class="filter-field" style="min-width:280px;"><label for="cfRut">Comprador</label><select id="cfRut"><option value="">Todos los compradores</option>${compOpts.map(([k, v]) => `<option value="${esc(k)}"${k === F.rut ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></div>
+      <div class="filter-field" style="min-width:280px;"><label for="cfRut">Comprador</label><input type="text" id="cfRutQ" placeholder="Buscar por nombre o RUT" autocomplete="off" style="margin-bottom:4px;"><select id="cfRut"><option value="">Todos los compradores</option>${compOpts.map(([k, v]) => `<option value="${esc(k)}"${k === F.rut ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></div>
       <div class="filter-field"><label for="cfMon">Moneda</label><select id="cfMon">${opt(uniq(o => o.mon), F.mon, 'Todas')}</select></div>
       <div class="filter-field" style="align-self:flex-end;"><button type="button" class="dl-btn" id="cfDlAll"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar Excel completo</button></div>
     </div>
@@ -6752,6 +6771,15 @@ function renderCfmpPage(){
   const rer = () => renderCfmpPage();
   const bind = (id, key) => { const e = document.getElementById(id); if(e) e.onchange = () => { F[key] = e.value; rer(); }; };
   bind('cfTc', 'tc'); bind('cfMot', 'mot'); bind('cfAct', 'act'); bind('cfRut', 'rut'); bind('cfMon', 'mon');
+  { const crq = document.getElementById('cfRutQ'), crs = document.getElementById('cfRut');
+    if(crq && crs) crq.oninput = () => {
+      const qq = crq.value.trim(), keep = crs.value;
+      const Lc = compOpts.filter(([k, v]) => !qq || orgQMatch(qq, v, '', orgRutVars(k)));
+      crs.innerHTML = '<option value="">Todos los compradores</option>' + Lc.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join('');
+      crs.value = Lc.some(([k]) => k === keep) ? keep : '';
+      orgAuto(crq, crs);
+      if(qq && Lc.length === 1 && F.rut !== crs.value){ F.rut = crs.value; rer(); }
+    }; }
   const q = document.getElementById('cfQ'); let tq = null; q.oninput = () => { clearTimeout(tq); tq = setTimeout(() => { F.q = q.value; rer(); const e = document.getElementById('cfQ'); if(e){ e.focus(); e.setSelectionRange(e.value.length, e.value.length); } }, 350); };
   document.getElementById('cfInclP').onchange = ev => { F.inclP = ev.target.checked; rer(); };
   document.getElementById('cfInclD').onchange = ev => { F.inclD = ev.target.checked; rer(); };
@@ -6848,7 +6876,7 @@ function presUnits(){
 function presOrgsFiltered(){
   const q = normTxt((PRS.q || '').trim());
   return PRES.orgs.filter(o => (!PRS.p || (PRS.p === '_sin' ? o.l === 0 : o.p === PRS.p)) && (!PRS.lv || String(o.l) === PRS.lv) && (!PRS.sec || o.s === PRS.sec) &&
-    (!q || normTxt(o.n).indexOf(q) >= 0 || o.c.indexOf(q) >= 0));
+    orgQMatch(PRS.q, o.n, o.c));
 }
 function presOrgRow(o){
   const u = o.u >= 0 ? PRES.units[o.u] : null, sh = u ? (PRES_UNITS_ORGS[o.u] || []).length : 0;
@@ -6945,7 +6973,7 @@ function renderPresupuestoPage(){
       ${presTable(pcols, partRows, 560)}<div class="dl-row" style="gap:6px;"><button type="button" class="dl-btn" onclick="downloadXlsx('presXlsx','presupuesto_pac_oc_2026.xlsx',this)"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar libro completo (Excel con 5 hojas)</button></div></section>
     <section class="block"><h2>Por organismo de la base</h2><p class="block-note">Cada organismo público de la base de Mercado Público con el presupuesto de su servicio en la Ley, su PAC y sus OC. Si varios organismos comparten un servicio (por ejemplo, las unidades de las Fuerzas Armadas), el presupuesto es del servicio completo y se compara en la tabla siguiente. Los establecimientos de salud quedan a nivel de ministerio. Haz clic en el encabezado de una columna para ordenar.</p>
       <div class="filter-row">
-        <div class="filter-field" style="min-width:260px;"><label for="presQ">Buscar organismo (nombre o código)</label><input type="text" id="presQ" placeholder="Ej.: Servicio de Salud, 7002…" autocomplete="off" value="${esc(PRS.q)}"></div>
+        <div class="filter-field" style="min-width:260px;"><label for="presQ">Buscar organismo (nombre, código o RUT)</label><input type="text" id="presQ" placeholder="Ej.: Servicio de Salud, 7002, 60.810.000-8…" autocomplete="off" value="${esc(PRS.q)}"></div>
         <div class="filter-field" style="min-width:260px;"><label for="presP">Ministerio</label><select id="presP"><option value="">Todos</option>${Object.keys(PRES.partidas).sort().map(p => `<option value="${p}"${PRS.p === p ? ' selected' : ''}>${esc(presPN(p))}</option>`).join('')}<option value="_sin"${PRS.p === '_sin' ? ' selected' : ''}>Sin presupuesto propio en la Ley</option></select></div>
         <div class="filter-field"><label for="presLv">Nivel del cruce</label><select id="presLv"><option value="">Todos</option><option value="2"${PRS.lv === '2' ? ' selected' : ''}>Capítulo identificado</option><option value="1"${PRS.lv === '1' ? ' selected' : ''}>Solo ministerio</option><option value="0"${PRS.lv === '0' ? ' selected' : ''}>Sin presupuesto propio</option></select></div>
         <div class="filter-field"><label for="presSec">Sector</label><select id="presSec"><option value="">Todos</option>${secOpts.map(s => `<option${PRS.sec === s ? ' selected' : ''}>${esc(s)}</option>`).join('')}</select></div>

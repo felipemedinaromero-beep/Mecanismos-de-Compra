@@ -40,9 +40,9 @@ async function ensureDic(){
   if(!window.PROC_DIC){ if(!_dicP) _dicP = loadScript(BASE + 'dic.js' + ver()).catch(e => { _dicP = null; throw e; }); await _dicP; }
   if(!ST.N){
     const D = window.PROC_DIC;
-    ST.N = {prd: D.prd.map(norm), rub: D.rub.map(norm), org: D.org.map(o => norm(o[1])),
-      uni: D.uni.map(u => { const r = norm(u[3]); return norm(u[2]) + ' ' + r + ' ' + r.replace(/\./g, '') + ' ' + u[1]; }),
-      prov: D.prov.map(p => { const r = norm(p[0]); return norm(p[1]) + ' ' + r + ' ' + r.replace(/\./g, ''); }),
+    ST.N = {prd: D.prd.map(norm), rub: D.rub.map(norm), org: D.org.map(o => norm(o[1]) + ' ' + String(o[0]).toLowerCase() + ((typeof CP !== 'undefined' && CP.organismoRuts && CP.organismoRuts[o[0]]) || []).map(x => { const r = String(x).toLowerCase(); return ' ' + r + ' ' + r.replace(/\./g, '') + ' ' + r.replace(/[^0-9k]/g, ''); }).join('')),
+      uni: D.uni.map(u => { const r = norm(u[3]); return norm(u[2]) + ' ' + r + ' ' + r.replace(/\./g, '') + ' ' + r.replace(/[^0-9k]/g, '') + ' ' + u[1]; }),
+      prov: D.prov.map(p => { const r = norm(p[0]); return norm(p[1]) + ' ' + r + ' ' + r.replace(/\./g, '') + ' ' + r.replace(/[^0-9k]/g, ''); }),
       sec: D.org.map(o => norm(o[2])),
       regc: D.reg.map(r => { const n = norm(r); for(let i = 0; i < REGS.length; i++) if(REGS[i][1].test(n)) return i; return -1; })};
   }
@@ -89,7 +89,7 @@ function textTest(h, ih, P){
   for(let i = 0; i < P.neg.length; i++) if(h.indexOf(P.neg[i]) >= 0) return false;
   return true;
 }
-function tokens(s){ return norm(s).split(/\s+/).filter(Boolean).map(t => t.replace(/\./g, '')); }
+function tokens(s){ return norm(s).split(/\s+/).filter(Boolean).map(t => t.replace(/\./g, '')).map(t => /^[0-9]{6,}-[0-9k]$/.test(t) ? t.replace(/-/g, '') : t); }
 function provIdxs(mec, sh, i){
   if(mec !== 'l') return [sh.v[i]];
   const out = [];
@@ -855,7 +855,7 @@ function init(host){
     <div class="proc-filters">
       <div class="filter-field"><label for="procFrom">Desde</label><select id="procFrom"></select></div>
       <div class="filter-field"><label for="procTo">Hasta</label><select id="procTo"></select></div>
-      <div class="filter-field"><label for="procOrg">Organismo o unidad (nombre o RUT)</label><input type="text" id="procOrg" placeholder="Ej.: hospital, municipalidad…" autocomplete="off"></div>
+      <div class="filter-field"><label for="procOrg">Organismo o unidad (nombre o RUT)</label><input type="text" id="procOrg" placeholder="Ej.: hospital, municipalidad, 60.810.000-8…" autocomplete="off"></div>
       <div class="filter-field"><label for="procProv">Proveedor (nombre o RUT)</label><input type="text" id="procProv" placeholder="Ej.: 76.123.456-7" autocomplete="off"></div>
       <div class="filter-field"><label for="procReg">Región del comprador</label><select id="procReg"><option value="">Todas</option>${REGS.map((r, i) => `<option value="${i}">${esc(r[0])}</option>`).join('')}</select></div>
       <div class="filter-field"><label for="procMin">Monto mínimo (CLP)</label><input type="number" id="procMin" min="0" step="1" placeholder="Sin mínimo"></div>
