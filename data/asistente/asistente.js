@@ -8,6 +8,7 @@ var BASE = (function(){ var s = document.currentScript; return s && s.src ? s.sr
 var VER = (document.currentScript && document.currentScript.src.split('?v=')[1]) || '1';
 var URL_R = 'https://bcn.cl/7wHrbo', URL_L = 'https://bcn.cl/C713d1';
 var AYUDA = 'https://ayuda.mercadopublico.cl/';
+var AI_URL = 'https://mecanismos-de-compra-ai.felipemedinaromero.workers.dev/api/assistant';
 
 /* ---------- utilidades de texto ---------- */
 function norm(s){ return String(s == null ? '' : s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim(); }
@@ -186,7 +187,7 @@ function mount(){
     '<div class="ia-m" id="asM" role="log" aria-live="polite"></div>' +
     '<div class="ia-sug" id="asSug"></div>' +
     '<form class="ia-in" id="asF" autocomplete="off"><input id="asQ" type="text" maxlength="300" placeholder="Pregunta sobre normativa, paneles o datos…" aria-label="Escribe tu pregunta"><button class="ia-go" type="submit" aria-label="Enviar">&#10148;</button></form>' +
-    '<div class="ia-ft">El asistente busca en el texto de la normativa y en la guía de los paneles; todavía no genera respuestas con IA. Confirma el texto oficial y el estado vigente antes de decidir.' +
+    '<div class="ia-ft">El asistente prioriza la normativa y la guía local; cuando no encuentra una respuesta, puede pedir apoyo a Workers AI. Confirma el texto oficial y el estado vigente antes de decidir.' +
     '<details><summary>Textos consultados</summary><p id="asVer">Cargando…</p></details></div>';
   document.body.appendChild(tab); document.body.appendChild(p);
   el.tab = tab; el.p = p; el.m = p.querySelector('#asM'); el.q = p.querySelector('#asQ'); el.sug = p.querySelector('#asSug'); el.ctx = p.querySelector('#asCtx'); el.cats = p.querySelector('.ia-cats');
@@ -254,6 +255,26 @@ function srcChips(s){
   }).join('');
 }
 function lastQ(){ return S.lastQ || ''; }
+
+function askAI(q){
+  var c = ctx();
+  var controller = window.AbortController ? new AbortController() : null;
+  var timer = controller ? setTimeout(function(){ controller.abort(); }, 12000) : null;
+  return fetch(AI_URL, {
+    method: 'POST',
+    headers: {'content-type': 'application/json'},
+    body: JSON.stringify({query: q, context: 'Pantalla: ' + c.label}),
+    signal: controller ? controller.signal : undefined
+  }).then(function(res){
+    return res.json().catch(function(){ return {}; }).then(function(data){
+      if(!res.ok || !data.answer) return null;
+      return '<p>' + lines(String(data.answer).split(/\r?\n+/).filter(Boolean)) + '</p><div class="ia-chg"><b>Respuesta asistida.</b> Verifica siempre la fuente oficial y no uses esta respuesta como sustituto de la normativa vigente.</div>';
+    });
+  }).catch(function(){ return null; }).then(function(result){
+    if(timer) clearTimeout(timer);
+    return result;
+  });
+}
 
 function answerKB(r, q, mode){
   var e = r.e, h = '<h4>' + esc(e.t) + '</h4>' + lines(e.a);
@@ -325,9 +346,14 @@ function ask(q){
     } else if(isData){
       html += '<p>Esa consulta es sobre datos de compras, y la respuesta está en los paneles. Te dejo accesos directos con tus palabras:</p>' + dataLinks(q);
     } else {
-      html += '<p>No encontré una respuesta clara a eso en la normativa ni en la guía de los paneles que tengo cargadas. Prueba con otras palabras (por ejemplo, el nombre del procedimiento o el artículo) o elige un tema arriba.</p>' +
-        '<p>Para temas operativos de Mercado Público puedes revisar el <a href="' + AYUDA + '" target="_blank" rel="noopener">centro de ayuda</a>. No quiero inventar una respuesta que no está en el texto.</p>';
-      if(r.kb.length) html += '<div class="ia-sub"><h5>Lo más cercano</h5><div class="ia-rel">' + r.kb.slice(0, 3).map(function(x){ return '<button type="button" data-open="' + esc(x.e.id) + '">' + esc(x.e.t) + '</button>'; }).join('') + '</div></div>';
+      return askAI(q).then(function(aiHtml){
+        if(aiHtml) html += aiHtml;
+        else html += '<p>No encontré una respuesta clara a eso en la normativa ni en la guía de los paneles que tengo cargadas. Prueba con otras palabras (por ejemplo, el nombre del procedimiento o el artículo) o elige un tema arriba.</p>' +
+          '<p>Para temas operativos de Mercado Público puedes revisar el <a href="' + AYUDA + '" target="_blank" rel="noopener">centro de ayuda</a>. No quiero inventar una respuesta que no está en el texto.</p>';
+        if(r.kb.length) html += '<div class="ia-sub"><h5>Lo más cercano</h5><div class="ia-rel">' + r.kb.slice(0, 3).map(function(x){ return '<button type="button" data-open="' + esc(x.e.id) + '">' + esc(x.e.t) + '</button>'; }).join('') + '</div></div>';
+        var d2 = addA(html); d2.dataset.q = q;
+        S.busy = false;
+      });
     }
     var d = addA(html); d.dataset.q = q;
     S.busy = false;
