@@ -302,7 +302,18 @@ function leyBlock(items, qt){
   }).join('') + '</div>';
 }
 var DATAWORDS = /cuant[oa]s? (se )?(compr|gast|vend|facturo|transo|oc)|compraron|compro\b|vendio|vendido|ventas de|ranking|principales proveedores|proveedores de |licitaciones de |procesos de |precios? de |ordenes de compra de |gasto de|\bgasto total/;
+DATAWORDS = new RegExp(DATAWORDS.source + '|cuant[oa]s?.*(compras?\s+agil|ordenes?\s+de\s+compra|\boc\b)|compras?\s+agil(es)?\s+(se\s+)?emit', 'i');
 var SUF = {bis:'bis', ter:'ter', quater:'quáter', quinquies:'quinquies', sexies:'sexies', septies:'septies', octies:'octies', nonies:'nonies', decies:'decies'};
+function dataDateAnswer(q){
+  var n = norm(q), m = n.match(/\b(?:el|de|del)?\s*(0?[1-9]|[12]\d|3[01])\s+(0?[1-9]|1[0-2])\s+(20\d\d)\b/);
+  if(!m || !/(compra|orden|oc|emit|dato|cantidad)/.test(n)) return null;
+  var body = document.body && document.body.innerText || '';
+  var b = body.match(/datos hasta el\s+(\d{1,2})[-\/]?(\d{1,2})[-\/]?(20\d\d)/i);
+  if(!b) return null;
+  var wanted = Date.UTC(+m[3], +m[2] - 1, +m[1]), cutoff = Date.UTC(+b[3], +b[2] - 1, +b[1]);
+  if(wanted <= cutoff) return null;
+  return '<p>No puedo entregar esa cifra: el panel tiene datos hasta el <b>' + esc(b[1] + '-' + b[2] + '-' + b[3]) + '</b>. La fecha solicitada (' + esc(m[1] + '-' + m[2] + '-' + m[3]) + ') queda fuera del período disponible.</p>';
+}
 function artLookup(q){
   var nq = norm(q), m = /\bart(?:iculo)?s?\s*(\d{1,3})(?:\s*(bis|ter|quater|quinquies|sexies|septies|octies|nonies|decies))?\b/.exec(nq);
   if(!m) return null;
@@ -318,6 +329,8 @@ function ask(q){
   if(S.busy) return; S.busy = true; S.asked = true; S.lastQ = q;
   addU(q);
   ensure().then(function(){
+    var dateAnswer = dataDateAnswer(q);
+    if(dateAnswer){ addA(dateAnswer).dataset.q = q; S.busy = false; paintCtx(); return; }
     var pr = ACC && ACC.handle(q);
     if(pr){ return pr.then(function(html){ if(html){ var dd = addA(html); dd.dataset.q = q; } S.busy = false; paintCtx(); }); }
     var al = artLookup(q);
@@ -332,7 +345,6 @@ function ask(q){
     var good = top && top.s >= 2.2 && top.hit >= Math.min(2, r.qt.length);
     if(isData && !(good && top.e.c === 'panel')){
       html += '<p>Esa consulta es sobre datos de compras, y la respuesta está en los paneles. Te dejo accesos directos con tus palabras:</p>' + dataLinks(q);
-      if(good && top.s >= 40) html += '<div class="ia-sub"><h5>Sobre la parte normativa</h5><div class="ia-rel"><button type="button" data-open="' + esc(top.e.id) + '">' + esc(top.e.t) + '</button></div></div>';
     } else if(good){
       html += answerKB(top, q);
       var rel = r.kb.slice(1, 4).filter(function(x){ return x.s >= top.s * .3 && x.hit >= 1; });
