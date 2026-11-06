@@ -1,0 +1,9 @@
+name = "mecanismos-de-compra-ai"
+main = "worker.js"
+compatibility_date = "2026-11-06"
+
+[ai]
+binding = "AI"
+
+# El secreto se configura solo en Cloudflare:
+# wrangler secret put ANTHROPIC_API_KEY
