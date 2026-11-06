@@ -127,7 +127,7 @@ function syncUrl(){ try{ history.replaceState(null, '', '#asesor=' + encState(S.
 /* ------------------------------ carga de datos ------------------------------ */
 function ensure(){
   if(S.ready) return S.ready;
-  S.ready = Promise.all([loadScript(AB + 'pac/idx.js' + ver()).catch(() => null), loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver() + 'b'), loadScript(AB + 'reglas.js' + ver()), loadScript(AB + 'fx.js' + ver()).catch(() => null), loadScript(AB + 'cmcot.js' + ver()).catch(() => null), loadScript(AB + 'cmahorro.js' + ver()).catch(() => null), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
+  S.ready = Promise.all([loadScript(AB + 'pac/idx.js' + ver()).catch(() => null), loadScript(AB + 'cat.js' + ver()), loadScript(AB + 'org.js' + ver() + 'b'), loadScript(AB + 'reglas.js' + ver() + 'c'), loadScript(AB + 'fx.js' + ver()).catch(() => null), loadScript(AB + 'ec.js' + ver()).catch(() => null), loadScript(AB + 'cmcot.js' + ver()).catch(() => null), loadScript(AB + 'cmahorro.js' + ver()).catch(() => null), loadScript(AB + 'cmvig.js' + ver()).catch(() => null).then(() => (window.AS_CMV && window.AS_CMV.cmcat) ? loadScript(AB + 'cmcat.js' + ver()).catch(() => null) : null)]).then(() => {
     loadScript(AB + 'pres.js' + ver()).then(() => { S.pres = window.AS_PRES || null; S.presTried = true; if(S.orgIdx != null) update(); }).catch(() => { S.presTried = true; });
     S.C = window.AS_CAT; S.O = window.AS_ORG; S.pacIdx = window.AS_PACIDX ? new Set(window.AS_PACIDX) : null;
     S.orgNorm = S.O.o.map((o, i) => norm(o[1]) + ' ' + o[0] + ((S.O.rt && S.O.rt[i] || []).map(r => ' ' + r.toLowerCase() + ' ' + r.toLowerCase().replace(/\./g, '') + ' ' + r.toLowerCase().replace(/[^0-9k]/g, '')).join('')));
@@ -334,7 +334,7 @@ table.as-t th{background:#F2F6FD;}
 .as-rc-vv{grid-column:1/-1;font-size:11.5px;color:#BFD3EA;line-height:1.45;} .as-rc-vv a{color:var(--cc-lime);font-weight:700;} .as-rc-prd b{min-width:0;overflow-wrap:anywhere;} .as-rc-pid{font-size:11.5px;font-weight:800;padding:1px 8px;border-radius:99px;background:rgba(208,255,102,.2);color:var(--cc-lime);white-space:nowrap;font-variant-numeric:tabular-nums;} .as-rc-pr{font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;}
 .as-rc-go2{margin-left:8px;background:transparent !important;color:#fff !important;border:1px solid rgba(255,255,255,.55);} .as-rc-go2:hover{background:rgba(255,255,255,.16) !important;}
 @media (max-width:700px){ .as-rc-prd li{grid-template-columns:1fr;} .as-rc-go2{margin:8px 0 0;} }
-/* upd30: economía circular destacada */ .as-ecn{margin:16px 0 4px;padding:14px 18px 16px;border-radius:14px;background:#FFB020;color:#0B1F3A;box-shadow:0 6px 18px rgba(0,0,0,.25);} .as-ecn-k{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;background:#0B1F3A;color:#FFD27A;padding:3px 10px;border-radius:99px;} .as-ecn-t{display:block;font-size:19px;font-weight:800;line-height:1.25;margin:8px 0 6px;color:#0B1F3A;} .as-ecn p{margin:0;font-size:14.5px;line-height:1.5;color:#0B1F3A;} .as-ecn a.as-ecn-go{display:inline-block;margin-top:10px;padding:8px 16px;border-radius:99px;background:#0B1F3A;color:#fff;font-weight:700;font-size:13.5px;text-decoration:none;} .as-ecn a.as-ecn-go:hover{background:#00386B;}
+/* upd30: economía circular destacada */ .as-ecn{margin:16px 0 4px;padding:14px 18px 16px;border-radius:14px;background:#FFB020;color:#0B1F3A;box-shadow:0 6px 18px rgba(0,0,0,.25);} .as-ecn-k{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;background:#0B1F3A;color:#FFD27A;padding:3px 10px;border-radius:99px;} .as-ecn-t{display:block;font-size:19px;font-weight:800;line-height:1.25;margin:8px 0 6px;color:#0B1F3A;} .as-ecn p{margin:0;font-size:14.5px;line-height:1.5;color:#0B1F3A;} .as-ecn a.as-ecn-go{display:inline-block;margin-top:10px;padding:8px 16px;border-radius:99px;background:#0B1F3A;color:#fff;font-weight:700;font-size:13.5px;text-decoration:none;} .as-ecn a.as-ecn-go:hover{background:#00386B;} /* upd42 */ .as-ecl-cl{margin:10px 0 0;padding:10px 12px;border-left:4px solid #0B1F3A;background:rgba(255,255,255,.6);border-radius:6px;font-size:13.5px;line-height:1.45;color:#0B1F3A;} .as-ecl-cl b{display:block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;} .as-ecl{margin:12px 0 4px;display:grid;gap:8px;} .as-ecl-i{background:#fff;border:1px solid rgba(11,31,58,.18);border-radius:10px;padding:10px 12px;color:#0B1F3A;font-size:13.5px;line-height:1.4;} .as-ecl-i b{display:block;font-size:14.5px;} .as-ecl-m{display:block;color:#33506E;font-size:12.5px;margin-top:2px;} .as-ecl-t{display:inline-block;font-size:11px;font-weight:800;padding:1px 8px;border-radius:99px;background:#E6F4EA;color:#0B5B2E;margin-left:6px;vertical-align:1px;} .as-ecl-t.w{background:#FFF1D6;color:#7A4A00;} .as-ecl-s{font-size:12.5px;margin:6px 0 0;} .as-ecl-s a{color:inherit;font-weight:700;}
 @media print{ #as-res{display:flex;flex-direction:column;} #as-res .as-reco{order:-1;} .as-pan[hidden]{display:block!important;} .as-rtabs{display:none!important;} .as-side{max-height:none;overflow:visible;position:static;} header.cc-header,.back-link,.as-noprint,.as-tabs,.as-side .as-card:not(.as-print-sum){display:none!important;} .as-grid{display:block;} .as-reco{-webkit-print-color-adjust:exact;print-color-adjust:exact;} .as-sec,.as-card{box-shadow:none;break-inside:avoid;} body{background:#fff;} }
 `;
 
@@ -1520,11 +1520,63 @@ function fragFuturaHtml(o){
   x += '<p><button type="button" class="as-btn as-gopac">Ver los ítems y ajustar la selección</button></p>';
   return x + citas(f.cons.arts.concat([{n: 'DS 661/2024', t: 'arts. 16, 165, 166'}, {n: 'Ley 19.886', t: 'art. 12'}])) + '</div>';
 }
+/* upd42: maestra de productos publicados en economía circular (data/asesor/ec.js, corte en AS_EC.f). Es una foto de ese día. */
+const EC_GEN = new Set(['lote', 'lotes', 'unidad', 'unidades', 'marca', 'modelo', 'equipo', 'equipos', 'material', 'color', 'nuevo', 'nueva', 'usado', 'usada', 'segun', 'detalle', 'adjunto', 'pieza', 'piezas', 'set', 'tipo']);
+const EC_CLAUSULA = 'Que, a su vez y dando cumplimiento a lo establecido en la normativa de compras públicas, se revisó la plataforma de Economía Circular y se constató que los bienes requeridos no se encuentran disponibles en ésta.';
+const ecFd = x => x ? x.split('-').reverse().join('-') : '';
+let EC_CACHE = null;
+function ecIdx(){
+  const E = window.AS_EC; if(!E) return null;
+  if(EC_CACHE && EC_CACHE.E === E) return EC_CACHE;
+  const ok = t => !EC_GEN.has(t);
+  EC_CACHE = {E, w: E.p.map(p => { const nt = toks2(p[1]).filter(ok); return {n: new Set(nt), d: new Set(toks2(p[2]).filter(ok)), h: nt.find(t => !/^\d+$/.test(t))}; })};
+  return EC_CACHE;
+}
+function ecMatches(){
+  const I = ecIdx(); if(!I) return null;
+  const E = I.E, name = S.prodIdx != null ? S.C.n[S.prodIdx] : '';
+  const q = new Set(toks2(name + ' ' + (S.prodQ || '')).filter(t => !EC_GEN.has(t)));
+  const reg = regName(orgRegion()), res = [];
+  if(q.size) E.p.forEach((p, i) => {
+    let a = 0, b = 0; q.forEach(t => { if(I.w[i].n.has(t)) a++; else if(I.w[i].d.has(t)) b++; });
+    if(!a) return;
+    res.push({p, a, b, hd: q.has(I.w[i].h) ? 1 : 0, vig: p[11] >= E.f, mis: E.reg[p[7]] === reg});
+  });
+  res.sort((x, y) => (y.vig - x.vig) || (y.hd - x.hd) || (y.a - x.a) || (y.mis - x.mis) || (y.b - x.b) || (x.p[11] < y.p[11] ? -1 : 1));
+  const seen = new Map(), grp = [];
+  res.forEach(r => { const k = [r.p[1].toLowerCase(), r.p[8], r.p[11], r.p[4]].join('|'); if(seen.has(k)) seen.get(k).ids.push(r.p[0]); else { r.ids = [r.p[0]]; seen.set(k, r); grp.push(r); } });
+  return {E, res: grp, q: q.size, reg};
+}
+function ecItem(r, E){
+  const p = r.p, cond = E.cond[p[6]] || '';
+  return `<div class="as-ecl-i"><b>${esc(p[1])}${r.mis ? '<span class="as-ecl-t">en tu región</span>' : ''}${r.vig ? '' : '<span class="as-ecl-t w">plazo de publicación vencido al corte</span>'}</b><span class="as-ecl-m">${fmt(p[5])} ${p[5] === 1 ? 'unidad' : 'unidades'}${r.ids.length > 1 ? ' por publicación' : ''}${cond ? ' · ' + esc(cond) : ''} · ${esc(p[8])} (${esc(E.reg[p[7]])}) · precio publicado ${clp(p[4])} · cierra el ${ecFd(p[11])} · ${r.ids.length > 1 ? r.ids.length + ' publicaciones iguales, IDs ' + r.ids.map(esc).join(', ') : 'ID de producto ' + esc(p[0])}</span></div>`;
+}
+function ecResumen(){
+  const m = ecMatches(); if(!m) return '';
+  const E = m.E, f = ecFd(E.f);
+  if(!m.q) return 'Revisé la maestra de productos publicados al ' + f + ' (' + fmt(E.n) + ' productos), pero aún no hay un producto elegido para compararlo.';
+  if(!m.res.length) return 'Revisé la maestra de productos publicados al ' + f + ' (' + fmt(E.n) + ' productos) y no encontré uno parecido a lo que buscas.';
+  const v = m.res.filter(r => r.vig).length;
+  return 'Revisé la maestra de productos publicados al ' + f + ' (' + fmt(E.n) + ' productos) y encontré ' + m.res.length + (m.res.length === 1 ? ' parecido' : ' parecidos') + ' a lo que buscas' + (v < m.res.length ? ' (' + v + ' con plazo de publicación vigente a esa fecha)' : '') + '.';
+}
+function ecnIntro(){
+  if(!window.AS_EC) return 'El Asesor lo trata como un bien mueble que otro organismo podría tener y no puede comprobar si lo hay. Consúltalo en la plataforma antes de comprar.';
+  return 'El Asesor lo trata como un bien mueble que otro organismo podría tener. ' + esc(ecResumen()) + ' Es una foto de ese día: confirma en la plataforma que siga disponible antes de decidir.';
+}
+function ecPasoTxt(t){
+  if(!window.AS_EC) return t;
+  return t.replace('El Asesor no puede comprobar esa disponibilidad.', 'El Asesor revisó la maestra de productos publicados al ' + ecFd(window.AS_EC.f) + ', que es una foto de ese día y no reemplaza tu consulta en la plataforma.');
+}
+function ecDispHtml(max){
+  const m = ecMatches(); if(!m || !m.res.length) return '';
+  const E = m.E, n = Math.min(max, m.res.length);
+  return `<div class="as-ecl">${m.res.slice(0, n).map(r => ecItem(r, E)).join('')}</div><p class="as-ecl-s">${n < m.res.length ? 'Se muestran ' + n + ' de ' + m.res.length + '. ' : ''}Busca el ID en el <a href="${ECO_URL}" rel="noopener">catálogo de Economía Circular</a> o revisa todos los productos en la <a href="${esc(location.pathname)}#economia-circular" target="_blank" rel="noopener">ficha de Economía Circular</a>. El precio y las unidades son los que publicó el organismo.</p>`;
+}
 function resultHtml(o){
   const p = o.principal, st = S.st, st_ = S.st, h = histProd(), ci = cmInfo();
   o.alertas = (o.alertas || []).filter(x => !x.pac); { const lm = activeLine(); if(lm && lm.mo) o.alertas.unshift({nivel: 'medio', t: 'La cotización está en ' + MON_NOM[lm.mo] + ' y el Asesor la convirtió a pesos con $' + fmtD(fxOf(lm), 2) + ' por ' + MON_NOM[lm.mo] + ' (valor que indicaste' + (lm.mo === 'UTM' ? ' o la UTM del mes elegido' : '') + '). El DS 661 no fija un tipo de cambio para determinar el procedimiento: usa el valor del día de la estimación, deja constancia de la fuente y confirma el criterio con la unidad jurídica de tu organismo.', accion: 'Si el valor cambia, corrígelo en el paso 2: el tramo en UTM y la recomendación se recalculan.', arts: [{n: 'DS 661/2024', t: 'art. 4 N° 22 (presupuesto estimado, con IVA); art. 32 (tramos en UTM)'}]}); } const apf = alertaFrag(o); if(apf) o.alertas.unshift(apf); { const tmr = tomaRazon(o); if(tmr) o.alertas.unshift(tmr); }
   const prodName = S.prodIdx != null ? sentence(S.C.n[S.prodIdx]) : 'tu compra';
-  let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>${(o.escalera && o.escalera.ecOpcion) ? `<div class="as-ecn"><span class="as-ecn-k">Paso previo · DS 661, art. 28</span><b class="as-ecn-t">Primero, consulta economía circular</b><p>El Asesor lo trata como un bien mueble que otro organismo podría tener y no puede comprobar si lo hay. Consúltalo en la plataforma antes de comprar. Si no existe o no está disponible, deja constancia de «producto no disponible en economía circular» y sigue con este procedimiento. Si por su diseño, uso o función específica no puede reutilizarse ni compartirse, el art. 28 permite eximirte: marca «Este bien no puede ser reutilizado (Economía Circular)» en el paso 3 y queda registrado.</p><a class="as-ecn-go" href="${ECO_URL}" rel="noopener">Ver el catálogo de economía circular</a></div>` : ''}
+  let html = `<div class="as-reco" role="status"><div class="as-eye">Recomendación para ${esc(S.org[1])}</div><h2>${esc(p.nom)}</h2><p>${esc(p.porque)}</p>${(o.escalera && o.escalera.ecOpcion) ? `<div class="as-ecn"><span class="as-ecn-k">Paso previo · DS 661, art. 28</span><b class="as-ecn-t">Primero, consulta economía circular</b><p>${ecnIntro()} Si no existe o no está disponible, déjalo escrito en el acto administrativo (frase sugerida abajo) y sigue con este procedimiento. Si por su diseño, uso o función específica no puede reutilizarse ni compartirse, el art. 28 permite eximirte: marca «Este bien no puede ser reutilizado (Economía Circular)» en el paso 3 y queda registrado.</p>${ecDispHtml(3)}<div class="as-ecl-cl"><b>Frase sugerida para el acto administrativo si no está disponible</b>${esc(EC_CLAUSULA)}</div><a class="as-ecn-go" href="${ECO_URL}" rel="noopener">Ver el catálogo de economía circular</a></div>` : ''}
     <p class="as-chipcap">Esta recomendación se basa en lo que le pediste al Asesor:</p>
     <div class="as-chips"><span class="as-chip as-lb"><small>Producto o servicio</small>${esc(prodName)}</span>${activeLine().n ? `<span class="as-chip as-lb"><small>Cantidad${st_.l.length > 1 ? ' (línea activa)' : ''}</small>${fmt(activeLine().n)} ${esc(umPlural(lineUm(activeLine()), activeLine().n))}</span>` : ''}<span class="as-chip as-lb"><small>Monto${st_.l.length > 1 ? ' total del proceso' : ' total'}, IVA incluido</small>${S.st.m ? clp(S.st.m) + ' · ' : ''}${dec(o.montoUtm, 1)} UTM</span>${plazoChip(o)}<span class="as-chip as-lb"><small>Tramo de monto</small>${esc(o.tramoNom)}</span><span class="as-chip as-lb"><small>Región de la compra</small>${esc(regName(orgRegion()))}</span></div>${plazoNota(o)}${apf ? `<div class="as-pacal as-pacal-${apf.nivel}"><b>Posible fragmentación en este producto</b>${apf.tp ? `<p><b class="as-pacal-k">Ya ocurrido.</b> ${esc(apf.tp)}</p>` : ''}${apf.tf ? `<p><b class="as-pacal-k">A futuro, según tu PAC.</b> ${esc(apf.tf)}</p>` : ''}<span class="as-pacal-b">${apf.tp ? '<button type="button" class="as-btn as-gotab" data-rt="fragp">Ver lo ya realizado</button>' : ''}${apf.tf ? '<button type="button" class="as-btn as-gotab" data-rt="fragf">Ver lo posible con tu PAC</button>' : ''}</span></div>` : ''}${heroCmHtml(o)}</div>`;
   const finHtml = `<div class="as-sec as-fin2"><h3>Presupuesto y PAC del organismo</h3><p>${orgFinTxt(false)}</p>${sinPacAviso()}</div>`;
@@ -1598,7 +1650,7 @@ function escaleraHtml(o){
   const e = o.escalera; if(!e) return '';
   const ec = o.pasos.find(x => x.titulo === 'Economía circular');
   let h = '<div class="as-sec as-esc"><h3>Orden de opciones para esta compra</h3>';
-  if(ec) h += `<div class="as-op as-op-prev"><div class="as-op-n">Antes</div><div class="as-op-b"><b>Economía circular</b> <span class="as-tag as-t-${esc2(ec.estado)}">${esc(ec.estado)}</span><p>${esc(ec.texto)}</p>${ec.estado === 'previo' ? `<p class="as-hint">Consulta el <a href="${ECO_URL}" rel="noopener">catálogo de Economía Circular de Mercado Público</a>.</p>` : ''}${citas(ec.arts)}</div></div>`;
+  if(ec) h += `<div class="as-op as-op-prev"><div class="as-op-n">Antes</div><div class="as-op-b"><b>Economía circular</b> <span class="as-tag as-t-${esc2(ec.estado)}">${esc(ec.estado)}</span><p>${esc(ecPasoTxt(ec.texto))}</p>${ec.estado === 'previo' ? ecDispHtml(5) : ''}${ec.estado === 'previo' ? `<p class="as-hint">Consulta el <a href="${ECO_URL}" rel="noopener">catálogo de Economía Circular de Mercado Público</a>.</p>` : ''}${citas(ec.arts)}</div></div>`;
   e.opciones.forEach(op => {
     h += `<div class="as-op as-op-${op.k.toLowerCase()}"><div class="as-op-n">Opción ${op.n}</div><div class="as-op-b"><b>${esc(op.titulo)}</b> <span class="as-tag as-t-${op.tag === 'prioridad' || op.tag === 'primera opción' ? 'obligatorio' : (op.tag === 'excepcional' ? 'verificar' : 'recomendado')}">${esc(op.tag)}</span><p>${esc(op.texto)}</p>${op.ahorro ? ahorroHtml(op.ahorro) : ''}`;
     if(op.k === 'EC') h += `<p class="as-hint">Consulta el <a href="${ECO_URL}" rel="noopener">catálogo de Economía Circular de Mercado Público</a>.</p>`;
