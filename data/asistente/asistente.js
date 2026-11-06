@@ -291,8 +291,12 @@ function dataLinks(q){
   var txt = (core.length ? core : toks(q)).join(' ').trim(); if(!txt) return '';
   var b = btoa(unescape(encodeURIComponent(JSON.stringify({q: txt})))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
   var region = /\b(arica|parinacota|tarapaca|antofagasta|atacama|coquimbo|valparaiso|ohiggins|maule|nuble|biobio|araucania|rios|lagos|aysen|magallanes|region|regiones)\b/.test(norm(q));
+  var buyers = /quien.*compr|comprador.*(mas|mayor)|organismo.*(mas|mayor)/.test(norm(q));
+  var agile = /compra\s+agil/.test(norm(q));
   return '<div class="ia-sub"><h5>Seguir en los datos</h5><div class="ia-act" style="margin-top:0">' +
     (region ? '<a class="ia-b p" href="#region" data-go="#region">Abrir compras y ventas por región</a>' : '') +
+    (buyers ? '<a class="ia-b p" href="#comprador" data-go="#comprador">Explorar organismos compradores</a>' : '') +
+    (agile ? '<a class="ia-b" href="#detalle=Compra%20%C3%81gil" data-go="#detalle=Compra%20%C3%81gil">Ver datos de Compra Ágil</a>' : '') +
     '<a class="ia-b" href="#rubro&b=' + b + '" data-go="#rubro&b=' + b + '">Buscar «' + esc(txt) + '» en procesos de compra</a>' +
     '<a class="ia-b" href="#pac26=' + encodeURIComponent(txt) + '" data-go="#pac26=' + encodeURIComponent(txt) + '">Buscar en el PAC 2026</a>' +
     '<a class="ia-b" href="#proveedores=' + encodeURIComponent(txt) + '" data-go="#proveedores=' + encodeURIComponent(txt) + '">Buscar un proveedor</a></div></div>';
@@ -304,7 +308,7 @@ function leyBlock(items, qt){
     return '<div class="ia-ley" data-i="' + it.i + '"><b>Ley 19.886 art. ' + esc(a[0]) + '</b><span class="ia-ex">' + esc(ex) + '</span> <button type="button" data-a="full" data-i="' + it.i + '">Ver artículo completo</button> <a href="' + URL_L + '" target="_blank" rel="noopener" style="font-size:10.5px">leychile.cl</a></div>';
   }).join('') + '</div>';
 }
-var DATAWORDS = /cuant[oa]s? (se )?(compr|gast|vend|facturo|transo|oc)|compraron|compro\b|quien.*vend|vende.*(en|de)|vendio|vendido|ventas de|ranking|principales proveedores|proveedores de |licitaciones de |procesos de |precios? de |ordenes de compra de |gasto de|\bgasto total/;
+var DATAWORDS = /cuant[oa]s? (se )?(compr|gast|vend|facturo|transo|oc)|compraron|compro\b|quien.*(compr|vend)|vende.*(en|de)|vendio|vendido|ventas de|ranking|principales proveedores|proveedores de |licitaciones de |procesos de |precios? de |ordenes de compra de |gasto de|\bgasto total/;
 DATAWORDS = new RegExp(DATAWORDS.source + '|cuant[oa]s?.*(compras?\s+agil|ordenes?\s+de\s+compra|\boc\b)|compras?\s+agil(es)?\s+(se\s+)?emit', 'i');
 var SUF = {bis:'bis', ter:'ter', quater:'quáter', quinquies:'quinquies', sexies:'sexies', septies:'septies', octies:'octies', nonies:'nonies', decies:'decies'};
 function dataDateAnswer(q){
