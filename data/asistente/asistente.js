@@ -118,6 +118,7 @@ var CTX = [
   [/^#asesor/, 'Asesor estratégico de compras', ['¿Cuándo corresponde una licitación pública?', '¿Qué procedimiento uso bajo 100 UTM?', '¿Debo comprar por Convenio Marco?']],
   [/^#rubro/, 'Buscador de procesos de compra', ['¿Cómo funciona «Copiar enlace»?', '¿Qué es una oferta temeraria?', '¿Qué plazos tiene una licitación?']],
   [/^#proveedores/, 'Proveedores', ['¿Qué inhabilidades tiene un proveedor?', '¿Qué categorías hay en el Registro de Proveedores?', '¿Cuándo se suspende a un proveedor?']],
+  [/^#region/, 'Compras y ventas por región', ['¿Qué región concentra más compras?', '¿Qué proveedores venden en Arica?', '¿Cómo comparo regiones?']],
   [/^#comprador/, 'Explorador por comprador', ['¿Qué es fragmentar compras?', '¿Qué debe publicar un organismo en Mercado Público?']],
   [/^#pac26/, 'Buscador PAC 2026', ['¿Qué contiene el Plan Anual de Compras?', '¿Puedo comprar algo que no está en el PAC?']],
   [/^#pac/, 'Plan Anual de Compras', ['¿Hasta cuándo se publica el PAC?', '¿Puedo comprar algo que no está en el PAC?', '¿Cómo se modifica el PAC?']],
@@ -289,7 +290,9 @@ function dataLinks(q){
   var core = toks(q).filter(function(t){ return !/^(cuant|orden|compra|licitacion|monto|proveedor|vend|vendido|proceso|trato|agil|mes|ano)/.test(t); });
   var txt = (core.length ? core : toks(q)).join(' ').trim(); if(!txt) return '';
   var b = btoa(unescape(encodeURIComponent(JSON.stringify({q: txt})))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  var region = /\b(arica|parinacota|tarapaca|antofagasta|atacama|coquimbo|valparaiso|ohiggins|maule|nuble|biobio|araucania|rios|lagos|aysen|magallanes|region|regiones)\b/.test(norm(q));
   return '<div class="ia-sub"><h5>Seguir en los datos</h5><div class="ia-act" style="margin-top:0">' +
+    (region ? '<a class="ia-b p" href="#region" data-go="#region">Abrir compras y ventas por región</a>' : '') +
     '<a class="ia-b" href="#rubro&b=' + b + '" data-go="#rubro&b=' + b + '">Buscar «' + esc(txt) + '» en procesos de compra</a>' +
     '<a class="ia-b" href="#pac26=' + encodeURIComponent(txt) + '" data-go="#pac26=' + encodeURIComponent(txt) + '">Buscar en el PAC 2026</a>' +
     '<a class="ia-b" href="#proveedores=' + encodeURIComponent(txt) + '" data-go="#proveedores=' + encodeURIComponent(txt) + '">Buscar un proveedor</a></div></div>';
@@ -301,7 +304,7 @@ function leyBlock(items, qt){
     return '<div class="ia-ley" data-i="' + it.i + '"><b>Ley 19.886 art. ' + esc(a[0]) + '</b><span class="ia-ex">' + esc(ex) + '</span> <button type="button" data-a="full" data-i="' + it.i + '">Ver artículo completo</button> <a href="' + URL_L + '" target="_blank" rel="noopener" style="font-size:10.5px">leychile.cl</a></div>';
   }).join('') + '</div>';
 }
-var DATAWORDS = /cuant[oa]s? (se )?(compr|gast|vend|facturo|transo|oc)|compraron|compro\b|vendio|vendido|ventas de|ranking|principales proveedores|proveedores de |licitaciones de |procesos de |precios? de |ordenes de compra de |gasto de|\bgasto total/;
+var DATAWORDS = /cuant[oa]s? (se )?(compr|gast|vend|facturo|transo|oc)|compraron|compro\b|quien.*vend|vende.*(en|de)|vendio|vendido|ventas de|ranking|principales proveedores|proveedores de |licitaciones de |procesos de |precios? de |ordenes de compra de |gasto de|\bgasto total/;
 DATAWORDS = new RegExp(DATAWORDS.source + '|cuant[oa]s?.*(compras?\s+agil|ordenes?\s+de\s+compra|\boc\b)|compras?\s+agil(es)?\s+(se\s+)?emit', 'i');
 var SUF = {bis:'bis', ter:'ter', quater:'quáter', quinquies:'quinquies', sexies:'sexies', septies:'septies', octies:'octies', nonies:'nonies', decies:'decies'};
 function dataDateAnswer(q){
