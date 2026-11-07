@@ -301,6 +301,23 @@
   /* ===== Refresh de diseño 2026 (estilo Eficiencia) ===== */
   .cc-topbar { background:var(--cc-dark); color:var(--cc-lime); text-align:center; font-size:11.5px; font-weight:700; letter-spacing:.01em; padding:8px 16px; }
   .cc-topbar:empty { display:none; }
+  .cc-ticker { background:#001B2E; color:#E6EEF5; font-size:12.5px; line-height:1; overflow:hidden; white-space:nowrap; border-bottom:1px solid rgba(255,255,255,.12); position:relative; }
+  .cc-ticker:empty { display:none; }
+  body:not(.tk-off):has(#ccTicker:not(:empty)) .home-fab { top:48px; }
+  @media (max-width:600px){ body:not(.tk-off):has(#ccTicker:not(:empty)) .home-fab { top:44px; } }
+  .cc-ticker .tk-track { display:inline-flex; width:max-content; animation:tkRun var(--tkd,60s) linear infinite; }
+  .cc-ticker:hover .tk-track, .cc-ticker:focus-within .tk-track { animation-play-state:paused; }
+  .cc-ticker .tk-set { display:inline-flex; align-items:center; flex:0 0 auto; }
+  .cc-ticker .tk-it { display:inline-flex; align-items:baseline; gap:7px; padding:9px 22px; border-right:1px solid rgba(255,255,255,.14); }
+  .cc-ticker .tk-n { font-weight:600; color:#9FB8CC; letter-spacing:.02em; }
+  .cc-ticker .tk-v { font-weight:700; color:#fff; font-variant-numeric:tabular-nums; }
+  .cc-ticker .tk-d { font-weight:700; font-variant-numeric:tabular-nums; font-size:11.5px; }
+  .cc-ticker .tk-up { color:#9EE6A8; } .cc-ticker .tk-dn { color:#FFA3AA; }
+  .cc-ticker .tk-src { color:#9FB8CC; text-decoration:none; } .cc-ticker .tk-src:hover, .cc-ticker .tk-src:focus-visible { color:#fff; text-decoration:underline; }
+  @keyframes tkRun { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+  @media (prefers-reduced-motion:reduce){ .cc-ticker { overflow-x:auto; } .cc-ticker .tk-track { animation:none; } .cc-ticker .tk-set[aria-hidden] { display:none; } }
+  @media (max-width:900px){ body.is-sub .cc-ticker { padding-right:56px; } }
+  @media print { .cc-ticker { display:none; } }
   header.cc-header { background:linear-gradient(150deg,#005AF8 0%,#0032A2 40%,#4A2E8F 78%,#613B75 100%); border-bottom:0; padding:2.6rem 1.5rem 5.6rem; }
   header.cc-header::before { top:-120px; right:-90px; width:420px; height:420px; background:radial-gradient(circle,rgba(208,255,102,.16) 0%,rgba(208,255,102,0) 68%); }
   header.cc-header::after { background:radial-gradient(circle,rgba(174,215,255,.14) 0%,rgba(174,215,255,0) 70%); }
@@ -541,6 +558,7 @@
 </style>
 </head>
 <body>
+<div class="cc-ticker" id="ccTicker" role="region" aria-label="Indicadores económicos del Banco Central de Chile"></div>
 <div class="cc-topbar" id="ccTopbar" role="note"></div>
 <header class="cc-header">
   <div class="header-row">
@@ -7297,6 +7315,51 @@ route();
   var p = DATA.parcial || {}, ks = Object.keys(p);
   var f = function(d){ return d.split('-').reverse().join('-'); };
   tb.textContent = 'Órdenes de compra de ' + DATA.periodo + (ks.length ? ' · ' + ks.map(function(k){ return k + ' es parcial (datos hasta el ' + f(p[k]) + ')'; }).join(' · ') : '') + ' · actualizado el ' + f(DATA.generado);
+} catch(e) {} })();
+</script>
+<script>
+/* Barra de indicadores del Banco Central en todos los paneles: lee data/asesor/fx.js (lo genera bde_fx.py) y corre en una sola línea. */
+(function(){ try {
+  var box = document.getElementById('ccTicker'); if(!box) return;
+  var N = new Intl.NumberFormat('es-CL', {minimumFractionDigits: 2, maximumFractionDigits: 2}), N0 = new Intl.NumberFormat('es-CL', {maximumFractionDigits: 0});
+  var MES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  var ITEMS = [
+    {k:'uf', n:'UF', f:function(v){ return '$' + N.format(v); }},
+    {k:'usd', n:'Dólar observado', f:function(v){ return '$' + N.format(v); }, d:1},
+    {k:'eur', n:'Euro', f:function(v){ return '$' + N.format(v); }, d:1},
+    {k:'utm', n:'UTM', f:function(v){ return '$' + N0.format(v); }, mes:1},
+    {k:'ipc', n:'IPC mensual', f:function(v){ return N.format(v) + '%'; }, mes:1},
+    {k:'tpm', n:'TPM', f:function(v){ return N.format(v) + '%'; }},
+    {k:'cobre', n:'Cobre (US$/lb)', f:function(v){ return N.format(v); }, d:1},
+    {k:'oro', n:'Oro (US$/oz)', f:function(v){ return N.format(v); }, d:1},
+    {k:'plata', n:'Plata (US$/oz)', f:function(v){ return N.format(v); }, d:1}
+  ];
+  function ymd(){ var t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }
+  function build(){
+    var F = window.AS_FX; if(!F) return; var hoy = ymd(), out = [], gen = F.gen;
+    ITEMS.forEach(function(it){
+      var S = F[it.k]; if(!S) return; var ks = Object.keys(S).sort(), i = ks.length - 1;
+      while(i >= 0 && ks[i] > hoy) i--; if(i < 0) return;
+      var v = S[ks[i]], p = i > 0 ? S[ks[i - 1]] : null, d = '';
+      if(it.d && p){ var x = (v / p - 1) * 100; if(Math.abs(x) >= 0.005) d = '<span class="tk-d ' + (x > 0 ? 'tk-up' : 'tk-dn') + '" title="Variación respecto de la publicación anterior">' + (x > 0 ? '▲ ' : '▼ ') + N.format(Math.abs(x)) + '%</span>'; }
+      var etq = it.n;
+      if(it.mes){ var a = ks[i].slice(0, 4), m = +ks[i].slice(5, 7); etq += ' ' + MES[m - 1] + '-' + a; }
+      out.push('<span class="tk-it"><span class="tk-n">' + etq + '</span><span class="tk-v">' + it.f(v) + '</span>' + d + '</span>');
+    });
+    if(!out.length) return;
+    out.push('<span class="tk-it"><a class="tk-src" href="https://si3.bcentral.cl/indicadoressiete/secure/indicadoresdiarios.aspx" target="_blank" rel="noopener">Fuente: Banco Central de Chile' + (gen ? ' · actualizado el ' + gen.split('-').reverse().join('-') : '') + '</a></span>');
+    var set = out.join('');
+    box.innerHTML = '<div class="tk-track"><div class="tk-set">' + set + '</div><div class="tk-set" aria-hidden="true">' + set + '</div></div>';
+    box.querySelectorAll('[aria-hidden] a').forEach(function(a){ a.tabIndex = -1; });
+    var w = box.querySelector('.tk-set').offsetWidth || 1200; box.style.setProperty('--tkd', Math.max(25, Math.round(w / 55)) + 's');
+  }
+  function cargar(){
+    if(window.AS_FX) return build();
+    var sc = document.createElement('script'); sc.src = 'data/asesor/fx.js?v=' + ((typeof DATA !== 'undefined' && DATA.generado) || '');
+    sc.onload = build; sc.onerror = function(){ sc.remove(); }; document.head.appendChild(sc);
+  }
+  window.addEventListener('scroll', function(){ document.body.classList.toggle('tk-off', window.scrollY > 36); }, {passive: true});
+  if(document.readyState === 'complete') cargar(); else window.addEventListener('load', cargar);
 } catch(e) {} })();
 </script>
 <script>
