@@ -369,11 +369,26 @@ var CMKW = [
   ['2239-5-LR25', 'Venta y arriendo de computadores y accesorios', 'venta-y-arriendo-de-computadores-y-accesorios', /computador(es|as)?|notebooks?|laptops?|tablets?|monitores|all in one|docking/]
 ];
 var CMINTENT = /necesito|quiero|debo|tengo que|voy a|hay que|comprar|compro\b|contratar|adquirir|adquiero|arrendar|arriendo|cotizar|pedir|solicitar|conseguir/;
+/* El convenio de pasajes cubre solo vuelos dentro de Chile: si el destino es extranjero, no se ofrece. */
+var EXTRANJERO = /\b(internacional(es)?|extranjero|exterior|europa|asia|africa|oceania|norteamerica|sudamerica|centroamerica|caribe|fuera de chile|otro pais|francia|espana|italia|alemania|reino unido|inglaterra|portugal|paises bajos|holanda|belgica|suiza|suecia|noruega|dinamarca|finlandia|grecia|turquia|rusia|ucrania|polonia|austria|irlanda|estados unidos|eeuu|ee uu|usa|canada|mexico|cuba|republica dominicana|puerto rico|panama|costa rica|colombia|venezuela|ecuador|peru|bolivia|argentina|brasil|uruguay|paraguay|china|japon|corea|india|tailandia|vietnam|singapur|australia|nueva zelanda|sudafrica|egipto|marruecos|israel|emiratos|qatar|arabia|paris|madrid|barcelona|roma|londres|berlin|lisboa|nueva york|miami|los angeles|washington|houston|toronto|lima|bogota|buenos aires|mendoza|sao paulo|rio de janeiro|montevideo|asuncion|quito|caracas|cancun|tokio|pekin|beijing|dubai|sidney|ciudad de mexico|santo domingo|la habana|punta cana)\b/;
 function cmMatch(q){
   var n = norm(q); if(!n || DATAWORDS.test(n) || /\b(art|articulo|ley|reglamento|decreto|plazo|multa|garantia)\b/.test(n) || /compar|recomiend|alternativ|conviene|explica|por que/.test(n)) return null;
-  if(!CMINTENT.test(n) && n.split(' ').length > 5) return null;
+  if(!CMINTENT.test(n) && n.split(' ').length > 5 && !(EXTRANJERO.test(n) && /pasaje|vuelo|boleto|aereo|avion/.test(n))) return null;
   var hits = CMKW.filter(function(c){ return c[3].test(n) && !(c[0] === '2239-16-LR23' && /\bbus(es)?\b/.test(n)); });
+  if(EXTRANJERO.test(n)){
+    var tenia = hits.length;
+    hits = hits.filter(function(c){ return c[0] !== '2239-16-LR23'; });
+    if(tenia && !hits.length) return 'intl';
+  }
   return hits.length ? hits.slice(0, 3) : null;
+}
+function cmIntl(){
+  return '<h4>Pasajes al extranjero</h4>' +
+    '<p>El Convenio Marco «Pasajes aéreos nacionales» (ID 2239-16-LR23) cubre solo vuelos dentro de Chile. Entre los 18 convenios marco vigentes de los paneles no hay uno para pasajes internacionales, así que no corresponde comprarlos por ese convenio.</p>' +
+    '<p>El procedimiento para un viaje al extranjero depende del monto y de la situación. El Asesor te calcula las alternativas con tus datos.</p>' +
+    '<div class="ia-chg"><b>Verifica.</b> Confirma en la Tienda de Mercado Público si hay un convenio vigente para lo que necesitas antes de comprar por otra vía.</div>' +
+    '<div class="ia-sub"><h5>Para decidir con tus datos</h5><div class="ia-act" style="margin-top:0"><a class="ia-b p" href="#asesor" data-go="#asesor">Abrir el Asesor estratégico de compras</a>' +
+    '<button type="button" class="ia-b" data-q="¿Qué dice la norma sobre la Compra Ágil?">Compra Ágil</button></div></div>';
 }
 function cmAnswer(hits){
   var h = '<h4>' + (hits.length === 1 ? 'Convenio Marco que cubre lo que necesitas' : 'Convenios Marco que podrían cubrir lo que necesitas') + '</h4>';
@@ -416,7 +431,7 @@ function ask(q){
       addA(hh); S.busy = false; thinkOff(); return;
     }
     var cmh = cmMatch(q);
-    if(cmh){ addA(cmAnswer(cmh)).dataset.q = q; S.busy = false; thinkOff(); return; }
+    if(cmh){ addA(cmh === 'intl' ? cmIntl() : cmAnswer(cmh)).dataset.q = q; S.busy = false; thinkOff(); return; }
     var r = search(q, {cat: S.cat, hash: location.hash});
     var top = r.kb[0], html = '', isData = DATAWORDS.test(norm(q));
     var good = top && top.s >= 20 && top.hit >= Math.min(2, r.qt.length);
