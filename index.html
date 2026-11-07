@@ -384,6 +384,8 @@
   .mcard { --mc:var(--cc-blue); --mt:rgba(11,120,204,.08); background:var(--surface-card); border:1px solid var(--border); border-radius:20px; padding:20px 22px 18px; display:flex; flex-direction:column; gap:14px; box-shadow:0 1px 2px rgba(0,35,59,.05); transition:box-shadow .18s ease, transform .18s ease; scroll-margin-top:70px; }
   .mcard:hover { box-shadow:0 14px 34px rgba(0,35,59,.12); transform:translateY(-2px); }
   .mc-head { display:flex; align-items:center; gap:12px; }
+  .mc-fichas { flex:0 0 auto; font-size:13px; font-weight:700; color:var(--mc); background:var(--mt); border:1px solid var(--mc); border-radius:99px; padding:5px 12px; text-decoration:none; white-space:nowrap; }
+  .mc-fichas:hover, .mc-fichas:focus-visible { background:var(--mc); color:#fff; }
   .mc-ico { flex:0 0 auto; width:42px; height:42px; border-radius:50%; background:var(--mt); color:var(--mc); display:flex; align-items:center; justify-content:center; }
   .mc-ico svg { width:22px; height:22px; }
   .mc-title { margin:0; font-size:16px; line-height:1.25; font-weight:800; color:var(--cc-dark); }
@@ -1722,6 +1724,7 @@ function renderMain(homeRange){
       <div class="mc-head">
         <span class="mc-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${meta.icon}</svg></span>
         <h3 class="mc-title">${esc(m)}</h3>
+        ${m === 'Convenio Marco' ? '<a class="mc-fichas" href="https://convenios.felipemedina.cl/" target="_blank" rel="noopener" title="Fichas de los 18 convenios marco vigentes">Fichas ↗</a>' : ''}
       </div>
       <p class="mc-def">${esc(meta.def)}</p>
       <div class="mc-stats">
