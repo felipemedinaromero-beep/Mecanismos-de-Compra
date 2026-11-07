@@ -2514,6 +2514,7 @@ function renderDetailPage(m){
       ${dlBtn('detailLineMonto', 'evolucion_monto_'+fileSlug+'.csv', 'Descargar serie mensual (CSV)')}
     </section>
 
+    ${m === 'Convenio Marco' ? '<a href="https://convenios.felipemedina.cl/" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 1.25rem;padding:14px 18px;border:1px solid var(--cc-navy,#0032A2);border-radius:14px;background:rgba(0,50,162,.06);color:inherit;text-decoration:none"><span><b>Fichas de los 18 convenios marco vigentes</b><br><small>Objeto, vigencia, moneda, equipo a cargo y datos transaccionales de cada convenio.</small></span><b style="white-space:nowrap;color:var(--cc-navy,#0032A2)">Abrir fichas ↗</b></a>' : ''}
     ${m === 'Compra Ágil' || m === 'Convenio Marco' ? '<div id="mecxHost"></div>' : ''}
     ${m === 'Licitación Pública' || m === 'Licitación Privada' ? licSectionHtml(m) : ''}
     ${m === 'Compra Coordinada' ? '' : topSections}
