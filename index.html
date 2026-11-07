@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>/* La dirección antigua de GitHub Pages redirige al dominio propio */if(/\.github\.io$/.test(location.hostname)){location.replace('https://felipemedina.cl/'+location.search+location.hash);}</script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Mecanismos de Compra</title>
@@ -1649,6 +1650,18 @@ function renderMain(homeRange){
       </div>
     </div>
   `;
+  // Ajusta el tamaño de las cifras de las tarjetas al ancho disponible (p. ej. al abrir el Asistente IA, que angosta la página)
+  if(!window.__fitKpi){
+    const fit = () => { document.querySelectorAll('#kpiRow .kpi .val').forEach(v => {
+      v.style.fontSize = ''; v.style.whiteSpace = 'nowrap'; const box = v.parentElement; let fs = parseFloat(getComputedStyle(v).fontSize);
+      while(v.scrollWidth > box.clientWidth + 0.5 && fs > 11){ fs -= 0.5; v.style.fontSize = fs + 'px'; }
+      if(v.scrollWidth > box.clientWidth + 0.5){ v.style.whiteSpace = 'normal'; v.style.overflowWrap = 'anywhere'; }
+    }); };
+    window.__fitKpi = fit; let lw = 0;
+    new ResizeObserver(() => { const w = kpiRow.clientWidth; if(w !== lw){ lw = w; fit(); } }).observe(kpiRow);
+    window.addEventListener('resize', fit);
+  }
+  window.__fitKpi();
   setDl('mainResumen', ['Período','N° OC','Monto (USD, convertido)','Proveedores únicos','Organismos compradores'].concat(MONEDA_HEADERS),
     [[rangeLabel(homeRange), homeNOc, homeMontoUsd, G.nProveedores, homeNOrganismos].concat(montoPorMoneda(homeMontos))]);
   document.getElementById('dlMainResumen').innerHTML = dlBtn('mainResumen', 'resumen_general.csv', 'Descargar resumen general (CSV)');
