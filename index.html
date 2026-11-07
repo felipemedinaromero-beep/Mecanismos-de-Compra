@@ -450,6 +450,9 @@
   @media (max-width:860px){ .mx-two { grid-template-columns:1fr; } }
   .mx-tbl { max-height:none; }
   .mx-tbl td.num, .mx-tbl th.num { white-space:nowrap; }
+  .mx-ocl { font-weight:700; color:#0B3A6B; text-decoration:underline; }
+  .mx-ocb { padding:3px 10px; font-size:12px; }
+  .mx-tbl td.nw { white-space:nowrap; }
   .mx-bar { display:inline-block; height:8px; border-radius:99px; background:var(--cc-blue); vertical-align:middle; min-width:2px; }
   .mx-legend { display:flex; flex-wrap:wrap; gap:6px 16px; font-size:11.5px; margin-top:8px; color:var(--text-secondary); }
   .mx-legend i { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
@@ -1883,12 +1886,22 @@ function mxProvConc(m){
 
 function mxChartBox(svgId, ttId){ return '<div class="big-chart-wrap"><svg id="'+svgId+'" data-cz="1" viewBox="0 0 1160 340"></svg><div class="tooltip" id="'+ttId+'"></div></div>'; }
 
+async function caTramoDl(t, f, el){
+  try {
+    if(!window.CA_TRAMOS) await new Promise((res, rej) => { const s = document.createElement('script'); s.src = 'data/mec/catramos.js?v=' + ((typeof DATA !== 'undefined' && DATA.generado) || '') + '-c1'; s.onload = res; s.onerror = () => rej(new Error('No se pudo cargar el módulo de descarga.')); document.head.appendChild(s); });
+    const r = window.MX_CA_RANGE || [0, window.MEC_EXTRA.ca.meses.length - 1];
+    await window.CA_TRAMOS.run({t, fmt: f, i0: r[0], i1: r[1]}, el);
+  } catch(e){ alert(e.message); }
+}
 function mxCaHtml(ex, range){
   const ca = ex.ca, idx = mxRango(range);
   const n4 = [0,0,0,0], m4 = [0,0,0,0];
   idx.forEach(i=>{ for(let t=0;t<4;t++){ n4[t] += ca.tr_n[i][t]; m4[t] += ca.tr_m[i][t]; } });
   const N = mxSum(n4), M = mxSum(m4);
-  const filas = MX_TR.map((nm,t)=> '<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+MX_TRC[t]+';margin-right:7px"></i>'+esc(nm)+'</td><td class="num">'+fmt(n4[t])+'</td><td class="num">'+mxPct(n4[t],N)+'</td><td class="num">'+mxM(m4[t])+'</td><td class="num">'+mxPct(m4[t],M)+'</td></tr>').join('');
+  window.MX_CA_RANGE = range.slice();
+  const dlCa = (t, n) => n ? '<button type="button" class="dl-btn mx-ocb" title="Excel con las OC de este tramo (hasta ' + fmt(200000) + ', las de mayor monto)" onclick="caTramoDl('+t+',\'xlsx\',this)">Excel</button> <button type="button" class="dl-btn mx-ocb" style="font-weight:500" title="CSV con todas las OC, sin tope" onclick="caTramoDl('+t+',\'csv\',this)">CSV</button>' : '';
+  const filas = MX_TR.map((nm,t)=> '<tr><td><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+MX_TRC[t]+';margin-right:7px"></i>'+esc(nm)+'</td><td class="num">'+(n4[t] ? '<a href="#" class="mx-ocl" title="Descargar estas OC en Excel" onclick="caTramoDl('+t+',\'xlsx\',this);return false">'+fmt(n4[t])+'</a>' : '0')+'</td><td class="num">'+mxPct(n4[t],N)+'</td><td class="num">'+mxM(m4[t])+'</td><td class="num">'+mxPct(m4[t],M)+'</td><td class="nw">'+dlCa(t,n4[t])+'</td></tr>').join('')
+    + '<tr><td><b>Todos los tramos</b></td><td class="num"><b>'+fmt(N)+'</b></td><td class="num">100%</td><td class="num"><b>'+mxM(M)+'</b></td><td class="num">100%</td><td class="nw">'+dlCa(-1,N)+'</td></tr>';
   setDl('mxTramos', ['Tramo (UTM del mes de la OC)','N° OC','% N° OC','Monto CLP','% monto'], MX_TR.map((nm,t)=>[nm, n4[t], N>0?(100*n4[t]/N).toFixed(2):0, m4[t], M>0?(100*m4[t]/M).toFixed(2):0]));
   setDl('mxTramosMes', ['Mes'].concat(MX_TR.map(x=>'N° OC '+x), MX_TR.map(x=>'Monto CLP '+x)), idx.map(i=>[ca.meses[i]].concat(ca.tr_n[i], ca.tr_m[i])));
 
@@ -1909,8 +1922,9 @@ function mxCaHtml(ex, range){
   <section class="block">
     <h2>Compras Ágiles por tramo de monto</h2>
     <p class="block-note">Cada OC se clasifica según su monto dividido por el valor de la UTM del mes en que se emitió. La Compra Ágil procede hasta 100 UTM (Art. 7 d) N° 1 Ley 19.886, modificada por la Ley 21.634); el tramo de 30 a 100 UTM es el que exige más cotizaciones. Cifras del rango elegido; montos en millones de pesos (M).</p>
-    <div class="table-wrap mx-tbl"><table class="dt"><thead><tr><th>Tramo</th><th class="num">N° OC</th><th class="num">% N° OC</th><th class="num">Monto (CLP)</th><th class="num">% monto</th></tr></thead><tbody>${filas}</tbody></table></div>
-    ${dlBtn('mxTramos', 'ca_tramos_monto.csv', 'Descargar tramos (CSV)')}
+    <div class="table-wrap mx-tbl"><table class="dt"><thead><tr><th>Tramo</th><th class="num">N° OC</th><th class="num">% N° OC</th><th class="num">Monto (CLP)</th><th class="num">% monto</th><th>Descargar las OC</th></tr></thead><tbody>${filas}</tbody></table></div>
+    <p class="block-note" style="margin-top:8px">Cada número es un enlace: baja las OC de ese tramo con organismo, proveedor, rubro, monto, UTM del mes y enlace a Mercado Público. <b>Excel</b> incluye hasta ${fmt(200000)} OC (las de mayor monto; si el tramo tiene más, la hoja «Notas» lo avisa) y <b>CSV</b> trae todas, sin tope. La primera vez demora unos segundos porque lee los archivos mensuales.</p>
+    ${dlBtn('mxTramos', 'ca_tramos_monto.csv', 'Descargar el resumen de tramos (Excel)')}
     <h3 class="mx-h3">Mezcla mensual por tramo (% de las OC de cada mes)</h3>
     <div class="mx-stack">${mxStackSvg(idx.map(i=>DATA.meses[i]), idx.map(i=>ca.tr_n[i]), MX_TRC, MX_TR)}</div>
     <div class="mx-legend">${MX_TR.map((nm,t)=>'<span><i style="background:'+MX_TRC[t]+'"></i>'+esc(nm)+'</span>').join('')}</div>
@@ -3945,7 +3959,7 @@ function renderAsesorPage(payload){
   const h = document.getElementById('asesorHost');
   const go = () => window.AsesorCompras && window.AsesorCompras.init(h, payload || '');
   if(window.AsesorCompras) return go();
-  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r45';
+  const sc = document.createElement('script'); sc.src = 'data/asesor/asesor.js?v=' + (DATA.generado || '') + '-r47';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el asesor. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
@@ -4900,7 +4914,7 @@ function ecoSheets(key){
     ['Evolución mensual', 'Los montos mensuales vienen redondeados a millones en el reporte; agosto de 2025 no trae monto. Las series de compradores y vendedores se leyeron de los puntos del gráfico del reporte.'],
     ['Hoja «Filtro actual»', 'Aparece solo cuando la tabla desde la que se descargó tenía un filtro aplicado; contiene las filas filtradas.'],
     ['Base normativa', 'No se verificó aquí; confirmar en chilecompra.cl.'],
-    ['Productos publicados', window.AS_EC ? 'Maestra de productos del catálogo de Economía Circular con corte al ' + ecoFd(window.AS_EC.f) + ' (' + fmt(window.AS_EC.n) + ' productos). Es una foto de ese día; no son reservas ni Órdenes de Compra. El precio y las unidades son los que publicó el organismo. La maestra no trae el nombre del organismo publicador, solo un número interno. «Plazo vigente al corte» compara la fecha de cierre con el día del corte; la maestra no dice si un producto con cierre anterior sigue disponible.' : 'La maestra de productos publicados no estaba cargada al generar este archivo.']
+    ['Productos publicados', window.AS_EC ? 'Maestra de productos del catálogo de Economía Circular con corte al ' + ecoFd(window.AS_EC.f) + ' (' + fmt(window.AS_EC.n) + ' productos). Es una foto de ese día; no son reservas ni Órdenes de Compra. El precio y las unidades son los que publicó el organismo. La maestra solo trae un número interno del organismo; el nombre se obtuvo cruzando el ID de producto con el detalle de publicaciones del reporte y, si no se pudo, queda «Sin nombre en la maestra». «Plazo vigente al corte» compara la fecha de cierre con el día del corte; la maestra no dice si un producto con cierre anterior sigue disponible.' : 'La maestra de productos publicados no estaba cargada al generar este archivo.']
   ]};
   if(window.AS_EC) sheets['Productos publicados'] = {name:'Productos publicados', headers:ECO_MAE_HEAD, rows:ecoMaeRows(window.AS_EC).map(ecoMaeXls)};
 
@@ -4914,29 +4928,30 @@ function ecoSheets(key){
 function ecoDl(key, headers, rows){ setDl(key, headers, rows); setDlSheets(key, () => ecoSheets(key)); }
 
 // ---------- Economía Circular: maestra de productos publicados (data/asesor/ec.js) ----------
-const ECO_MAE = {key:'cierre', dir:'asc', q:'', reg:'', cat:'', cond:'', vig:''};
-const ECO_MAE_HEAD = ['ID de producto','Producto','Descripción','Categoría','Unidades','Precio publicado (CLP)','Condición','Comuna','Región','Dirección de retiro','Fecha de publicación','Fecha de cierre','Plazo vigente al corte','Estado en la maestra','Días de publicación','Organismo publicador (N° interno)'];
+const ECO_SIN = 'Sin nombre en la maestra';
+const ECO_MAE = {key:'cierre', dir:'asc', q:'', reg:'', cat:'', cond:'', vig:'', org:''};
+const ECO_MAE_HEAD = ['ID de producto','Producto','Descripción','Categoría','Unidades','Precio publicado (CLP)','Condición','Comuna','Región','Dirección de retiro','Fecha de publicación','Fecha de cierre','Plazo vigente al corte','Estado en la maestra','Días de publicación','Organismo que publica','N° interno del organismo en la maestra'];
 function ecoFd(x){ return x ? x.split('-').reverse().join('-') : ''; }
 function ecoMaeRows(E){
-  return E.p.map(p => ({sku:p[0], nom:p[1], det:p[2], cat:E.cat[p[3]], precio:p[4], uni:p[5], cond:E.cond[p[6]] || '', reg:E.reg[p[7]] || '', com:p[8], dir:p[9], pub:p[10], cierre:p[11], est:E.est[p[12]] || '', org:p[13], dias:p[14], vig:p[11] >= E.f,
-    s:ecoNorm([p[1], p[2], p[0], p[8], p[9], E.cat[p[3]]].join(' '))}));
+  return E.p.map(p => ({sku:p[0], nom:p[1], det:p[2], cat:E.cat[p[3]], precio:p[4], uni:p[5], cond:E.cond[p[6]] || '', reg:E.reg[p[7]] || '', com:p[8], dir:p[9], pub:p[10], cierre:p[11], est:E.est[p[12]] || '', org:p[13], on:(E.on && p[15] >= 0) ? E.on[p[15]] : '', dias:p[14], vig:p[11] >= E.f,
+    s:ecoNorm([p[1], p[2], p[0], p[8], p[9], E.cat[p[3]], (E.on && p[15] >= 0) ? E.on[p[15]] : ''].join(' '))}));
 }
-function ecoMaeXls(r){ return [r.sku, r.nom, r.det, r.cat, r.uni, r.precio, r.cond, r.com, r.reg, r.dir, r.pub, r.cierre, r.vig ? 'Sí' : 'No', r.est, r.dias, r.org]; }
+function ecoMaeXls(r){ return [r.sku, r.nom, r.det, r.cat, r.uni, r.precio, r.cond, r.com, r.reg, r.dir, r.pub, r.cierre, r.vig ? 'Sí' : 'No', r.est, r.dias, r.on || 'Sin nombre en la maestra', r.org]; }
 function ecoMaestraLoad(){
   if(window.AS_EC) return Promise.resolve(window.AS_EC);
-  return new Promise(res => { const sc = document.createElement('script'); sc.src = 'data/asesor/ec.js?v=' + ((typeof DATA !== 'undefined' && DATA.generado) || '') + '-e1'; sc.onload = () => res(window.AS_EC || null); sc.onerror = () => res(null); document.head.appendChild(sc); });
+  return new Promise(res => { const sc = document.createElement('script'); sc.src = 'data/asesor/ec.js?v=' + ((typeof DATA !== 'undefined' && DATA.generado) || '') + '-e2'; sc.onload = () => res(window.AS_EC || null); sc.onerror = () => res(null); document.head.appendChild(sc); });
 }
 async function ecoMaestraInit(){
   const host = document.getElementById('ecoMaestraSec'); if(!host) return;
   const E = await ecoMaestraLoad();
   if(!E){ host.style.display = 'none'; return; }
   const all = ecoMaeRows(E), f = ecoFd(E.f), nOrg = new Set(all.map(r => r.org)).size, uni = all.reduce((a, r) => a + r.uni, 0), nVig = all.filter(r => r.vig).length;
-  Object.assign(ECO_MAE, {q:'', reg:'', cat:'', cond:'', vig:''});
-  const kp = [['Productos publicados', fmt(E.n), 'al ' + f, ECO_ICON_DOC, 'k-org'], ['Unidades', fmt(uni), 'suma de las unidades publicadas', ECO_ICON_DOC, ''], ['Organismos publicadores', fmt(nOrg), 'según el N° interno de la maestra', ECO_ICON_DOC, ''], ['Con plazo vigente', fmt(nVig), 'cierre desde el ' + f, ECO_ICON_DOC, 'k-prov']];
+  Object.assign(ECO_MAE, {q:'', reg:'', cat:'', cond:'', vig:'', org:''});
+  const kp = [['Productos publicados', fmt(E.n), 'al ' + f, ECO_ICON_DOC, 'k-org'], ['Unidades', fmt(uni), 'suma de las unidades publicadas', ECO_ICON_DOC, ''], ['Organismos publicadores', fmt(nOrg), 'con nombre en ' + fmt(new Set(all.filter(r => r.on).map(r => r.org)).size), ECO_ICON_DOC, ''], ['Con plazo vigente', fmt(nVig), 'cierre desde el ' + f, ECO_ICON_DOC, 'k-prov']];
   const opt = (arr, all0) => '<option value="">' + all0 + '</option>' + arr.map(x => `<option>${esc(x)}</option>`).join('');
   host.innerHTML = `
     <h2>Productos publicados al ${esc(f)}</h2>
-    <p class="block-note">Maestra de productos del catálogo de Economía Circular con corte al ${esc(f)}: ${fmt(E.n)} productos de ${fmt(nOrg)} organismos. Es una foto de ese día. <b>No son reservas ni Órdenes de Compra</b> y no responden al filtro de fechas. El precio y las unidades son los que publicó cada organismo. La maestra no trae el nombre del organismo que publica, solo un número interno (va en el Excel). ${fmt(E.n - nVig)} productos tienen un cierre anterior al corte y se marcan, porque la maestra no dice si siguen disponibles: confírmalo en el <a href="https://eco.mercadopublico.cl/economia_circular/catalogo" rel="noopener">catálogo</a> buscando el ID del producto. El Asesor estratégico usa esta maestra para avisar si hay un producto parecido al que se va a comprar.</p>
+    <p class="block-note">Maestra de productos del catálogo de Economía Circular con corte al ${esc(f)}: ${fmt(E.n)} productos de ${fmt(nOrg)} organismos. Es una foto de ese día. <b>No son reservas ni Órdenes de Compra</b> y no responden al filtro de fechas. El precio y las unidades son los que publicó cada organismo. La maestra solo trae un número interno del organismo; el nombre se obtuvo cruzando el ID de producto con el detalle de publicaciones del reporte, por eso algunos organismos figuran «Sin nombre en la maestra» (se muestra su número interno). ${fmt(E.n - nVig)} productos tienen un cierre anterior al corte y se marcan, porque la maestra no dice si siguen disponibles: confírmalo en el <a href="https://eco.mercadopublico.cl/economia_circular/catalogo" rel="noopener">catálogo</a> buscando el ID del producto. El Asesor estratégico usa esta maestra para avisar si hay un producto parecido al que se va a comprar.</p>
     <div class="kpis" style="margin:1rem 0;">${kp.map(k => `<div class="kpi ${k[4]}"><div class="kpi-icon">${k[3]}</div><div class="kpi-body"><div class="lbl">${esc(k[0])}</div><div class="val">${esc(k[1])}</div><div class="sub">${esc(k[2])}</div></div></div>`).join('')}</div>
     <div class="cc-grid">
       <div><h3 class="cc-h3">Productos por categoría</h3><div id="ecoMaeCat"></div></div>
@@ -4944,7 +4959,8 @@ async function ecoMaestraInit(){
     </div>
     <h3 class="cc-h3" style="margin-top:16px;">Detalle de productos</h3>
     <div class="eco-ctl">
-      <input id="ecoMaeQ" type="search" placeholder="Buscar por producto, ID, comuna o dirección" aria-label="Buscar producto publicado">
+      <input id="ecoMaeQ" type="search" placeholder="Buscar por producto, organismo, ID, comuna o dirección" aria-label="Buscar producto publicado">
+      <select id="ecoMaeOrg" aria-label="Filtrar por organismo que publica">${opt([...new Set(all.map(r => r.on || ECO_SIN))].sort((a, b) => (a === ECO_SIN) - (b === ECO_SIN) || a.localeCompare(b, 'es')), 'Todos los organismos')}</select>
       <select id="ecoMaeReg1" aria-label="Filtrar por región">${opt(E.reg.filter((r, i) => all.some(x => x.reg === r)), 'Todas las regiones')}</select>
       <select id="ecoMaeCat1" aria-label="Filtrar por categoría">${opt(E.cat.slice().sort((a, b) => a.localeCompare(b, 'es')), 'Todas las categorías')}</select>
       <select id="ecoMaeCond" aria-label="Filtrar por condición">${opt(E.cond.filter(c => all.some(x => x.cond === c)), 'Cualquier condición')}</select>
@@ -4952,21 +4968,22 @@ async function ecoMaestraInit(){
       <span class="cp-cap-note" id="ecoMaeCount"></span>
     </div>
     <div class="eco-tbl" style="max-height:560px;overflow:auto;"><table class="dt"><thead id="ecoMaeHead"><tr>
-      <th data-sort="nom">Producto</th><th data-sort="cat">Categoría</th><th class="num" data-sort="uni">Unidades</th><th class="num" data-sort="precio">Precio publicado</th><th data-sort="cond">Condición</th><th data-sort="reg">Comuna y región</th><th data-sort="cierre">Cierre</th><th data-sort="sku">ID</th></tr></thead><tbody id="ecoMaeBody"></tbody></table></div>
+      <th data-sort="nom">Producto</th><th data-sort="on">Organismo que publica</th><th data-sort="cat">Categoría</th><th class="num" data-sort="uni">Unidades</th><th class="num" data-sort="precio">Precio publicado</th><th data-sort="cond">Condición</th><th data-sort="reg">Comuna y región</th><th data-sort="cierre">Cierre</th><th data-sort="sku">ID</th></tr></thead><tbody id="ecoMaeBody"></tbody></table></div>
     <div id="ecoMaeDl"></div>`;
   const green = cssvar('--cc-teal');
   const cnt = (key, order) => { const m = new Map(); all.forEach(r => m.set(r[key], (m.get(r[key]) || 0) + 1)); return [...m.entries()].map(([label, value]) => ({label, value})).sort((a, b) => b.value - a.value || a.label.localeCompare(b.label, 'es')); };
   renderBarList(document.getElementById('ecoMaeCat'), cnt('cat'), it => fmt(it.value), green);
   renderBarList(document.getElementById('ecoMaeReg'), cnt('reg'), it => fmt(it.value), green);
-  const getters = {nom:r => ecoNorm(r.nom), cat:r => r.cat, uni:r => r.uni, precio:r => r.precio, cond:r => r.cond, reg:r => r.reg + ' ' + r.com, cierre:r => r.cierre, sku:r => r.sku};
+  const getters = {nom:r => ecoNorm(r.nom), on:r => ecoNorm(r.on || 'zzz ' + String(r.org)), cat:r => r.cat, uni:r => r.uni, precio:r => r.precio, cond:r => r.cond, reg:r => r.reg + ' ' + r.com, cierre:r => r.cierre, sku:r => r.sku};
   const draw = () => {
     const st = ECO_MAE, q = ecoNorm(st.q);
-    const rows = sortByKeyDir(all.filter(r => (!q || q.split(' ').every(t => r.s.includes(t))) && (!st.reg || r.reg === st.reg) && (!st.cat || r.cat === st.cat) && (!st.cond || r.cond === st.cond) && (st.vig === '' || r.vig === (st.vig === '1'))), getters, st);
-    document.getElementById('ecoMaeBody').innerHTML = rows.map(r => `<tr><td><b>${esc(r.nom)}</b>${r.det ? `<br><span class="cp-cap-note" title="${esc(r.det)}">${esc(r.det.length > 140 ? r.det.slice(0, 140) + '…' : r.det)}</span>` : ''}</td><td class="nw">${esc(r.cat)}</td><td class="num">${fmt(r.uni)}</td><td class="num">${ecoClp(r.precio)}</td><td class="nw">${esc(r.cond)}</td><td>${esc(r.com)}<br><span class="cp-cap-note">${esc(r.reg)}</span></td><td class="nw">${esc(ecoFd(r.cierre))}${r.vig ? '' : '<br><span class="cp-cap-note">anterior al corte</span>'}</td><td class="nw">${esc(r.sku)}</td></tr>`).join('') || '<tr><td colspan="8">Ningún producto coincide con el filtro.</td></tr>';
+    const rows = sortByKeyDir(all.filter(r => (!q || q.split(' ').every(t => r.s.includes(t))) && (!st.org || (r.on || ECO_SIN) === st.org) && (!st.reg || r.reg === st.reg) && (!st.cat || r.cat === st.cat) && (!st.cond || r.cond === st.cond) && (st.vig === '' || r.vig === (st.vig === '1'))), getters, st);
+    document.getElementById('ecoMaeBody').innerHTML = rows.map(r => `<tr><td><b>${esc(r.nom)}</b>${r.det ? `<br><span class="cp-cap-note" title="${esc(r.det)}">${esc(r.det.length > 140 ? r.det.slice(0, 140) + '…' : r.det)}</span>` : ''}</td><td>${r.on ? esc(r.on) : `<span class="cp-cap-note">${ECO_SIN}${r.org ? ' (N° interno ' + r.org + ')' : ''}</span>`}</td><td class="nw">${esc(r.cat)}</td><td class="num">${fmt(r.uni)}</td><td class="num">${ecoClp(r.precio)}</td><td class="nw">${esc(r.cond)}</td><td>${esc(r.com)}<br><span class="cp-cap-note">${esc(r.reg)}</span></td><td class="nw">${esc(ecoFd(r.cierre))}${r.vig ? '' : '<br><span class="cp-cap-note">anterior al corte</span>'}</td><td class="nw">${esc(r.sku)}</td></tr>`).join('') || '<tr><td colspan="9">Ningún producto coincide con el filtro.</td></tr>';
     document.getElementById('ecoMaeCount').textContent = fmt(rows.length) + ' de ' + fmt(all.length) + ' productos';
     ecoDl('ecoMaestra', ECO_MAE_HEAD, rows.map(ecoMaeXls));
   };
   document.getElementById('ecoMaeQ').oninput = e => { ECO_MAE.q = e.target.value; draw(); };
+  document.getElementById('ecoMaeOrg').onchange = e => { ECO_MAE.org = e.target.value; draw(); };
   document.getElementById('ecoMaeReg1').onchange = e => { ECO_MAE.reg = e.target.value; draw(); };
   document.getElementById('ecoMaeCat1').onchange = e => { ECO_MAE.cat = e.target.value; draw(); };
   document.getElementById('ecoMaeCond').onchange = e => { ECO_MAE.cond = e.target.value; draw(); };
