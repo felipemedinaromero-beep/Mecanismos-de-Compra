@@ -332,6 +332,21 @@ function artLookup(q){
   if(wantR && !suf){ KB.e.forEach(function(e){ if(e.s.some(function(x){ return x[0] === 'R' && x[1] === num; })) res.kb.push(e); }); }
   return (res.ley !== null || res.kb.length) ? res : null;
 }
+var RECO = /compar|alternativ|opcion|recomiend|recomendar|conviene|convendria|sugier|aconsej|que (procedimiento|mecanismo|modalidad|via)|como (compro|comprar|contrato|contratar|adquiero)|quiero (comprar|contratar|adquirir)|necesito (comprar|contratar|adquirir)|\bpor que\b|explica/;
+var ASESORQ = /comprar|contratar|adquirir|procedimiento|mecanismo|modalidad/;
+function aiReply(q, r, asesor){
+  return askAI(q).then(function(aiHtml){
+    var html = '';
+    if(aiHtml) html += aiHtml;
+    else html += '<p>No encontré una respuesta clara a eso en la normativa ni en la guía de los paneles que tengo cargadas. Prueba con otras palabras (por ejemplo, el nombre del procedimiento o el artículo) o elige un tema arriba.</p>' +
+      '<p>Para temas operativos de Mercado Público puedes revisar el <a href="' + AYUDA + '" target="_blank" rel="noopener">centro de ayuda</a>. No quiero inventar una respuesta que no está en el texto.</p>';
+    var rel = r.kb.filter(function(x){ return x.s >= 15; }).slice(0, 3);
+    if(rel.length) html += '<div class="ia-sub"><h5>Lo más cercano</h5><div class="ia-rel">' + rel.map(function(x){ return '<button type="button" data-open="' + esc(x.e.id) + '">' + esc(x.e.t) + '</button>'; }).join('') + '</div></div>';
+    if(asesor) html += '<div class="ia-sub"><h5>Para decidir con tus datos</h5><div class="ia-act" style="margin-top:0"><a class="ia-b p" href="#asesor" data-go="#asesor">Abrir el Asesor estratégico de compras</a></div></div>';
+    var d2 = addA(html); d2.dataset.q = q;
+    S.busy = false;
+  });
+}
 function ask(q){
   if(S.busy) return; S.busy = true; S.asked = true; S.lastQ = q;
   addU(q);
@@ -349,8 +364,11 @@ function ask(q){
     }
     var r = search(q, {cat: S.cat, hash: location.hash});
     var top = r.kb[0], html = '', isData = DATAWORDS.test(norm(q));
-    var good = top && top.s >= 2.2 && top.hit >= Math.min(2, r.qt.length);
-    if(isData && !(good && top.e.c === 'panel')){
+    var good = top && top.s >= 20 && top.hit >= Math.min(2, r.qt.length);
+    var reco = RECO.test(norm(q)) && !isData && !(good && top.s >= 60);
+    if(reco){
+      return aiReply(q, r, true);
+    } else if(isData && !(good && top.e.c === 'panel')){
       html += '<p>Esa consulta es sobre datos de compras, y la respuesta está en los paneles. Te dejo accesos directos con tus palabras:</p>' + dataLinks(q);
     } else if(good){
       html += answerKB(top, q);
@@ -365,14 +383,7 @@ function ask(q){
     } else if(isData){
       html += '<p>Esa consulta es sobre datos de compras, y la respuesta está en los paneles. Te dejo accesos directos con tus palabras:</p>' + dataLinks(q);
     } else {
-      return askAI(q).then(function(aiHtml){
-        if(aiHtml) html += aiHtml;
-        else html += '<p>No encontré una respuesta clara a eso en la normativa ni en la guía de los paneles que tengo cargadas. Prueba con otras palabras (por ejemplo, el nombre del procedimiento o el artículo) o elige un tema arriba.</p>' +
-          '<p>Para temas operativos de Mercado Público puedes revisar el <a href="' + AYUDA + '" target="_blank" rel="noopener">centro de ayuda</a>. No quiero inventar una respuesta que no está en el texto.</p>';
-        if(r.kb.length) html += '<div class="ia-sub"><h5>Lo más cercano</h5><div class="ia-rel">' + r.kb.slice(0, 3).map(function(x){ return '<button type="button" data-open="' + esc(x.e.id) + '">' + esc(x.e.t) + '</button>'; }).join('') + '</div></div>';
-        var d2 = addA(html); d2.dataset.q = q;
-        S.busy = false;
-      });
+      return aiReply(q, r, ASESORQ.test(norm(q)));
     }
     var d = addA(html); d.dataset.q = q;
     S.busy = false;
