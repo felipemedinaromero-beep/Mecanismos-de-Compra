@@ -1,11 +1,17 @@
 const MODEL = "@cf/meta/llama-3.1-8b-instruct";
 const CLAUDE_MODEL = "claude-sonnet-4-6";
 const buckets = new Map();
-const ALLOWED_ORIGIN = "https://felipemedinaromero-beep.github.io";
+const ALLOWED_ORIGINS = [
+  "https://felipemedina.cl",
+  "https://www.felipemedina.cl",
+  "https://mecanismos-de-compra.pages.dev",
+  "https://felipemedinaromero-beep.github.io",
+];
+const ALLOWED_ORIGIN = ALLOWED_ORIGINS[0];
 
 function cors(request) {
   const origin = request.headers.get("Origin");
-  return origin === ALLOWED_ORIGIN ? origin : null;
+  return ALLOWED_ORIGINS.includes(origin) ? origin : null;
 }
 
 function response(data, status, origin) {
