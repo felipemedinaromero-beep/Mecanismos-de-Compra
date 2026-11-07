@@ -851,7 +851,7 @@ function init(host){
     <div class="proc-row"><input type="search" id="procQ" placeholder="Ej.: mantención aire acondicionado" autocomplete="off" aria-label="Qué quieres buscar"><button type="button" class="proc-go" id="procGo">Buscar</button><button type="button" class="proc-clr" id="procClr" title="Borra el texto, los filtros y los resultados, y vuelve a la configuración inicial">Limpiar búsqueda</button><button type="button" class="proc-copy" id="procCopy" title="Copia un enlace que guarda el texto, los mecanismos, el período y los filtros; quien lo abra ve la misma búsqueda">Copiar enlace</button></div>
     <div class="proc-share" id="procShare" aria-live="polite"></div>
     <div class="proc-ex" id="procEx"><span>Prueba con:</span>${['mantención aire acondicionado','servicio de aseo','arriendo de camionetas','"software de gestión"','capacitación -online'].map(x => `<button type="button" data-q="${esc(x)}">${esc(x)}</button>`).join('')}<span>· Usa comillas para una frase exacta y el signo menos para excluir una palabra.</span></div>
-    <div class="proc-mecs" id="procMecs">${MECS.map(m => `<label class="proc-mec" style="--c:${m.c}"><input type="checkbox" value="${m.k}" ${m.k === 'l' || m.k === 'td' ? 'checked' : ''}><span><b>${esc(m.n)}</b><small id="pm_${m.k}">${esc(m.sub)}</small></span></label>`).join('')}</div>
+    <div class="proc-mecs" id="procMecs">${MECS.map(m => `<label class="proc-mec" style="--c:${m.c}"><input type="checkbox" value="${m.k}" checked><span><b>${esc(m.n)}</b><small id="pm_${m.k}">${esc(m.sub)}</small></span></label>`).join('')}</div>
     <div class="proc-filters">
       <div class="filter-field"><label for="procFrom">Desde</label><select id="procFrom"></select></div>
       <div class="filter-field"><label for="procTo">Hasta</label><select id="procTo"></select></div>
@@ -906,7 +906,7 @@ function init(host){
     Object.keys(SEL_IDS).forEach(k => setSel(SEL_IDS[k], s[k] != null ? String(s[k]) : ''));
     const D = window.PROC_DIC, ci = s.c != null && D ? D.cau.indexOf(s.c) : -1;
     setSel('procCau', ci >= 0 ? String(ci) : '');
-    const mecs = String(s.m || 'l,td').split(',');
+    const mecs = String(s.m || MECS.map(m => m.k).join(',')).split(',');
     host.querySelectorAll('#procMecs input').forEach(i => { i.checked = mecs.includes(i.value); });
     const hasOpt = (id, v) => [...$(id).options].some(o => o.value === v);
     if(s.d && hasOpt('procFrom', s.d)) $('procFrom').value = s.d;
@@ -984,7 +984,7 @@ function init(host){
     ST.sort = {k: 'sc', dir: -1}; ST.share = null; $('procShare').innerHTML = '';
     ['procQ', 'procOrg', 'procProv', 'procMin', 'procMax', 'procRub', 'procId', 'procNmin', 'procNmax'].forEach(id => { $(id).value = ''; });
     ['procReg', 'procEst', 'procTipo', 'procCau', 'procSec'].forEach(id => { $(id).selectedIndex = 0; });
-    host.querySelectorAll('#procMecs input').forEach(i => { i.checked = (i.value === 'l' || i.value === 'td'); });
+    host.querySelectorAll('#procMecs input').forEach(i => { i.checked = true; });
     if(man){ const yms = [...new Set(Object.values(man.m).flatMap(o => Object.keys(o)))].sort(); $('procFrom').value = yms[0]; $('procTo').value = yms[yms.length - 1]; }
     $('procSyn').checked = true; $('procOut').innerHTML = ''; $('procStatus').innerHTML = ''; $('procHint').textContent = ''; $('procGo').disabled = false;
     $('procQ').focus();

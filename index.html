@@ -4028,7 +4028,7 @@ function procInit(){
   const h = document.getElementById('procSearchHost'); if(!h) return;
   const go = () => window.ProcBuscador && window.ProcBuscador.init(h);
   if(window.ProcBuscador) return go();
-  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r9';
+  const sc = document.createElement('script'); sc.src = 'data/proc/buscador.js?v=' + (DATA.generado || '') + '-r10';
   sc.onload = go;
   sc.onerror = () => { h.innerHTML = '<div class="cp-placeholder">No se pudo cargar el buscador de procesos. Si abriste solo el archivo HTML, deja la carpeta "data" junto a él.</div>'; };
   document.head.appendChild(sc);
