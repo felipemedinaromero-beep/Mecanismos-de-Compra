@@ -591,7 +591,7 @@ function recomendar(inp){
       out.alertas.push({nivel: 'medio', t: 'Si sumas lo comprado en 12 meses (' + R(h.totalUtm, 0).toLocaleString('es-CL') + ' UTM) con esta compra, el gasto anual del producto queda en el tramo "' + TRAMOS[tramoUtm(h.totalUtm + u)].nom + '", que exige un procedimiento más exigente que el de esta compra aislada.', arts: [ds('arts. 16, 36')], accion: 'Planifica la demanda anual del producto y define el procedimiento sobre ese total.'});
     }
   }
-  if(inp.cm && u > 100) out.alertas.push({nivel: 'medio', t: 'Si te apartas del Convenio Marco por mejores condiciones y estas apuntan al precio, la compra fuera debe quedar efectivamente por debajo del precio vigente del Catálogo para lo mismo, con despacho e IVA. Documenta el cotejo con una captura del Catálogo con fecha y las ofertas recibidas; si no bajas el precio, compra por Convenio Marco.', arts: [ds('arts. 89, 92')], accion: 'Antes de decidir, pide la oferta especial del proveedor del convenio o un acuerdo complementario: puede igualar o mejorar el precio de afuera sin salir del Catálogo.'});
+  if(inp.cm && u > 100) out.alertas.push({nivel: 'medio', t: 'Si te apartas del Convenio Marco por mejores condiciones y estas apuntan al precio, la compra fuera debe quedar efectivamente por debajo del precio vigente del Catálogo para lo mismo, con despacho e IVA. Documenta el cotejo con una captura del Catálogo con fecha y las ofertas recibidas; si no bajas el precio, compra por Convenio Marco.', arts: [ds('arts. 89, 92')], accion: accionPrecioCm(inp)});
   if(inp.fueraCm && inp.fueraCm > 0 && inp.cm){
     out.alertas.push({nivel: 'medio', t: 'Tu organismo compró este producto fuera de Convenio Marco por $' + Math.round(inp.fueraCm).toLocaleString('es-CL') + ' millones en los últimos 12 meses, existiendo cobertura en el Catálogo. Guarda los antecedentes de las condiciones más ventajosas si fue el caso.', arts: [ley('art. 30 letra d)'), ds('arts. 89, 92')]});
   }
@@ -607,6 +607,19 @@ function recomendar(inp){
 
 /* Consolidación de la demanda del PAC: pac = {totalClp, n (ítems), meses (cantidad de meses distintos)} */
 /* Ahorro y eficiencia dentro del Convenio Marco: ofertas especiales, acuerdo complementario, cotización (datos: cmahorro.js). */
+/* Qué opciones tiene el convenio: oferta especial (descuento) y acuerdo complementario, según cmahorro.js. Sin datos del convenio se asume que existen ambas. */
+function cmOpc(inp){
+  const D = root.AS_CMAH && root.AS_CMAH.cm, ids = inp && inp.cmIds;
+  if(!D || !ids || !ids.length) return {dcto: true, ac: true};
+  return {dcto: ids.some(id => !D[id] || !!D[id].dcto), ac: ids.some(id => !D[id] || !D[id].ac || D[id].ac.tipo !== 'no')};
+}
+function accionPrecioCm(inp){
+  const o = cmOpc(inp);
+  if(o.dcto && o.ac) return 'Antes de decidir, pide la oferta especial del proveedor del convenio o un acuerdo complementario: puede igualar o mejorar el precio de afuera sin salir del Catálogo.';
+  if(o.dcto) return 'Antes de decidir, revisa si hay una oferta especial vigente en la Tienda o pídele al proveedor que publique una: puede igualar o mejorar el precio de afuera sin salir del Catálogo.';
+  if(o.ac) return 'Antes de decidir, evalúa un acuerdo complementario con el proveedor del convenio: puede mejorar las condiciones sin salir del Catálogo.';
+  return 'Antes de decidir, compara en la Tienda las ofertas de todos los proveedores del convenio para la misma necesidad (fecha, ruta o especificación): el precio de afuera debe quedar efectivamente por debajo.';
+}
 const REGLA_PRECIO = 'Si el motivo para salir del Convenio Marco es el precio, la compra fuera debe quedar efectivamente por debajo del precio vigente en el Catálogo para lo mismo (misma cantidad y especificación, con despacho e IVA incluidos). Deja documentado el cotejo: captura del precio del Catálogo con fecha y las ofertas recibidas. Si no logras un precio menor, corresponde comprar por Convenio Marco.';
 function ahorroCm(inp, u){
   const D = root.AS_CMAH && root.AS_CMAH.cm;
@@ -652,8 +665,8 @@ function consolidar(inp, pac){
   else out.texto.push('Tu PAC planifica este producto por ' + uTxt + '.');
   if(inp.cm){
     out.texto.push('Como el producto está en Convenio Marco, compra el total por ese mecanismo' + (u > 1000 ? ': sobre 1.000 UTM es Gran Compra (comunicas la intención de compra a todos los proveedores de la categoría, con al menos 10 días hábiles para ofertar; DS 661, art. 90), lo que además abre competencia y mejores precios.' : '.'));
-    out.texto.push('Para repartir las entregas en los meses que planificaste, suscribe un acuerdo complementario con el proveedor adjudicado: fija oportunidad y forma de entrega, precio y forma de pago, especificaciones, vigencia y efectos de los incumplimientos, sin apartarse de las bases del convenio (DS 661, art. 91).');
-    out.texto.push('Con más volumen en una sola orden, pide al proveedor una oferta especial dentro de las bases del convenio (por ejemplo descuento por volumen, despacho o plazos). El precio del Catálogo es el tope de referencia: salir del convenio por precio solo se justifica si lo que contratas fuera queda efectivamente más barato, con el cotejo documentado, y debes informarlo a la Dirección de Compras (art. 92).');
+    if(cmOpc(inp).ac) out.texto.push('Para repartir las entregas en los meses que planificaste, suscribe un acuerdo complementario con el proveedor adjudicado: fija oportunidad y forma de entrega, precio y forma de pago, especificaciones, vigencia y efectos de los incumplimientos, sin apartarse de las bases del convenio (DS 661, art. 91).');
+    out.texto.push((cmOpc(inp).dcto ? 'Con más volumen en una sola orden, pide al proveedor una oferta especial dentro de las bases del convenio (por ejemplo descuento por volumen, despacho o plazos). ' : '') + 'El precio del Catálogo es el tope de referencia: salir del convenio por precio solo se justifica si lo que contratas fuera queda efectivamente más barato, con el cotejo documentado, y debes informarlo a la Dirección de Compras (art. 92).');
     out.ahorro = ahorroCm(Object.assign({}, inp, {montoClp: total}), u);
     out.arts = [ds('arts. 16, 89, 90, 91, 92')];
   } else if(u > 100){

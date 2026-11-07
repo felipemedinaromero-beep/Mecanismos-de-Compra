@@ -334,6 +334,47 @@ function artLookup(q){
 }
 var RECO = /compar|alternativ|opcion|recomiend|recomendar|conviene|convendria|sugier|aconsej|que (procedimiento|mecanismo|modalidad|via)|como (compro|comprar|contrato|contratar|adquiero)|quiero (comprar|contratar|adquirir)|necesito (comprar|contratar|adquirir)|\bpor que\b|explica/;
 var ASESORQ = /comprar|contratar|adquirir|procedimiento|mecanismo|modalidad/;
+/* Convenios Marco vigentes: si alguien dice que necesita comprar algo que cubre un convenio, el asistente nombra el convenio (ID de licitación y enlaces) en vez de mandar la consulta al modelo.
+   Lista de fichas de convenios.felipemedina.cl; las palabras clave se comparan con el texto sin tildes. */
+var CMKW = [
+  ['2239-16-LR23', 'Pasajes aéreos nacionales', 'pasajes-aereos-nacionales', /pasaje|vuelo|aereo|avion|boleto/, 'En el convenio vigente el criterio económico es el porcentaje de descuento sobre el valor del boleto (no sobre tasas de embarque ni servicios adicionales). Compara las tres aerolíneas (Latam, Sky y JetSMART) para la misma fecha y ruta.'],
+  ['2239-13-LR25', 'Suministro de combustibles', 'suministro-de-combustibles', /combustible|bencina|gasolina|diesel|petroleo/],
+  ['2239-1-LR25', 'Gas licuado de petróleo', 'gas-licuado-de-petroleo', /gas licuado|\bglp\b|balon(es)? de gas|cilindros? de gas|gas envasado/],
+  ['2239-8-LR25', 'Artículos de aseo e higiene', 'articulos-de-aseo-e-higiene', /aseo|higiene|detergente|cloro|papel higienico|tissue|panales|limpieza/],
+  ['2239-16-LR24', 'Artículos de escritorio y papelería', 'articulos-de-escritorio-y-papeleria', /papeleria|utiles (de )?escritorio|articulos de escritorio|lapiz|lapices|cuadernos?|resmas?|archivadores?/],
+  ['2239-21-LR23', 'Insumos y dispositivos médicos', 'insumos-y-dispositivos-medicos', /insumos? medicos?|dispositivos? medicos?|jeringas?|guantes|mascarillas?|sutura|silla de ruedas|colchon clinico/],
+  ['2239-9-LR24', 'Alimentos', 'alimentos', /alimentos?|colacion|carnes?|verduras?|frutas?|abarrotes|bebestibles|despensa/],
+  ['2239-19-LR23', 'Desarrollo y mantención de software, TI e IaaS', 'desarrollo-y-mantencion-de-software-ti-e-iaas', /desarrollo de software|mantencion de software|software a medida|\biaas\b|infraestructura como servicio|servicios ti\b/],
+  ['2239-8-LR24', 'Emergencias, contingencias y prevención', 'emergencias-contingencias-y-prevencion', /emergencia|carpas?|banos? quimicos?|aljibe|duchas? (de|para) emergencia/],
+  ['2239-9-LR23', 'Productos y servicios de ferretería', 'productos-y-servicios-de-ferreteria', /ferreteria|pintura|herramientas?|cemento/],
+  ['2239-7-LR26', 'Seguro colectivo de vida con adicional de salud', 'seguro-colectivo-de-vida-con-adicional-de-salud', /seguro (colectivo )?(de )?vida|seguro colectivo/],
+  ['2239-1-LR26', 'Administración y entrega de beneficios', 'administracion-y-entrega-de-beneficios', /sala cuna|jardin(es)? infantil|tarjetas? de (alimentacion|beneficio)|vales? de alimentacion/],
+  ['2239-6-LR25', 'Adquisición de vehículos y maquinaria', 'adquisicion-de-vehiculos-y-maquinaria', /(comprar|adquirir|necesito|quiero) (un |una |unos |unas )?(vehiculos?|autos?|camionetas?|camion(es)?|maquinarias?|excavadoras?)|excavadoras?/],
+  ['2239-15-LR25', 'Endoprótesis, ortopedia y trauma', 'endoprotesis-ortopedia-y-trauma', /endoprotesis|ortopedia|traumatologia|fijacion osea/],
+  ['2239-11-LR24', 'Licencia de software de ofimática', 'licencia-de-software-de-ofimatica', /licencias? (de )?(microsoft|office|google|software)|microsoft 365|google workspace|ofimatica/],
+  ['2239-4-LR25', 'Mobiliario general, escolar y clínico', 'mobiliario-general-escolar-y-clinico', /mobiliario|muebles?|sillas? de oficina|pupitres?|estantes?/],
+  ['2239-12-LR25', 'Transporte privado de pasajeros y arriendo de vehículos', 'transporte-privado-de-pasajeros-y-arriendo-de-vehiculos', /transporte (privado )?de pasajeros|arriendo de (vehiculos?|autos?|camionetas?|buses|bus|maquinarias?)|arrendar (un |una )?(vehiculos?|autos?|camionetas?|buses|bus|maquinarias?)|furgon|taxi|\bbuses\b/],
+  ['2239-5-LR25', 'Venta y arriendo de computadores y accesorios', 'venta-y-arriendo-de-computadores-y-accesorios', /computador(es|as)?|notebooks?|laptops?|tablets?|monitores|all in one|docking/]
+];
+var CMINTENT = /necesito|quiero|debo|tengo que|voy a|hay que|comprar|compro\b|contratar|adquirir|adquiero|arrendar|arriendo|cotizar|pedir|solicitar|conseguir/;
+function cmMatch(q){
+  var n = norm(q); if(!n || DATAWORDS.test(n) || /\b(art|articulo|ley|reglamento|decreto|plazo|multa|garantia)\b/.test(n) || /compar|recomiend|alternativ|conviene|explica|por que/.test(n)) return null;
+  if(!CMINTENT.test(n) && n.split(' ').length > 5) return null;
+  var hits = CMKW.filter(function(c){ return c[3].test(n) && !(c[0] === '2239-16-LR23' && /\bbus(es)?\b/.test(n)); });
+  return hits.length ? hits.slice(0, 3) : null;
+}
+function cmAnswer(hits){
+  var h = '<h4>' + (hits.length === 1 ? 'Convenio Marco que cubre lo que necesitas' : 'Convenios Marco que podrían cubrir lo que necesitas') + '</h4>';
+  hits.forEach(function(c){
+    h += '<p><b>' + esc(c[1]) + '</b> · ID de licitación ' + esc(c[0]) + '.' + (c[4] ? ' ' + esc(c[4]) : '') + '</p>' +
+      '<div class="ia-act" style="margin-top:0"><a class="ia-b p" href="https://www.mercadopublico.cl/fichaLicitacion.html?idLicitacion=' + esc(c[0]) + '" target="_blank" rel="noopener">Ficha en Mercado Público</a>' +
+      '<a class="ia-b" href="https://convenios.felipemedina.cl/detalle/detalle-' + esc(c[2]) + '.html" target="_blank" rel="noopener">Datos del convenio</a>' +
+      '<button type="button" class="ia-b" data-q="abre el convenio ' + esc(c[0]) + '">Ver sus OC en el panel</button></div>';
+  });
+  h += '<div class="ia-chg"><b>Antes de comprar.</b> Si lo que necesitas está en el Catálogo, el Convenio Marco es la vía que corresponde revisar primero: apartarse de él exige demostrar condiciones más ventajosas (DS 661/2024, arts. 89 y 92). Confirma en la Tienda que el producto esté catalogado y que el convenio siga vigente.</div>' +
+    '<div class="ia-sub"><h5>Para decidir con tus datos</h5><div class="ia-act" style="margin-top:0"><a class="ia-b p" href="#asesor" data-go="#asesor">Abrir el Asesor estratégico de compras</a></div></div>';
+  return h;
+}
 function aiReply(q, r, asesor){
   return askAI(q).then(function(aiHtml){
     var html = '';
@@ -362,6 +403,8 @@ function ask(q){
       if(al.ley !== null) hh += leyBlock([{i: al.ley}], toks(q));
       addA(hh); S.busy = false; return;
     }
+    var cmh = cmMatch(q);
+    if(cmh){ addA(cmAnswer(cmh)).dataset.q = q; S.busy = false; return; }
     var r = search(q, {cat: S.cat, hash: location.hash});
     var top = r.kb[0], html = '', isData = DATAWORDS.test(norm(q));
     var good = top && top.s >= 20 && top.hit >= Math.min(2, r.qt.length);
