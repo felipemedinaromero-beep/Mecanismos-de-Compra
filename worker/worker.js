@@ -1,4 +1,4 @@
-const MODEL = "@cf/meta/llama-3.1-8b-instruct";
+const MODEL = "@cf/meta/llama-4-scout-17b-16e-instruct";
 const CLAUDE_MODEL = "claude-sonnet-4-6";
 const buckets = new Map();
 const ALLOWED_ORIGINS = [
@@ -63,7 +63,8 @@ async function runWorkersAI(env, prompt) {
     max_tokens: 320,
     temperature: 0.2,
   });
-  return String((result && result.response) || "").trim() || null;
+  const t = result && (result.response || (result.choices && result.choices[0] && result.choices[0].message && result.choices[0].message.content));
+  return String(t || "").trim() || null;
 }
 
 async function runClaude(env, prompt) {
